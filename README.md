@@ -11,7 +11,7 @@ agent/      → Python smolagents — cerveau LLM, outils, Gradio dev UI
 
 ## Prérequis
 
-- Node.js 22+
+- Node.js 24+
 - [uv](https://docs.astral.sh/uv/getting-started/installation/) (gestionnaire Python)
 - [Ollama](https://ollama.ai) avec Qwen3 : `ollama pull qwen3:14b` (9.3GB — modèle principal)
 

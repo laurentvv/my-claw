@@ -50,3 +50,8 @@ pnpm-debug.log*
 *.tmp
 *.temp
 .cache/
+
+# Skills & Agents documentation
+.agents/
+.kilocode/skills/
+.crush/
