@@ -17,6 +17,7 @@
 8. **Webhooks** : répondre HTTP 200 immédiatement, traiter en async
 9. **Valider TypeScript** : npx tsc --noEmit doit passer avant chaque commit
 10. **lancement serveur** : Ne jamais exectuter : **npm run** dev ou **uv run uvicorn main:app --reload**, demander à l'utilisateur de le lancer et de donné les erreurs/informations
+11. **max_steps** : 5 pour tâches simples, 10 pour pilotage PC complexe (TOOL-9)
 
 ---
 
@@ -53,14 +54,17 @@
 |----|--------|-------|
 | code | glm-4.7-flash | Code, tâches techniques |
 | reason | glm-4.7 | Raisonnement profond |
+| vision | glm-4.6V | Analyse d'images via MCP Vision (TOOL-7) |
 
 Règles modèles :
 - Modèle par défaut : main (qwen3:14b)
 - Si ZAI_API_KEY absent : fallback silencieux sur main
 - think: false en mode agent (évite verbosité Qwen3)
 - num_ctx: 32768 pour tous les modèles Ollama
+- max_steps=5 pour tâches simples, 10 pour pilotage PC complexe
 - Provider Ollama : LiteLLMModel avec prefix ollama_chat/
 - Provider Z.ai : LiteLLMModel avec prefix openai/ (compatible OpenAI)
+- GLM-4.6V : utilisé uniquement via MCP Vision (TOOL-7) pour analyse d'images
 
 ---
 
@@ -140,8 +144,12 @@ Règles modèles :
 
 ## OUTILS smolagents
 
-### V1 — Actifs
-Aucun outil pour l'instant — l'agent répond en langage naturel uniquement.
+### V1 — Actifs (implémentés et validés)
+- **FileSystemTool** (TOOL-1) : read/write/create/delete/list/move/search
+- **OsExecTool** (TOOL-2) : exécution PowerShell
+- **ClipboardTool** (TOOL-3) : lecture/écriture presse-papier
+- **ScreenshotTool** (TOOL-8) : capture d'écran Windows
+- **MouseKeyboardTool** (TOOL-9) : contrôle souris/clavier (bloqué par manque de Vision)
 
 ### V2 — Bloqués, ne pas implémenter
 - web_search via SearXNG local
@@ -153,7 +161,10 @@ Aucun outil pour l'instant — l'agent répond en langage naturel uniquement.
 - Toujours sous-classe Tool (pas décorateur @tool) pour compatibilité Ollama
 - Imports dans forward(), pas au top-level du fichier
 - Timeout 10s sur tous les appels HTTP
-- max_steps=5 obligatoire sur CodeAgent
+- max_steps=5 pour tâches simples, 10 pour pilotage PC complexe
+- pyautogui.FAILSAFE=False configuré (pas de coin haut-gauche pour arrêter)
+- time.sleep(0.5) après chaque action pyautogui pour laisser l'OS réagir
+- Logs de debug ajoutés dans mouse_keyboard.py pour diagnostiquer les problèmes
 
 ---
 
@@ -167,11 +178,13 @@ Aucun outil pour l'instant — l'agent répond en langage naturel uniquement.
 - NEXTCLOUD_BASE_URL
 - NEXTCLOUD_BOT_SECRET
 - NEXTCLOUD_BOT_ID
+- SCREENSHOT_DIR : C:\tmp\myclawshots (optionnel, défaut: C:\tmp\myclawshots)
 
 ### agent/.env
 - OLLAMA_BASE_URL : http://localhost:11434
 - ZAI_API_KEY : optionnel
 - ZAI_BASE_URL : https://open.bigmodel.cn/api/paas/v4
+- SCREENSHOT_DIR : C:\tmp\myclawshots (défaut)
 
 ---
 
@@ -193,6 +206,8 @@ Aucun outil pour l'instant — l'agent répond en langage naturel uniquement.
 - Ne jamais logger le contenu des messages
 - Logger uniquement : canal, timestamp, durée, modèle
 - Valider signature/token sur tous les webhooks
+- pyautogui.FAILSAFE=False configuré (pas de coin haut-gauche pour arrêter)
+- time.sleep(0.5) après chaque action pyautogui pour laisser l'OS réagir
 
 ---
 
@@ -204,6 +219,7 @@ Aucun outil pour l'instant — l'agent répond en langage naturel uniquement.
 - Pas de pip install ou requirements.txt
 - Pas de features V2 sans validation explicite
 - Pas de Telegram, Discord, Slack, Signal
+- Pas de pilotage PC sans Vision (TOOL-7 requis pour TOOL-9)
 
 ---
 
@@ -221,6 +237,7 @@ Aucun outil pour l'instant — l'agent répond en langage naturel uniquement.
 ## RÉFÉRENCES
 
 - smolagents : https://huggingface.co/docs/smolagents
+- smolagents MCP : https://huggingface.co/docs/smolagents/tutorials/mcp
 - Prisma 7 Config : https://pris.ly/d/config-datasource
 - Z.ai GLM-4.7 : https://open.bigmodel.cn/dev/api
 - Ollama API : https://github.com/ollama/ollama/blob/main/docs/api.md
@@ -229,3 +246,5 @@ Aucun outil pour l'instant — l'agent répond en langage naturel uniquement.
 - Next.js 16 : https://nextjs.org/docs/app
 - Gradio : https://www.gradio.app/docs
 - FastAPI : https://fastapi.tiangolo.com
+- pyautogui : https://pyautogui.readthedocs.io
+- Pillow : https://pillow.readthedocs.io

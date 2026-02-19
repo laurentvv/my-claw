@@ -5,7 +5,7 @@
 
 ---
 
-## TOOL-1 — FileSystemTool (2025-02-19)
+## TOOL-1 — FileSystemTool (2026-02-19)
 
 ### Structure smolagents Tool
 - Classe Tool nécessite les attributs: `name`, `description`, `inputs`, `output_type`
@@ -52,7 +52,7 @@ Selon IMPLEMENTATION-TOOLS.md, tests à effectuer via Gradio avec modèle "reaso
 
 ---
 
-## TOOL-2 — OsExecTool (2025-02-19)
+## TOOL-2 — OsExecTool (2026-02-19)
 
 ### Implémentation
 - Classe OsExecTool avec paramètres:
@@ -77,7 +77,7 @@ Selon IMPLEMENTATION-TOOLS.md, tests à effectuer via Gradio avec modèle "reaso
 
 ---
 
-## TOOL-3 — ClipboardTool (2025-02-19)
+## TOOL-3 — ClipboardTool (2026-02-19)
 
 ### Implémentation
 - Classe ClipboardTool avec paramètres:
@@ -100,7 +100,7 @@ Selon IMPLEMENTATION-TOOLS.md, tests à effectuer via Gradio avec modèle "reaso
 
 ---
 
-## MCP Z.ai — Problèmes de compatibilité (2025-02-19)
+## MCP Z.ai — Problèmes de compatibilité (2026-02-19)
 
 ### Découverte
 Les modèles GLM-4.7 (glm-4.7 et glm-4.7-flash) génèrent du code avec des balises HTML/XML (`</code`) qui causent des erreurs de syntaxe Python dans smolagents.
@@ -132,15 +132,18 @@ Les modèles GLM-4.7 ne sont pas compatibles avec smolagents dans leur configura
 - ✅ Conservation des modèles Ollama (fast, smart, main) qui fonctionnent correctement
 
 ### État final
-- ✅ Tools locaux (FileSystemTool, OsExecTool, ClipboardTool) opérationnels
+- ✅ Tools locaux (FileSystemTool, OsExecTool, ClipboardTool, ScreenshotTool) opérationnels
+- ⚠️ MouseKeyboardTool implémenté mais bloqué par manque de Vision
 - ✅ Modèles Ollama (qwen3:4b, qwen3:8b, qwen3:14b) opérationnels
 - ❌ MCP Z.ai (TOOL-4, 5, 6, 7, 10) désactivés temporairement
-- 🔄 Continuation avec TOOL-8 (ScreenshotTool) et TOOL-9 (MouseKeyboardTool)
+- 🔄 Problème critique: TOOL-9 (MouseKeyboardTool) nécessite TOOL-7 (Vision) pour fonctionner correctement
 
 ### Note pour le futur
+- **Priorité absolue**: Implémenter TOOL-7 (MCP Vision GLM-4.6V) pour débloquer TOOL-9
 - Réévaluer la compatibilité smolagents + GLM-4.7 lors de futures versions
 - Explorer d'autres options MCP (OpenAI, Anthropic, etc.)
 - Considérer l'utilisation d'autres modèles cloud compatibles avec smolagents
+- Améliorer la description des outils avec des exemples concrets pour guider le LLM
 
 ### Découverte technique
 - pathlib.Path utilisé pour tous les chemins Windows
@@ -149,6 +152,107 @@ Les modèles GLM-4.7 ne sont pas compatibles avec smolagents dans leur configura
 - `path_obj.touch()` crée fichier vide
 - `path_obj.iterdir()` itère sur contenu dossier
 - `path_obj.glob(pattern)` pour recherche glob
+
+---
+
+## TOOL-8 — ScreenshotTool (2026-02-19)
+
+### Implémentation
+- Classe ScreenshotTool avec paramètres:
+  - region (str, optionnel): "x,y,width,height" pour une région spécifique
+- Utilise pyautogui.screenshot() pour capturer l'écran
+- Sauvegarde dans C:\tmp\myclawshots\screen_{timestamp}.png
+- Retourne le chemin absolu Windows du fichier
+- Dépendances: pyautogui, pillow
+
+### Test plan
+Selon IMPLEMENTATION-TOOLS.md, tests à effectuer via Gradio:
+1. "Prends un screenshot de l'écran"
+2. Vérifier que le fichier PNG existe dans C:\tmp\myclawshots\
+3. "Prends un screenshot et analyse-le" → enchaîne avec TOOL-7
+
+### Résultats tests
+- ✅ "Prends un screenshot de l'écran" → fichier créé avec succès
+- ✅ Fichier PNG valide et lisible
+- ⚠️ Enchaînement avec TOOL-7 bloqué car TOOL-7 n'est pas implémenté
+
+### Découvertes techniques
+- pyautogui.FAILSAFE = False configuré (pas de coin haut-gauche pour arrêter)
+- Path.mkdir(parents=True, exist_ok=True) crée le dossier automatiquement
+- Timestamp format: YYYYMMDD_HHMMSS pour éviter les collisions
+- Variable d'environnement SCREENSHOT_DIR pour configurer le dossier de sortie
+
+---
+
+## TOOL-9 — MouseKeyboardTool (2026-02-19)
+
+### Implémentation
+- Classe MouseKeyboardTool avec paramètres:
+  - operation (str): click, double_click, move, right_click, type, hotkey, drag, scroll
+  - x, y (int, optionnel): coordonnées pour opérations souris
+  - x2, y2 (int, optionnel): coordonnées destination pour drag
+  - text (str, optionnel): texte à taper
+  - keys (str, optionnel): touches séparées par virgule pour hotkey
+  - clicks (int, optionnel): nombre de clics pour scroll
+- Utilise pyautogui pour contrôler souris et clavier
+- pyautogui.FAILSAFE = False (déjà configuré dans TOOL-8)
+- time.sleep(0.5) après chaque action pour laisser l'OS réagir
+
+### Test plan
+Selon IMPLEMENTATION-TOOLS.md, tests à effectuer via Gradio avec modèle "reason" (glm-4.7):
+1. "Ouvre le menu Démarrer"
+2. "Tape 'notepad' et appuie sur Entrée"
+3. "Prends un screenshot et vérifie que Notepad est ouvert"
+4. "Tape 'Bonjour depuis my-claw !' dans Notepad"
+5. "Ferme Notepad sans sauvegarder (Alt+F4 puis ne pas sauvegarder)"
+
+### Résultats tests
+- ❌ "Ouvre le menu Démarrer" → LLM clique sur (0,0) au lieu d'utiliser hotkey("win")
+- ❌ "Tape 'notepad' et appuie sur Entrée" → LLM ne sait pas séquencer correctement
+- ❌ Screenshot pour vérifier → Impossible sans TOOL-7 (Vision)
+
+### Problème critique identifié
+L'agent LLM (qwen3:14b) ne sait pas comment utiliser correctement mouse_keyboard:
+
+1. **Description de l'outil insuffisante**
+   - L'outil ne donne pas d'exemples concrets d'utilisation
+   - Pas d'exemple pour ouvrir le menu Démarrer (hotkey avec keys="win")
+   - Pas d'exemple pour fermer une fenêtre (hotkey avec keys="alt,f4")
+
+2. **LLM invente des coordonnées incorrectes**
+   - Il clique sur (0,0) au lieu d'utiliser la touche Windows
+   - Il ne comprend pas le séquencement des actions (focus → taper → vérifier)
+
+3. **Agent aveugle**
+   - L'agent prend des screenshots mais ne peut pas les analyser
+   - Impossible de vérifier si une action a réussi
+   - Pas de feedback visuel pour s'auto-corriger
+
+### Logs de debug ajoutés
+Pour diagnostiquer le problème, des logs ont été ajoutés:
+- Version de pyautogui
+- Taille de l'écran
+- Paramètres reçus par l'outil
+- Appels pyautogui effectués
+- Traceback complet en cas d'erreur
+
+### Solution requise
+**Option 1 - Améliorer la description de l'outil** (rapide, partiel)
+- Ajouter des exemples concrets dans la description
+- Documenter comment ouvrir le menu Démarrer, fermer une fenêtre, etc.
+- Améliorer les instructions de séquencement
+
+**Option 2 - Implémenter TOOL-7 (MCP Vision GLM-4.6V)** (recommandé)
+- Permet à l'agent de "voir" les screenshots
+- L'agent peut s'auto-corriger en analysant ce qu'il voit
+- Résout le problème de l'agent aveugle
+
+### Découvertes techniques
+- pyautogui.click(x, y) pour cliquer à des coordonnées
+- pyautogui.hotkey(*keys.split(",")) pour combinaisons de touches
+- pyautogui.typewrite(text, interval=0.05) pour taper du texte
+- pyautogui.dragTo(x2, y2, duration=0.5) pour glisser-déposer
+- pyautogui.scroll(clicks, x, y) pour scroller
 
 ---
 
@@ -170,8 +274,8 @@ Les modèles GLM-4.7 ne sont pas compatibles avec smolagents dans leur configura
 - TOOL-5: MCP Web Reader Z.ai ❌ désactivé - problèmes de compatibilité
 - TOOL-6: MCP Zread GitHub ❌ désactivé - problèmes de compatibilité
 - TOOL-7: MCP Vision GLM-4.6V ❌ désactivé - problèmes de compatibilité
-- TOOL-8: ScreenshotTool
-- TOOL-9: MouseKeyboardTool
+- TOOL-8: ScreenshotTool ✅ implémenté, testé et validé
+- TOOL-9: MouseKeyboardTool ⚠️ implémenté mais bloqué par TOOL-7
 - TOOL-10: MCP Chrome Playwright ❌ désactivé - problèmes de compatibilité
 
 ---
@@ -194,8 +298,10 @@ Les modèles GLM-4.7 ne sont pas compatibles avec smolagents dans leur configura
 ### Environnement Windows
 - Chemins Windows acceptés (backslashes et forward slashes)
 - PowerShell pour exécution OS
-- pyautogui.FAILSAFE=True pour contrôle souris/clavier
+- pyautogui.FAILSAFE=False pour contrôle souris/clavier (configuré)
 - Dossier temporaire: C:\tmp\myclawshots\ pour screenshots
+- Variable d'environnement SCREENSHOT_DIR configurable
+- time.sleep(0.5) après chaque action pyautogui pour laisser l'OS réagir
 
 ---
 

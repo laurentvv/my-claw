@@ -9,5 +9,6 @@ from .file_system import FileSystemTool
 from .os_exec import OsExecTool
 from .clipboard import ClipboardTool
 from .screenshot import ScreenshotTool
+from .mouse_keyboard import MouseKeyboardTool
 
-TOOLS = [FileSystemTool(), OsExecTool(), ClipboardTool(), ScreenshotTool()]
+TOOLS = [FileSystemTool(), OsExecTool(), ClipboardTool(), ScreenshotTool(), MouseKeyboardTool()]
