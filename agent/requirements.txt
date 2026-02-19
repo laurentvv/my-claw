@@ -1,0 +1,20 @@
+# Agent Python — smolagents + FastAPI
+# Installer : pip install -r requirements.txt
+
+# Core agent
+smolagents[litellm]>=1.9.0
+
+# API serveur
+fastapi>=0.115.0
+uvicorn[standard]>=0.32.0
+pydantic>=2.9.0
+
+# HTTP client (outils)
+requests>=2.32.0
+httpx>=0.27.0
+
+# UI dev
+gradio>=5.0.0
+
+# Utils
+python-dotenv>=1.0.0

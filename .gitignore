@@ -1,0 +1,52 @@
+# Environment variables
+.env.local
+.env
+
+# Python
+agent/.venv/
+agent/__pycache__/
+agent/*.pyc
+agent/*.pyo
+agent/*.pyd
+agent/.pytest_cache/
+agent/.coverage
+agent/htmlcov/
+
+# Node.js
+gateway/node_modules/
+gateway/.next/
+gateway/out/
+gateway/build/
+gateway/.turbo/
+gateway/.cache/
+
+# Databases
+*.db
+*.db-journal
+*.sqlite
+*.sqlite3
+prisma/dev.db
+prisma/dev.db-journal
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Temporary files
+*.tmp
+*.temp
+.cache/
