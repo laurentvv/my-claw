@@ -76,22 +76,29 @@ Checkpoint validé : OUI
 ---
 
 ## MODULE 3 — WebChat (Next.js UI)
-**Statut : A FAIRE — PROCHAIN MODULE**
+**Statut : DONE**
 
-À implémenter :
-- Page app/(webchat)/page.tsx : interface chat
-- Route app/api/chat/route.ts : endpoint principal avec streaming SSE
-- Authentification par token WEBCHAT_TOKEN
-- Appel à lib/memory.ts pour historique
-- Appel à lib/agent-client.ts vers Python
-- Streaming de la réponse au client
-- UI Tailwind sobre et mobile-friendly
+Ce qui a été fait :
+- gateway/app/(webchat)/page.tsx : UI React avec Tailwind, mobile-friendly
+- gateway/app/api/chat/route.ts : endpoint POST/GET avec auth token
+- Authentification via header Authorization: Bearer {WEBCHAT_TOKEN}
+- Streaming Server-Sent Events (SSE) pour les réponses agent
+- Sauvegarde des messages en DB SQLite via lib/memory.ts
+- Chargement historique persistant (localStorage + DB)
+- Sélecteur de modèle (fast/smart/main/code/reason)
+- Rejet correct des requêtes non authentifiées (401)
 
-Checkpoint attendu :
-- Ouvrir http://localhost:3000 → login avec token
-- Envoyer un message → réponse en streaming visible
-- Rafraîchir → historique toujours présent
-- Commit : feat: module 3 — webchat
+Tests validés :
+- ✓ Gateway Next.js répond sur :3000
+- ✓ Agent Python répond sur :8000
+- ✓ POST /api/chat avec token streaming SSE fonctionnel
+- ✓ Conversation ID généré et persisté en DB
+- ✓ Messages user et assistant sauvegardés
+- ✓ GET /api/chat retourne l'historique
+- ✓ Rejet des requêtes sans token (401)
+- ✓ UI React affiche les messages et gère le login
+
+Checkpoint validé : OUI (tests automatisés + vérification DB)
 
 ---
 
