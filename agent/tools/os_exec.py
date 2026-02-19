@@ -61,8 +61,8 @@ Returns a formatted string with stdout, stderr, and returncode, or an error mess
                 shell=False,
             )
 
-            stdout = result.stdout.strip()
-            stderr = result.stderr.strip()
+            stdout = result.stdout.strip() if result.stdout else ""
+            stderr = result.stderr.strip() if result.stderr else ""
             returncode = result.returncode
 
             logger.info(f"Command completed with returncode: {returncode}")
