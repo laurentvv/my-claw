@@ -2,7 +2,8 @@ import os
 import logging
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
-from smolagents import CodeAgent, LiteLLMModel
+from smolagents import CodeAgent, LiteLLMModel, MCPClient
+from mcp import StdioServerParameters
 from dotenv import load_dotenv
 from tools import TOOLS
 
@@ -17,18 +18,58 @@ MODELS: dict[str, tuple[str, str]] = {
     "fast":   ("ollama_chat/qwen3:4b",  "http://localhost:11434"),
     "smart":  ("ollama_chat/qwen3:8b",  "http://localhost:11434"),
     "main":   ("ollama_chat/qwen3:14b", "http://localhost:11434"),
+    "code":   ("openai/glm-4.7-flash",  os.environ.get("ZAI_BASE_URL", "https://api.z.ai/api/coding/paas/v4")),
+    "reason": ("openai/glm-4.7",        os.environ.get("ZAI_BASE_URL", "https://api.z.ai/api/coding/paas/v4")),
 }
+
+# Initialisation MCP Vision Z.ai (TOOL-7)
+_mcp_tools: list | None = None
+
+if "ZAI_API_KEY" in os.environ:
+    try:
+        mcp_params = StdioServerParameters(
+            command="npx",
+            args=["-y", "@z_ai/mcp-server@latest"],
+            env={
+                **os.environ,
+                "Z_AI_API_KEY": os.environ["ZAI_API_KEY"],
+                "Z_AI_MODE": "ZAI",
+            },
+        )
+        with MCPClient(mcp_params) as mcp_tools:
+            _mcp_tools = list(mcp_tools)
+            logger.info(f"MCP Vision Z.ai connecté - {len(_mcp_tools)} outils disponibles")
+            logger.info(f"Outils MCP: {[t.name for t in _mcp_tools]}")
+    except Exception as e:
+        logger.warning(f"Échec connexion MCP Vision Z.ai: {type(e).__name__}: {e}")
+        _mcp_tools = None
+else:
+    logger.warning("ZAI_API_KEY non défini - MCP Vision Z.ai désactivé")
+
+# Fusion des tools locaux et MCP
+ALL_TOOLS = TOOLS + (_mcp_tools if _mcp_tools else [])
+logger.info(f"Total tools disponibles: {len(ALL_TOOLS)} ({len(TOOLS)} locaux, {len(_mcp_tools) if _mcp_tools else 0} MCP)")
 
 
 def get_model(model_id: str = "main") -> LiteLLMModel:
     model_name, base_url = MODELS.get(model_id, MODELS["main"])
-
+    
+    # Déterminer l'API key selon le provider
+    if model_id in ["code", "reason"]:
+        api_key = os.environ.get("ZAI_API_KEY", "ollama")
+        # Ajouter stop sequences pour éviter les balises </code> et </s> dans le code généré
+        stop_sequences = ["</code>", "</s>"]
+    else:
+        api_key = "ollama"
+        stop_sequences = None
+    
     return LiteLLMModel(
         model_id=model_name,
         api_base=base_url,
-        api_key="ollama",
+        api_key=api_key,
         num_ctx=32768,
         extra_body={"think": False},
+        stop=stop_sequences,
     )
 
 
@@ -51,10 +92,10 @@ class RunRequest(BaseModel):
 @app.post("/run")
 async def run(req: RunRequest):
     try:
-        logger.info(f"Tools disponibles: {len(TOOLS)} locaux")
+        logger.info(f"Tools disponibles: {len(ALL_TOOLS)} ({len(TOOLS)} locaux, {len(_mcp_tools) if _mcp_tools else 0} MCP)")
         
         agent = CodeAgent(
-            tools=TOOLS,
+            tools=ALL_TOOLS,
             model=get_model(req.model),
             max_steps=10,
             verbosity_level=1,

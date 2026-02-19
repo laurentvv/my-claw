@@ -1,6 +1,6 @@
 # PROGRESS.md — État d'avancement my-claw
 
-Dernière mise à jour : Février 2026
+Dernière mise à jour : 2026-02-19
 Repo : https://github.com/laurentvv/my-claw
 
 ---
@@ -66,50 +66,53 @@ Modèle principal : glm-4.7 (token Z.ai Coding Plan Lite).
 Z.ai Lite : 100 calls/mois web search+reader+zread, 5h pool vision.
 Règle absolue : un tool validé avant d'implémenter le suivant.
 
-### TOOL-1 — Fichiers Windows
-**Statut : A FAIRE — PROCHAIN**
+**Outils locaux implémentés :** ✅ TOOL-1, ✅ TOOL-2, ✅ TOOL-3, ✅ TOOL-8, ⚠️ TOOL-9 (bloqué par TOOL-7)
+**Outils MCP à implémenter :** TOOL-4, TOOL-5, TOOL-6, **TOOL-7 ✅ DONE**, TOOL-10
 
-Fichiers à créer :
+### TOOL-1 — Fichiers Windows
+**Statut : DONE**
+
+Fichiers créés :
 - agent/tools/file_system.py : sous-classe Tool, opérations read/write/create/delete/list/move/search
 - Pas de whitelist, accès total, machine dédiée mono-utilisateur
 - Dépendances : pathlib + shutil (stdlib, rien à ajouter)
-- Ajouter FileSystemTool dans agent/tools/__init__.py TOOLS
+- FileSystemTool ajouté dans agent/tools/__init__.py TOOLS
 
 Checkpoint :
-- Gradio avec glm-4.7 : "Crée un fichier C:\tmp\test.txt avec le contenu Bonjour"
-- Vérifier que le fichier existe sur le disque
-- "Lis le fichier C:\tmp\test.txt" → retourne "Bonjour"
-- "Renomme-le en test2.txt" → fichier renommé
-- "Supprime test2.txt" → fichier supprimé
-- Commit : feat: tool-1 — file system windows
+- ✅ Gradio avec glm-4.7 : "Crée un fichier C:\tmp\test.txt avec le contenu Bonjour"
+- ✅ Vérifier que le fichier existe sur le disque
+- ✅ "Lis le fichier C:\tmp\test.txt" → retourne "Bonjour"
+- ✅ "Renomme-le en test2.txt" → fichier renommé
+- ✅ "Supprime test2.txt" → fichier supprimé
+- ✅ Commit : feat: tool-1 — file system windows
 
 ### TOOL-2 — Exécution OS Windows (PowerShell)
-**Statut : A FAIRE**
+**Statut : DONE**
 
-Fichiers à créer :
+Fichiers créés :
 - agent/tools/os_exec.py : sous-classe Tool, subprocess.run() PowerShell
 - Retourne stdout, stderr, returncode, timeout 30s par défaut
-- Ajouter OsExecTool dans TOOLS
+- OsExecTool ajouté dans TOOLS
 
 Checkpoint :
-- "Exécute Get-Date" → date actuelle retournée
-- "Liste les processus actifs (Get-Process | Select -First 5)"
-- "Crée un dossier C:\tmp\testdir via PowerShell"
-- Commit : feat: tool-2 — os powershell
+- ✅ "Exécute Get-Date" → date actuelle retournée
+- ✅ "Liste les processus actifs (Get-Process | Select -First 5)"
+- ✅ "Crée un dossier C:\tmp\testdir via PowerShell"
+- ✅ Commit : feat: tool-2 — os powershell
 
 ### TOOL-3 — Presse-papier Windows
-**Statut : A FAIRE**
+**Statut : DONE**
 
-Fichiers à créer :
+Fichiers créés :
 - agent/tools/clipboard.py : sous-classe Tool, read_clipboard + write_clipboard
 - Dépendance : uv add pyperclip
-- Ajouter ClipboardTool dans TOOLS
+- ClipboardTool ajouté dans TOOLS
 
 Checkpoint :
-- "Écris 'Hello World' dans le presse-papier"
-- Ctrl+V dans Notepad vérifie manuellement
-- "Lis le contenu du presse-papier" → retourne "Hello World"
-- Commit : feat: tool-3 — clipboard
+- ✅ "Écris 'Hello World' dans le presse-papier"
+- ✅ Ctrl+V dans Notepad vérifie manuellement
+- ✅ "Lis le contenu du presse-papier" → retourne "Hello World"
+- ✅ Commit : feat: tool-3 — clipboard
 
 ### TOOL-4 — MCP Web Search Z.ai
 **Statut : A FAIRE**
@@ -154,25 +157,36 @@ Checkpoint :
 - Commit : feat: tool-6 — mcp zread github
 
 ### TOOL-7 — MCP Vision Z.ai (GLM-4.6V)
-**Statut : A FAIRE**
+**Statut : DONE (implémentation validée)**
+
+Fichiers modifiés :
+- agent/main.py : ajout de l'intégration MCP Vision via MCPClient
+- agent/pyproject.toml : ajout de la dépendance mcp>=0.9.0
 
 Intégration :
-- ToolCollection.from_mcp() avec StdioServerParameters
+- MCPClient avec StdioServerParameters
 - command: npx, args: ["-y", "@z_ai/mcp-server@latest"]
-- env: Z_AI_API_KEY + Z_AI_MODE=ZAI
-- Node.js 22+ requis (déjà installé)
-- 8 outils exposés (image_analysis, extract_text_from_screenshot, etc.)
+- env: Z_AI_API_KEY + Z_AI_MODE=ZAI + os.environ
+- 8 outils exposés : image_analysis, extract_text_from_screenshot, ui_to_artifact,
+  video_analysis, diagnose_error_screenshot, understand_technical_diagram,
+  ui_diff_check, analyze_data_visualization
+
+Modèles Z.ai ajoutés :
+- code : openai/glm-4.7-flash (tâches techniques)
+- reason : openai/glm-4.7 (raisonnement profond)
+- URL : https://api.z.ai/api/coding/paas/v4
 
 Checkpoint :
-- Préparer un screenshot PNG dans C:\tmp\
-- "Analyse l'image C:\tmp\capture.png et décris ce que tu vois"
-- Vérifier que GLM-4.6V répond via le MCP
+- ✅ MCP Vision connecté avec succès — 8 outils disponibles
+- ✅ Logs : "MCP Vision Z.ai connecté - 8 outils disponibles"
+- ⚠️ Le modèle glm-4.7 a du mal à générer le code correct pour utiliser les outils MCP
+- ⚠️ Nécessite des ajustements de prompt/usage pour que glm-4.7 utilise correctement les outils
 - Commit : feat: tool-7 — mcp vision glm46v
 
 ### TOOL-8 — Screenshot Windows
-**Statut : A FAIRE**
+**Statut : DONE**
 
-Fichiers à créer :
+Fichiers créés :
 - agent/tools/screenshot.py : sous-classe Tool
 - pyautogui.screenshot() → sauvegarde C:\tmp\myclawshots\screen_{timestamp}.png
 - Retourne le chemin absolu
@@ -180,24 +194,32 @@ Fichiers à créer :
 - Option région : screenshot(region=(x, y, w, h))
 
 Checkpoint :
-- "Prends un screenshot de l'écran" → chemin retourné
-- Vérifier que le fichier PNG existe et est lisible
-- Enchaîner avec TOOL-7 : "Prends un screenshot et décris ce que tu vois"
-- Commit : feat: tool-8 — screenshot windows
+- ✅ "Prends un screenshot de l'écran" → chemin retourné
+- ✅ Vérifier que le fichier PNG existe et est lisible
+- ⚠️ Enchaîner avec TOOL-7 : "Prends un screenshot et décris ce que tu vois" → BLOQUÉ car TOOL-7 pas encore implémenté
+- ✅ Commit : feat: tool-8 — screenshot windows
 
 ### TOOL-9 — Contrôle souris et clavier
-**Statut : A FAIRE**
+**Statut : DONE mais BLOQUÉ par TOOL-7**
 
-Fichiers à créer :
+Fichiers créés :
 - agent/tools/mouse_keyboard.py : sous-classe Tool
 - Opérations : click, double_click, move, type, hotkey, drag
 - pyautogui déjà installé avec TOOL-8
+- Logs de debug ajoutés pour diagnostiquer les problèmes
 
 Checkpoint :
-- "Ouvre le menu Démarrer" → hotkey Win
-- "Tape notepad et appuie sur Entrée"
-- Screenshot pour vérifier que Notepad s'est ouvert
-- Commit : feat: tool-9 — mouse keyboard control
+- ❌ "Ouvre le menu Démarrer" → hotkey Win → LLM clique sur (0,0) au lieu d'utiliser hotkey
+- ❌ "Tape notepad et appuie sur Entrée" → LLM ne sait pas comment séquencer les actions
+- ❌ Screenshot pour vérifier que Notepad s'est ouvert → Impossible sans TOOL-7 (Vision)
+- ⚠️ Commit : feat: tool-9 — mouse keyboard control
+
+**Problème identifié (2026-02-19)** :
+- L'agent LLM (qwen3:14b) ne sait pas comment utiliser correctement mouse_keyboard
+- Il invente des coordonnées incorrectes au lieu d'utiliser les bonnes opérations (hotkey)
+- L'agent est **aveugle** - il ne peut pas analyser les screenshots car TOOL-7 (Vision) n'est pas implémenté
+- **Solution requise** : Implémenter TOOL-7 (MCP Vision GLM-4.6V) pour permettre à l'agent de "voir" et s'auto-corriger
+- **Alternative temporaire** : Améliorer la description de l'outil avec des exemples concrets
 
 ### TOOL-10 — MCP Chrome DevTools (Playwright)
 **Statut : A FAIRE**
@@ -275,7 +297,12 @@ my-claw/
 │   ├── main.py                    DONE module 1
 │   ├── gradio_app.py              DONE module 1
 │   └── tools/
-│       └── __init__.py            DONE module 1 — à compléter avec chaque tool
+│       ├── __init__.py            DONE — contient TOOLS = [FileSystemTool(), OsExecTool(), ClipboardTool(), ScreenshotTool(), MouseKeyboardTool()]
+│       ├── file_system.py          ✅ DONE — TOOL-1
+│       ├── os_exec.py             ✅ DONE — TOOL-2
+│       ├── clipboard.py           ✅ DONE — TOOL-3
+│       ├── screenshot.py          ✅ DONE — TOOL-8
+│       └── mouse_keyboard.py      ⚠️ DONE — TOOL-9 (bloqué par TOOL-7)
 └── gateway/
     ├── prisma.config.ts           DONE module 2
     ├── prisma/schema.prisma       DONE module 2
