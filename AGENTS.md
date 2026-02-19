@@ -1,11 +1,12 @@
 # AGENTS.md — my-claw Assistant Personnel Hybride
-> Fichier de guidage pour les IA de codage (Claude Code, Cursor, Codex, Windsurf...)
+> Fichier de guidage pour les IA de codage (Kilo Code, Crush, Claude Code, Cursor, Codex, Windsurf...)
 > Architecture : Next.js 16 (gateway) + Python smolagents (cerveau) + Gradio (UI dev)
 
 ---
 
 ## RÈGLES IMPÉRATIVES POUR L'IA DE CODAGE
 
+0. **Lis LEARNING.md** - avant chaque tâche. Mets **LEARNING.md** à jour avec les nouvelles découvertes après.
 1. **STOP à chaque CHECKPOINT** — attendre validation explicite de l'utilisateur avant de continuer
 2. **Un module à la fois** — ne jamais anticiper le module suivant
 3. **Lire le skill correspondant** dans `.claude/skills/` avant de coder quoi que ce soit
@@ -15,6 +16,7 @@
 7. **Pas de secrets dans le code** — toujours process.env ou os.environ
 8. **Webhooks** : répondre HTTP 200 immédiatement, traiter en async
 9. **Valider TypeScript** : npx tsc --noEmit doit passer avant chaque commit
+10. **lancement serveur** : Ne jamais exectuter : **npm run** dev ou **uv run uvicorn main:app --reload**, demander à l'utilisateur de le lancer et de donné les erreurs/informations
 
 ---
 
@@ -24,7 +26,7 @@
 |--------|-------------|---------|-------|
 | Gateway | Next.js | 16+ | App Router obligatoire |
 | ORM | Prisma | 7+ | SQLite local |
-| Runtime JS | Node.js | 22+ | |
+| Runtime JS | Node.js | 24+ | |
 | Gestionnaire Python | uv | latest | Jamais pip |
 | Agent LLM | smolagents | 1.9+ | CodeAgent |
 | API serveur Python | FastAPI | 0.115+ | |
