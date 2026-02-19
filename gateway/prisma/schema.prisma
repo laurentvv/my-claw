@@ -1,18 +1,52 @@
-// Prisma schema — my-claw
-// Sera complété en module 2
-// Pour l'instant juste le datasource
-
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "sqlite"
-  url      = env("DATABASE_URL")
 }
 
-// Models ajoutés en MODULE 2
-// - Conversation
-// - Message
-// - CronJob
-// - Settings
+model Conversation {
+  id        String    @id @default(cuid())
+  channel   String    // "webchat" | "whatsapp" | "nextcloud"
+  channelId String    // session id, numéro, username
+  title     String?
+  model     String    @default("main")
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  messages  Message[]
+
+  @@unique([channel, channelId])
+  @@index([channel, channelId])
+}
+
+model Message {
+  id             String       @id @default(cuid())
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  role           String       // "user" | "assistant"
+  content        String
+  model          String?
+  createdAt      DateTime     @default(now())
+
+  @@index([conversationId, createdAt])
+}
+
+model CronJob {
+  id        String    @id @default(cuid())
+  name      String    @unique
+  schedule  String
+  prompt    String
+  channel   String
+  channelId String
+  model     String    @default("main")
+  enabled   Boolean   @default(true)
+  lastRun   DateTime?
+  createdAt DateTime  @default(now())
+}
+
+model Settings {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
+}
