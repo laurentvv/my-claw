@@ -1,21 +1,20 @@
 # PROGRESS.md — État d'avancement my-claw
 
 Dernière mise à jour : Février 2026
+Repo : https://github.com/laurentvv/my-claw
 
 ---
 
 ## LÉGENDE
-- DONE : terminé et validé par l'utilisateur
-- EN COURS : en cours d'implémentation
+- DONE    : terminé et validé par l'utilisateur
 - A FAIRE : prochain à implémenter
-- BLOQUE : ne pas toucher sans validation explicite
+- BLOQUE  : ne pas toucher sans validation explicite
 
 ---
 
 ## MODULE 0 — Socle & Configuration
 **Statut : DONE**
 
-Ce qui a été fait :
 - Repo GitHub créé : https://github.com/laurentvv/my-claw
 - Structure dossiers : gateway/ (Next.js) + agent/ (Python)
 - .gitignore complet (Node, Python, .env, .db, .venv, modèles)
@@ -31,14 +30,11 @@ Ce qui a été fait :
   - embeddinggemma (utile pour mémoire vectorielle V2)
   - lfm2.5-thinking:1.2b
 
-Checkpoint validé : OUI
-
 ---
 
 ## MODULE 1 — Cerveau Python (smolagents + FastAPI + Gradio)
 **Statut : DONE**
 
-Ce qui a été fait :
 - agent/main.py : FastAPI avec POST /run et GET /health
 - agent/gradio_app.py : interface Gradio fonctionnelle
 - agent/tools/__init__.py : TOOLS = [] prêt à recevoir les outils
@@ -50,14 +46,11 @@ Ce qui a été fait :
 
 Aucun outil actif — l'agent répond en langage naturel uniquement.
 
-Checkpoint validé : OUI
-
 ---
 
 ## MODULE 2 — Mémoire (Next.js + Prisma 7 + SQLite)
 **Statut : DONE**
 
-Ce qui a été fait :
 - gateway/prisma/schema.prisma : 4 tables (Conversation, Message, CronJob, Settings)
 - gateway/prisma.config.ts : configuration Prisma 7 avec datasource.url
 - gateway/lib/db.ts : singleton PrismaClient avec PrismaLibSQL
@@ -66,107 +59,121 @@ Ce qui a été fait :
 - Migration init appliquée, dev.db créé
 - Dépendances : prisma, @prisma/client, @prisma/adapter-libsql, @libsql/client
 
-Note Prisma 7 importante :
-- url retiré de schema.prisma (breaking change v7)
-- PrismaLibSQL prend { url: string } directement
+Notes Prisma 7 critiques (breaking changes) :
+- url retiré de schema.prisma
+- PrismaLibSQL prend { url: string } directement (pas createClient())
 - prisma.config.ts utilise datasource.url (pas adapter ni earlyAccess)
-
-Checkpoint validé : OUI
 
 ---
 
 ## MODULE 3 — WebChat (Next.js UI)
 **Statut : DONE**
 
-Ce qui a été fait :
 - gateway/app/(webchat)/page.tsx : UI React avec Tailwind, mobile-friendly
 - gateway/app/api/chat/route.ts : endpoint POST/GET avec auth token
 - Authentification via header Authorization: Bearer {WEBCHAT_TOKEN}
 - Streaming Server-Sent Events (SSE) pour les réponses agent
 - Sauvegarde des messages en DB SQLite via lib/memory.ts
-- Chargement historique persistant (localStorage + DB)
+- Chargement historique persistant
 - Sélecteur de modèle (fast/smart/main/code/reason)
 - Rejet correct des requêtes non authentifiées (401)
 
 Tests validés :
-- ✓ Gateway Next.js répond sur :3000
-- ✓ Agent Python répond sur :8000
-- ✓ POST /api/chat avec token streaming SSE fonctionnel
-- ✓ Conversation ID généré et persisté en DB
-- ✓ Messages user et assistant sauvegardés
-- ✓ GET /api/chat retourne l'historique
-- ✓ Rejet des requêtes sans token (401)
-- ✓ UI React affiche les messages et gère le login
+- Gateway Next.js répond sur :3000
+- Agent Python répond sur :8000
+- POST /api/chat avec token streaming SSE fonctionnel
+- Conversation ID généré et persisté en DB
+- Messages user et assistant sauvegardés
+- GET /api/chat retourne l'historique
+- Rejet des requêtes sans token (401)
+- UI React affiche les messages et gère le login
 
-Checkpoint validé : OUI (tests automatisés + vérification DB)
-
-**Validation détaillée :** Voir [`plans/validation-module3.md`](plans/validation-module3.md) pour le rapport complet de validation (2026-02-19)
+Rapport complet : plans/validation-module3.md
 
 ---
 
-## MODULE 4 — Canal WhatsApp
-**Statut : A FAIRE**
+## DÉCISION — WhatsApp retiré définitivement
 
-À implémenter :
-- gateway/app/api/webhook/whatsapp/route.ts
-- gateway/lib/channels/whatsapp.ts
-- Vérification token Meta (GET)
-- Réception async (POST)
-- Envoi via Meta Cloud API
+WhatsApp supprimé du plan le 2026-02-19.
+Raison : Nextcloud Talk suffit pour usage perso, pas de dépendance Meta souhaitée.
+Les anciens modules 4 (WhatsApp) et 5 (Nextcloud) sont renumérotés en conséquence.
 
 ---
 
-## MODULE 5 — Canal Nextcloud Talk
-**Statut : A FAIRE**
+## MODULE 4 — Canal Nextcloud Talk
+**Statut : A FAIRE — PROCHAIN MODULE**
 
 À implémenter :
 - gateway/app/api/webhook/nextcloud/route.ts
+  - Vérification signature HMAC-SHA256 obligatoire
+  - Headers : X-Nextcloud-Talk-Random + X-Nextcloud-Talk-Signature
+  - Utiliser crypto.timingSafeEqual pour comparer les signatures
+  - Répondre HTTP 200 immédiatement, traiter en async
 - gateway/lib/channels/nextcloud.ts
-- Vérification HMAC-SHA256 obligatoire
-- Envoi via OCS API
+  - Fonction send(token, message)
+  - POST vers {NC_BASE_URL}/ocs/v2.php/apps/spreed/api/v1/bot/{BOT_ID}/message
+  - Header OCS-APIRequest: true
+- Enregistrer le bot dans l'admin Nextcloud, récupérer le secret NEXTCLOUD_BOT_SECRET
+
+Variables d'env à remplir dans gateway/.env.local :
+- NEXTCLOUD_BASE_URL
+- NEXTCLOUD_BOT_SECRET
+- NEXTCLOUD_BOT_ID
+
+Checkpoint attendu :
+- Envoyer un message au bot dans Nextcloud Talk → réponse de l'agent
+- Mauvaise signature → HTTP 401
+- Historique de la conversation visible dans Prisma Studio
+- Commit : feat: module 4 — nextcloud talk
 
 ---
 
-## MODULE 6 — Cron & Proactivité
+## MODULE 5 — Cron & Proactivité
 **Statut : A FAIRE**
 
 À implémenter :
 - gateway/app/api/cron/route.ts
-- Lecture CronJobs actifs depuis DB
-- Déclenchement via crontab système
+  - Protégé par header X-Cron-Secret
+  - Lit les CronJobs actifs en DB
+  - Exécute via agent Python et envoie la réponse sur Nextcloud Talk
+- Configuration crontab système : appel chaque minute vers /api/cron
+- UI minimaliste pour créer/activer/désactiver des CronJobs
 
 ---
 
-## MODULE 7 — Z.ai GLM-4.7 + Health Check
+## MODULE 6 — Z.ai GLM-4.7 + Health Check
 **Statut : A FAIRE**
 
 À implémenter :
-- Configuration ZAI_API_KEY
-- Test modèles code et reason
-- gateway/app/api/health/route.ts : statut Ollama, agent Python, DB
+- Configuration ZAI_API_KEY dans agent/.env
+- Test modèles code (glm-4.7-flash) et reason (glm-4.7) via Gradio
+- gateway/app/api/health/route.ts
+  - Statut Ollama (:11434)
+  - Statut agent Python (:8000)
+  - Statut DB SQLite (ping Prisma)
 
 ---
 
-## MODULE 8 — Identity & Persona
+## MODULE 7 — Identity & Persona
 **Statut : A FAIRE**
 
 À implémenter :
-- UI édition system prompt dans WebChat
-- Injection system prompt dans chaque appel agent
-- Persistance dans table Settings
+- UI d'édition du system prompt dans WebChat
+- Injection du system prompt dans chaque appel à l'agent Python
+- Persistance dans la table Settings (clés : system_prompt, persona_name)
 
 ---
 
 ## MODULES V2 — BLOQUES
 
-Ne pas implémenter avant décision explicite de l'utilisateur.
+Ne pas implémenter avant décision explicite de l'utilisateur dans ce fichier.
 
-- V2-A : Voice/STT sur Nextcloud Talk (whisper.cpp)
-- V2-B : Exécution de code sandbox
-- V2-C : Lecture/écriture fichiers whitelist
-- V2-D : Browser control Playwright
-- V2-E : Mémoire vectorielle (pgvector + nomic-embed-text)
-  Note : nomic-embed-text déjà disponible sur Ollama — prêt quand décision prise
+- V2-A : Voice/STT sur Nextcloud Talk (whisper.cpp + ffmpeg)
+  Note : l'API bot NC Talk ne supporte pas l'envoi audio — STT entrant uniquement
+- V2-B : Exécution de code sandbox (Pyodide ou Docker)
+- V2-C : Lecture/écriture fichiers whitelist /data/allowed/
+- V2-D : Browser control Playwright headless
+- V2-E : Mémoire vectorielle — nomic-embed-text déjà dispo sur Ollama, prêt quand décidé
 
 ---
 
@@ -175,19 +182,28 @@ Ne pas implémenter avant décision explicite de l'utilisateur.
 ```
 my-claw/
 ├── AGENTS.md
-├── PROGRESS.md
+├── PLAN.md
+├── PROGRESS.md               ← CE FICHIER
 ├── COMPARATIF.md
 ├── README.md
 ├── .env.example
 ├── .gitignore
 ├── setup.ps1
+├── .claude/
+│   └── skills/
+│       ├── smolagents-tools/SKILL.md
+│       ├── prisma-patterns/SKILL.md
+│       ├── nextjs-api-routes/SKILL.md
+│       └── channel-webhooks/SKILL.md
+├── plans/
+│   └── validation-module3.md
 ├── agent/
 │   ├── pyproject.toml
 │   ├── uv.lock
 │   ├── main.py               DONE module 1
 │   ├── gradio_app.py         DONE module 1
 │   └── tools/
-│       └── __init__.py       DONE module 1 (vide)
+│       └── __init__.py       DONE module 1
 └── gateway/
     ├── prisma.config.ts      DONE module 2
     ├── prisma/
@@ -198,6 +214,10 @@ my-claw/
     │   ├── db.ts             DONE module 2
     │   ├── memory.ts         DONE module 2
     │   └── agent-client.ts   DONE module 2
-    ├── app/                  scaffold Next.js — module 3 à faire
-    └── ... (fichiers Next.js standard)
+    └── app/
+        ├── (webchat)/
+        │   └── page.tsx      DONE module 3
+        └── api/
+            └── chat/
+                └── route.ts  DONE module 3
 ```

@@ -33,9 +33,9 @@ Pas de cloud obligatoire — local-first par défaut, cloud optionnel.
 │  Ollama :11434 — modèles locaux                             │
 │  SQLite  — mémoire conversations                            │
 └─────────────────────────────────────────────────────────────┘
-         │                        │
-   WhatsApp                 Nextcloud Talk
-   (Meta Cloud API)         (Bot HMAC-SHA256)
+         │
+   Nextcloud Talk
+   (Bot HMAC-SHA256)
 ```
 
 ---
@@ -102,20 +102,7 @@ Livrable : chat fonctionnel dans le navigateur, historique persistant.
 
 ---
 
-### MODULE 4 — Canal WhatsApp
-**But :** Recevoir et envoyer des messages via Meta Cloud API.
-
-Périmètre :
-- gateway/app/api/webhook/whatsapp/route.ts : GET (vérif) + POST (réception async)
-- gateway/lib/channels/whatsapp.ts : fonction send(to, text)
-- Flux complet : webhook → mémoire → agent → réponse WA
-- Exposition publique du webhook pour Meta (ngrok en dev)
-
-Livrable : envoyer un WhatsApp → recevoir la réponse de l'agent.
-
----
-
-### MODULE 5 — Canal Nextcloud Talk
+### MODULE 4 — Canal Nextcloud Talk
 **But :** Bot Nextcloud Talk avec sécurité HMAC.
 
 Périmètre :
@@ -127,7 +114,7 @@ Livrable : message dans Nextcloud Talk → réponse de l'agent.
 
 ---
 
-### MODULE 6 — Cron & Proactivité
+### MODULE 5 — Cron & Proactivité
 **But :** L'assistant peut initier des messages selon un planning.
 
 Périmètre :
@@ -139,7 +126,7 @@ Livrable : un CronJob créé déclenche un message au bon moment.
 
 ---
 
-### MODULE 7 — Z.ai GLM-4.7 + Health Check
+### MODULE 6 — Z.ai GLM-4.7 + Health Check
 **But :** Provider cloud opérationnel + monitoring de l'ensemble.
 
 Périmètre :
@@ -150,7 +137,7 @@ Livrable : GLM-4.7 répond via Gradio, /api/health retourne tous les statuts.
 
 ---
 
-### MODULE 8 — Identity & Persona
+### MODULE 7 — Identity & Persona
 **But :** L'assistant a une personnalité persistante configurable.
 
 Périmètre :
@@ -196,7 +183,7 @@ Complète (ne remplace pas) l'historique glissant de 20 messages.
 
 | Sujet | Décision | Raison |
 |-------|----------|--------|
-| WhatsApp | Meta Cloud API (officiel) | Plus stable que Baileys (reverse-engineering) |
+| WhatsApp | Retiré — remplacé par Nextcloud Talk | Dépendance Meta inutile, NC Talk suffit pour usage perso |
 | Nextcloud Talk | Ajouté comme canal prioritaire | Privacy, déjà dans l'infra |
 | Docker | Non pour l'app | Complexité inutile, machine dédiée |
 | Redis | Non | Pas de besoin de queue pour mono-utilisateur |
@@ -225,11 +212,10 @@ MODULE 0  DONE  Socle
 MODULE 1  DONE  Cerveau Python
 MODULE 2  DONE  Mémoire Prisma
 MODULE 3  TODO  WebChat          ← PROCHAIN
-MODULE 4  TODO  WhatsApp
-MODULE 5  TODO  Nextcloud Talk
-MODULE 6  TODO  Cron
-MODULE 7  TODO  Z.ai + Health
-MODULE 8  TODO  Identity
+MODULE 4  TODO  Nextcloud Talk
+MODULE 5  TODO  Cron
+MODULE 6  TODO  Z.ai + Health
+MODULE 7  TODO  Identity
 ─────────────────────────────────
 V2-A      HOLD  Voice STT
 V2-B      HOLD  Code sandbox
