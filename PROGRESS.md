@@ -183,6 +183,10 @@ Checkpoint :
 - ⚠️ Nécessite des ajustements de prompt/usage pour que glm-4.7 utilise correctement les outils
 - Commit : feat: tool-7 — mcp vision glm46v
 
+⚠️ **Bug smolagents identifié** — Les outils MCP Vision nécessitent un event loop actif, mais smolagents ferme l'event loop après chaque exécution de code, causant l'erreur "RuntimeError: Event loop is closed". C'est un bug de smolagents, pas de l'implémentation MCP Vision elle-même.
+
+Les outils MCP Vision sont disponibles et fonctionnels, mais ne peuvent pas être appelés correctement par le CodeAgent à cause de ce bug.
+
 ### TOOL-8 — Screenshot Windows
 **Statut : DONE**
 
