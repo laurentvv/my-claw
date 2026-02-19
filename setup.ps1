@@ -599,6 +599,21 @@ try {
     }
     
     # ============================================================
+    # ÉTAPE 4.5: Génération du client Prisma
+    # ============================================================
+    Write-Header "ÉTAPE 4.5: Génération du client Prisma"
+    
+    Write-Info "Génération du client Prisma dans $gatewayDir..."
+    
+    # Générer le client Prisma
+    $prismaGenerateSuccess = Invoke-CommandSafe -Command "npx" -Arguments "prisma generate" -WorkingDirectory $gatewayDir -Description "Prisma generate"
+    
+    if (-not $prismaGenerateSuccess) {
+        Write-Error "Échec de la génération du client Prisma"
+        exit 1
+    }
+    
+    # ============================================================
     # ÉTAPE 5: Installation des dépendances Agent (Python)
     # ============================================================
     Write-Header "ÉTAPE 5: Installation des dépendances Agent (Python)"
@@ -628,6 +643,7 @@ try {
     Write-Success "✓ Configuration de l'environnement Agent (agent/.env)"
     Write-Success "✓ Dépendances Gateway (Next.js) installées"
     Write-Success "✓ Migrations Prisma exécutées"
+    Write-Success "✓ Client Prisma généré"
     Write-Success "✓ Dépendances Agent (Python) installées"
     
     Write-Host "`nL'environnement a été initialisé avec succès!" -ForegroundColor $ColorSuccess
