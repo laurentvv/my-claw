@@ -4,10 +4,10 @@
 
 # Python
 agent/.venv/
-agent/__pycache__/
-agent/*.pyc
-agent/*.pyo
-agent/*.pyd
+**/__pycache__/
+**/*.pyc
+**/*.pyo
+**/*.pyd
 agent/.pytest_cache/
 agent/.coverage
 agent/htmlcov/
