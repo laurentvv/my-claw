@@ -100,6 +100,8 @@ Tests validés :
 
 Checkpoint validé : OUI (tests automatisés + vérification DB)
 
+**Validation détaillée :** Voir [`plans/validation-module3.md`](plans/validation-module3.md) pour le rapport complet de validation (2026-02-19)
+
 ---
 
 ## MODULE 4 — Canal WhatsApp
