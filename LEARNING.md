@@ -647,9 +647,127 @@ Scénarios avancés :
 
 **Correction importante** : Le package est basé sur **Puppeteer** et non Playwright comme initialement prévu dans le plan. Le nom du package est chrome-devtools-mcp@latest.
 
-**Timeout de démarrage** : npx télécharge le package au premier lancement (~5-10s). Gérer avec un timeout approprié à l'initialisation (60s recommandé).
+**API ToolCollection.from_mcp() - Correction critique** :
+
+1. **Signature correcte : UN SEUL paramètre** :
+   - `ToolCollection.from_mcp()` attend UN SEUL paramètre (`StdioServerParameters` ou `dict`)
+   - Le premier paramètre n'est PAS le nom du serveur (contrairement à ce qui était indiqué dans le plan)
+   - Le timeout par défaut est de 30 secondes (non configurable)
+   - Sur cet environnement, `npx chrome-devtools-mcp@latest` ne parvient pas à démarrer dans ce délai
+
+2. **Retourne un `_GeneratorContextManager`** :
+   - `ToolCollection.from_mcp()` ne retourne PAS directement un objet `ToolCollection`
+   - Il retourne un `_GeneratorContextManager` qui doit être entré avec `.__enter__()`
+   - Il faut appeler `.__enter__()` pour obtenir l'objet `ToolCollection` et accéder à `.tools`
+
+3. **Code correct pour ToolCollection.from_mcp()** :
+```python
+chrome_devtools_params = StdioServerParameters(
+    command="npx",
+    args=["-y", "chrome-devtools-mcp@latest"],
+    env={**os.environ}
+)
+
+_mcp_client = ToolCollection.from_mcp(
+    chrome_devtools_params  # ← Un seul paramètre (pas de nom de serveur)
+).__enter__()  # ← Important : appeler __enter__()
+
+_mcp_tools = list(_mcp_client.tools)
+```
+
+**Timeout de connexion** :
+- Le timeout par défaut est de 30 secondes (non configurable)
+- Sur cet environnement, `npx chrome-devtools-mcp@latest` ne parvient pas à démarrer dans ce délai
+- Le fallback silencieux fonctionne correctement : l'agent fonctionne avec les outils locaux uniquement
 
 **Gestion des erreurs** : Si la connexion échoue au démarrage, désactiver silencieusement et continuer sans ce tool.
+
+**Paramètre trust_remote_code requis** :
+- `ToolCollection.from_mcp()` exige le paramètre `trust_remote_code=True` pour charger les outils MCP
+- Ce paramètre est obligatoire car le serveur MCP exécute du code sur la machine locale
+- Sans ce paramètre, l'erreur suivante se produit : `Loading tools from MCP requires you to acknowledge you trust the MCP server, as it will execute code on your local machine: pass 'trust_remote_code=True'`
+- Code correct :
+  ```python
+  _mcp_client = ToolCollection.from_mcp(
+      chrome_devtools_params,
+      trust_remote_code=True  # ← Obligatoire
+  ).__enter__()
+  ```
+
+### Solution MCPClient pour CodeAgent (2026-02-20)
+
+**Problème identifié** : `ToolCollection.from_mcp()` ne fonctionne pas avec CodeAgent (erreur "Event loop is closed").
+
+**Solution identifiée** : Utiliser `MCPClient` comme un context manager.
+
+**Pourquoi ToolCollection.from_mcp() échoue** :
+- Les outils MCP sont implémentés comme des fonctions async qui nécessitent une boucle d'événements active
+- smolagents CodeAgent exécute le code Python dans un contexte synchrone sans boucle d'événements
+- `ToolCollection.from_mcp()` crée un contexte MCP qui est fermé immédiatement après avoir récupéré les outils
+- Les outils MCP ne fonctionnent plus une fois le contexte fermé
+
+**Solution : MCPClient comme context manager dans /run**
+
+La solution est d'utiliser `MCPClient` directement comme un context manager dans l'endpoint `/run`, créant et fermant le client MCP dans le même contexte synchrone.
+
+**Code correct** :
+```python
+from smolagents import CodeAgent, MCPClient
+from mcp import StdioServerParameters
+
+chrome_devtools_params = StdioServerParameters(
+    command="npx",
+    args=["-y", "chrome-devtools-mcp@latest"],
+    env={**os.environ}
+)
+
+# Utiliser MCPClient comme context manager dans /run
+with MCPClient(chrome_devtools_params) as mcp_tools:
+    all_tools = TOOLS.copy()
+    all_tools.extend(mcp_tools)
+    
+    agent = CodeAgent(
+        tools=all_tools,
+        model=get_model(req.model),
+        ...
+    )
+    result = agent.run(prompt)
+```
+
+**Avantages de cette approche** :
+- ✅ Pas de conflit avec la boucle d'événements async de FastAPI
+- ✅ Le client MCP est créé et fermé dans le même contexte synchrone
+- ✅ Les outils MCP sont disponibles pour CodeAgent pendant l'exécution
+- ✅ Fallback automatique : si MCP ne peut pas être chargé, l'erreur est capturée
+- ✅ Compatible avec l'architecture FastAPI lifespan existante
+
+**Implémentation recommandée** :
+1. Ne pas charger les outils MCP au démarrage (dans lifespan)
+2. Charger les outils MCP à chaque requête dans `/run`
+3. Fusionner les outils locaux et MCP avant de créer CodeAgent
+4. Capturer les erreurs MCP et continuer avec les outils locaux uniquement
+
+**Exemple d'implémentation avec fallback** :
+```python
+@app.post("/run")
+async def run_agent(req: RunRequest):
+    try:
+        # Essayer de charger les outils MCP
+        with MCPClient(chrome_devtools_params) as mcp_tools:
+            all_tools = TOOLS.copy()
+            all_tools.extend(mcp_tools)
+            agent = CodeAgent(tools=all_tools, model=get_model(req.model), ...)
+            result = agent.run(req.message)
+    except Exception as e:
+        logger.warning(f"Erreur MCP, utilisation des outils locaux uniquement: {e}")
+        # Fallback sur les outils locaux
+        agent = CodeAgent(tools=TOOLS, model=get_model(req.model), ...)
+        result = agent.run(req.message)
+    
+    return {"response": result}
+```
+
+**Note** : Cette approche est compatible avec l'architecture existante de FastAPI et ne nécessite pas de modifications complexes du code.
 
 ---
 

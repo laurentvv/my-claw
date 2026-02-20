@@ -5,7 +5,8 @@ import requests
 from pathlib import Path
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
-from smolagents import CodeAgent, LiteLLMModel
+from smolagents import CodeAgent, LiteLLMModel, MCPClient
+from mcp import StdioServerParameters
 from dotenv import load_dotenv
 from tools import TOOLS
 
@@ -99,11 +100,12 @@ def detect_models() -> dict[str, tuple[str, str]]:
 # Initialiser la détection au démarrage
 MODELS = detect_models()
 
+
 app = FastAPI(title="my-claw agent", version="0.1.0")
 
 # Log des outils disponibles au démarrage
-logger.info(f"Tools disponibles: {len(TOOLS)} outils locaux - 100% local, 0 donnée sortante")
-logger.info(f"Outils: {[t.name for t in TOOLS]}")
+logger.info(f"Tools disponibles: {len(TOOLS)} outils locaux")
+logger.info(f"Outils locaux: {[t.name for t in TOOLS]}")
 
 
 class CleanedLiteLLMModel(LiteLLMModel):
@@ -230,30 +232,44 @@ class RunRequest(BaseModel):
 @app.post("/run")
 async def run(req: RunRequest):
     try:
-        logger.info(f"Exécution avec {len(TOOLS)} outils locaux")
-
-        agent = CodeAgent(
-            tools=TOOLS,
-            model=get_model(req.model),
-            max_steps=10,
-            verbosity_level=1,
-            additional_authorized_imports=[
-                "requests",      # HTTP requests
-                "urllib",        # HTTP requests (stdlib)
-                "json",          # JSON processing
-                "csv",           # CSV processing
-                "pathlib",       # Modern file paths
-                "os",            # OS operations
-                "subprocess",    # Process management
-            ],
-            executor_kwargs={
-                "timeout_seconds": 240,  # Timeout de 240 secondes (4 minutes) pour l'exécution du code Python
-            },
-            instructions=SKILLS,  # Chargé depuis agent/skills.txt
+        # Configurer les paramètres MCP pour Chrome DevTools
+        chrome_devtools_params = StdioServerParameters(
+            command="npx",
+            args=["-y", "chrome-devtools-mcp@latest"],
+            env={**os.environ}
         )
-        prompt = build_prompt_with_history(req.message, req.history)
-        result = agent.run(prompt)
-        return {"response": str(result)}
+        
+        # Utiliser MCPClient comme context manager
+        with MCPClient(chrome_devtools_params) as mcp_tools:
+            # Fusionner les outils locaux et MCP
+            all_tools = TOOLS.copy()
+            all_tools.extend(mcp_tools)
+            
+            mcp_count = len(mcp_tools)
+            logger.info(f"Exécution avec {len(TOOLS)} outils locaux + {mcp_count} outils MCP Chrome DevTools")
+            
+            agent = CodeAgent(
+                tools=all_tools,
+                model=get_model(req.model),
+                max_steps=10,
+                verbosity_level=1,
+                additional_authorized_imports=[
+                    "requests",
+                    "urllib",
+                    "json",
+                    "csv",
+                    "pathlib",
+                    "os",
+                    "subprocess",
+                ],
+                executor_kwargs={
+                    "timeout_seconds": 240,
+                },
+                instructions=SKILLS,
+            )
+            prompt = build_prompt_with_history(req.message, req.history)
+            result = agent.run(prompt)
+            return {"response": str(result)}
     except Exception as e:
         logger.error(f"Agent error: {type(e).__name__}: {e}")
         raise HTTPException(status_code=500, detail=str(e))
