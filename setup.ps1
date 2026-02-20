@@ -9,7 +9,7 @@
 # PREREQUIS:
 #   - Node.js 24+
 #   - uv (gestionnaire Python)
-#   - Ollama avec qwen3:latest (8b)
+#   - Ollama avec qwen3:latest (8b) — ou gemma3:latest pour le mode fast
 #
 # USAGE:
 #   .\setup.ps1
