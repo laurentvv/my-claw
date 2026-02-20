@@ -9,7 +9,7 @@
 # PREREQUIS:
 #   - Node.js 24+
 #   - uv (gestionnaire Python)
-#   - Ollama avec Qwen3:14b
+#   - Ollama avec qwen3:latest (8b)
 #
 # USAGE:
 #   .\setup.ps1
@@ -231,14 +231,14 @@ function Test-Ollama {
         
         Write-Success "Ollama détecté: $ollamaVersion"
         
-        # Vérifier si le modèle qwen3:14b est disponible
+        # Vérifier si le modèle qwen3:latest est disponible
         $models = ollama list 2>&1
-        if ($models -match "qwen3:14b") {
-            Write-Success "Modèle qwen3:14b détecté"
+        if ($models -match "qwen3:latest") {
+            Write-Success "Modèle qwen3:latest (8b) détecté"
             return $true
         }
         else {
-            Write-Warning "Modèle qwen3:14b non détecté. Installez-le avec: ollama pull qwen3:14b"
+            Write-Warning "Modèle qwen3:latest non détecté. Installez-le avec: ollama pull qwen3:latest"
             return $false
         }
     }
@@ -532,9 +532,9 @@ try {
     
     # Vérifier Ollama (optionnel mais recommandé)
     if (-not (Test-Ollama)) {
-        Write-Warning "Ollama ou le modèle qwen3:14b n'est pas disponible"
+        Write-Warning "Ollama ou le modèle qwen3:latest n'est pas disponible"
         Write-Info "Installez Ollama depuis: https://ollama.ai"
-        Write-Info "Puis installez le modèle: ollama pull qwen3:14b"
+        Write-Info "Puis installez le modèle: ollama pull qwen3:latest"
         # On continue quand même, car Ollama est optionnel pour le setup
     }
     
