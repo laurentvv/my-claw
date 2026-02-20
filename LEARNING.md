@@ -519,6 +519,140 @@ Selon IMPLEMENTATION-TOOLS.md, tests à effectuer via Gradio:
 
 ---
 
+## TOOL-10 — MCP Chrome DevTools (2026-02-20)
+
+### Chrome DevTools MCP Overview
+
+**Package** : chrome-devtools-mcp@latest
+**Repository** : https://github.com/ChromeDevTools/chrome-devtools-mcp
+**Base** : Puppeteer (pas Playwright comme initialement prévu)
+
+### Prérequis
+
+- Node.js 20.19+ (déjà présent d'après setup)
+- Chrome stable ou plus récent installé
+- npx (inclus avec Node.js)
+
+### Configuration StdioServerParameters
+
+```python
+from smolagents import ToolCollection
+
+chrome_devtools_params = StdioServerParameters(
+    command="npx",
+    args=["-y", "chrome-devtools-mcp@latest"],
+    env={**os.environ}  # Important pour trouver Node.js sur Windows
+)
+
+try:
+    chrome_devtools_mcp = ToolCollection.from_mcp(
+        "chrome-devtools",
+        chrome_devtools_params,
+        timeout=60  # Timeout plus long au démarrage
+    )
+    TOOLS.extend(chrome_devtools_mcp.tools)
+    logger.info(f"Chrome DevTools MCP chargé : {len(chrome_devtools_mcp.tools)} outils")
+except Exception as e:
+    logger.warning(f"Impossible de charger Chrome DevTools MCP : {e}")
+    # Continuer sans ce tool
+```
+
+### 26 outils disponibles
+
+**Input automation (8 outils)** :
+- `click` : cliquer sur un élément (uid, dblClick?, includeSnapshot?)
+- `drag` : glisser un élément vers un autre (from_uid, to_uid, includeSnapshot?)
+- `fill` : remplir un champ de saisie (uid, value, includeSnapshot?)
+- `fill_form` : remplir plusieurs champs à la fois (elements[], includeSnapshot?)
+- `handle_dialog` : gérer les boîtes de dialogue (action: accept/dismiss, promptText?)
+- `hover` : survoler un élément (uid, includeSnapshot?)
+- `press_key` : appuyer sur une touche ou combinaison (key: "Enter", "Control+A", etc., includeSnapshot?)
+- `upload_file` : uploader un fichier (filePath, uid, includeSnapshot?)
+
+**Navigation automation (6 outils)** :
+- `close_page` : fermer une page (pageId)
+- `list_pages` : lister les pages ouvertes
+- `navigate_page` : naviguer vers une URL (type: url/back/forward/reload, url?, ignoreCache?, handleBeforeUnload?, timeout?)
+- `new_page` : créer une nouvelle page (url, timeout?)
+- `select_page` : sélectionner une page comme contexte (pageId, bringToFront?)
+- `wait_for` : attendre qu'un texte apparaisse (text, timeout?)
+
+**Emulation (2 outils)** :
+- `emulate` : émuler diverses fonctionnalités (cpuThrottlingRate?, geolocation?, networkConditions?, userAgent?, viewport?)
+- `resize_page` : redimensionner la page (width, height)
+
+**Performance (3 outils)** :
+- `performance_analyze_insight` : analyser une insight de performance (insightName, insightSetId)
+- `performance_start_trace` : démarrer un enregistrement de trace (autoStop, reload, filePath?)
+- `performance_stop_trace` : arrêter l'enregistrement de trace (filePath?)
+
+**Network (2 outils)** :
+- `get_network_request` : récupérer une requête réseau (reqid?, requestFilePath?, responseFilePath?)
+- `list_network_requests` : lister les requêtes (includePreservedRequests?, pageIdx?, pageSize?, resourceTypes[]?)
+
+**Debugging (5 outils)** :
+- `evaluate_script` : exécuter du JavaScript (function: "() => { return document.title }", args[]?)
+- `get_console_message` : récupérer un message console (msgid)
+- `list_console_messages` : lister les messages console (includePreservedMessages?, pageIdx?, pageSize?, types[]?)
+- `take_screenshot` : prendre un screenshot (format: png/jpeg/webp, fullPage?, quality?, uid?, filePath?)
+- `take_snapshot` : prendre un snapshot textuel de la page (verbose?, filePath?)
+
+### Options de configuration supplémentaires
+
+À ajouter dans args si nécessaire :
+- `--headless=true` : mode sans interface (défaut : false)
+- `--channel=canary|beta|dev` : utiliser une autre version de Chrome
+- `--viewport=1280x720` : taille initiale du viewport
+- `--isolated=true` : utiliser un profil temporaire
+- `--user-data-dir=C:\path\to\profile` : profil personnalisé
+- `--accept-insecure-certs=true` : ignorer les erreurs SSL
+- `--category-performance=false` : désactiver les outils de performance
+- `--category-network=false` : désactiver les outils réseau
+- `--category-emulation=false` : désactiver les outils d'émulation
+
+### Bonnes pratiques d'utilisation
+
+1. **Snapshot avant action** : Toujours utiliser take_snapshot() avant d'interagir avec la page pour connaître les uid des éléments.
+2. **Préférez snapshot à screenshot** : take_snapshot() est plus rapide et fournit des uid exploitables pour les interactions.
+3. **Gestion des pages** : Utiliser list_pages() pour voir les pages ouvertes et select_page() pour changer de contexte.
+4. **Attente de chargement** : Utiliser wait_for() ou laisser le tool gérer automatiquement les attentes.
+5. **Performance traces** : Pour performance_start_trace(), naviguer d'abord vers l'URL voulue avec navigate_page(), puis lancer la trace.
+
+### Profil Chrome
+
+Le MCP server démarre automatiquement une instance Chrome avec un profil dédié :
+- Windows : %HOMEPATH%/.cache/chrome-devtools-mcp/chrome-profile-stable
+- Linux/macOS : $HOME/.cache/chrome-devtools-mcp/chrome-profile-stable
+
+Le profil n'est pas effacé entre les runs et partagé entre toutes les instances de chrome-devtools-mcp. Set l'option `isolated` à `true` pour utiliser un profil temporaire qui sera effacé automatiquement après la fermeture du navigateur.
+
+### Test plan
+
+Tests de base :
+1. "Ouvre https://example.com dans Chrome"
+2. "Prends un snapshot de la page et liste les éléments visibles"
+3. "Récupère le titre H1 de la page via evaluate_script"
+4. "Prends un screenshot de la page entière"
+5. "Va sur https://huggingface.co et prends un snapshot"
+6. "Cherche 'smolagents' dans la barre de recherche et valide avec Enter"
+7. "Liste les requêtes réseau de la page"
+8. "Vérifie les messages console de la page"
+
+Scénarios avancés :
+- **Test performance** : "Ouvre https://developers.chrome.com", "Lance un enregistrement de performance trace avec autoStop et reload", "Analyse les insights de performance"
+- **Test navigation multi-pages** : "Crée une nouvelle page sur https://example.com", "Crée une deuxième page sur https://huggingface.co", "Liste toutes les pages ouvertes", "Sélectionne la première page", "Ferme la deuxième page"
+- **Test formulaire** : "Ouvre un site avec un formulaire de contact", "Prends un snapshot pour identifier les champs", "Remplis le formulaire avec fill_form", "Soumets le formulaire"
+
+### Découvertes techniques
+
+**Correction importante** : Le package est basé sur **Puppeteer** et non Playwright comme initialement prévu dans le plan. Le nom du package est chrome-devtools-mcp@latest.
+
+**Timeout de démarrage** : npx télécharge le package au premier lancement (~5-10s). Gérer avec un timeout approprié à l'initialisation (60s recommandé).
+
+**Gestion des erreurs** : Si la connexion échoue au démarrage, désactiver silencieusement et continuer sans ce tool.
+
+---
+
 ## TOOL-9 — MouseKeyboardTool (2026-02-19)
 
 ### Implémentation
@@ -611,7 +745,7 @@ Pour diagnostiquer le problème, des logs ont été ajoutés:
 - TOOL-7: MCP Vision GLM-4.6V ✅ implémenté, EN ATTENTE DE VALIDATION
 - TOOL-8: ScreenshotTool ✅ implémenté, testé et validé
 - TOOL-9: MouseKeyboardTool ✅ implémenté, débloqué par TOOL-7, EN ATTENTE DE VALIDATION
-- TOOL-10: MCP Chrome Playwright ⏳ à implémenter
+- TOOL-10: MCP Chrome DevTools ⏳ à implémenter
 
 ---
 

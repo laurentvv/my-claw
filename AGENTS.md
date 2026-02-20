@@ -159,7 +159,7 @@ Règles modèles :
 - web_search via SearXNG local
 - run_code sandbox Python/Node
 - read_file / write_file dossier whitelist
-- Browser control Playwright
+- Browser control Chrome DevTools
 
 ### Règles de codage outils
 - Toujours sous-classe Tool (pas décorateur @tool) pour compatibilité Ollama

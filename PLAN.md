@@ -171,12 +171,29 @@ Checkpoint : ouvrir le menu Démarrer (Win), taper "notepad", Entrée, vérifier
 **Statut : ⚠️ DONE mais bloqué** - L'outil fonctionne mais nécessite un orchestrateur plus puissant (glm-4.7) pour coordonner screenshot + vision + actions de manière autonome.
 
 ### TOOL-10 — MCP Chrome DevTools (Playwright)
-Priorité : 10 | Quota : 0 | Dépendance : npx @playwright/mcp@latest
+Priorité : 10 | Quota : 0 | Dépendance : npx chrome-devtools-mcp@latest
 
-Piloter Chrome headless ou visible via Playwright MCP.
+Piloter Chrome headless ou visible via Chrome DevTools MCP (basé sur Puppeteer).
 Stdio local comme le MCP Vision.
 Permet : naviguer vers URL, cliquer, extraire texte, remplir formulaires,
 screenshot de page web — complémentaire à TOOL-8+TOOL-9 pour le web.
+
+**26 outils disponibles organisés en 6 catégories** :
+- Input automation (8) : click, drag, fill, fill_form, handle_dialog, hover, press_key, upload_file
+- Navigation automation (6) : close_page, list_pages, navigate_page, new_page, select_page, wait_for
+- Emulation (2) : emulate, resize_page
+- Performance (3) : performance_analyze_insight, performance_start_trace, performance_stop_trace
+- Network (2) : get_network_request, list_network_requests
+- Debugging (5) : evaluate_script, get_console_message, list_console_messages, take_screenshot, take_snapshot
+
+**Options de configuration** :
+- --headless=true : mode sans interface (défaut : false)
+- --channel=canary|beta|dev : utiliser une autre version de Chrome
+- --viewport=1280x720 : taille initiale du viewport
+- --isolated=true : utiliser un profil temporaire
+- --category-performance=false : désactiver les outils de performance
+- --category-network=false : désactiver les outils réseau
+- --category-emulation=false : désactiver les outils d'émulation
 
 Checkpoint : ouvrir https://example.com, extraire le titre H1, prendre un screenshot.
 
@@ -252,7 +269,7 @@ TOOL-9     DONE   Souris/Clavier (bloqué par orchestration)
 TOOL-4     TODO   MCP Web Search Z.ai       ← PROCHAIN
 TOOL-5     TODO   MCP Web Reader Z.ai
 TOOL-6     TODO   MCP Zread GitHub
-TOOL-10    TODO   MCP Chrome Playwright
+TOOL-10    TODO   MCP Chrome DevTools
 ─────────────────────────────────── ← Après tools validés
 MODULE 4   TODO   Nextcloud Talk
 MODULE 5   TODO   Cron

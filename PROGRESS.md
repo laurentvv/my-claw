@@ -236,15 +236,40 @@ Checkpoint :
 **Statut : A FAIRE**
 
 Intégration :
-- StdioServerParameters : npx @playwright/mcp@latest
-- Piloter Chrome headless ou visible
-- Outils : navigate, click, fill, extract_text, screenshot_page
+- StdioServerParameters : npx chrome-devtools-mcp@latest
+- Piloter Chrome headless ou visible via Chrome DevTools MCP (basé sur Puppeteer)
+- 26 outils disponibles organisés en 6 catégories :
+  - Input automation (8) : click, drag, fill, fill_form, handle_dialog, hover, press_key, upload_file
+  - Navigation automation (6) : close_page, list_pages, navigate_page, new_page, select_page, wait_for
+  - Emulation (2) : emulate, resize_page
+  - Performance (3) : performance_analyze_insight, performance_start_trace, performance_stop_trace
+  - Network (2) : get_network_request, list_network_requests
+  - Debugging (5) : evaluate_script, get_console_message, list_console_messages, take_screenshot, take_snapshot
+
+Options de configuration :
+- --headless=true : mode sans interface (défaut : false)
+- --channel=canary|beta|dev : utiliser une autre version de Chrome
+- --viewport=1280x720 : taille initiale du viewport
+- --isolated=true : utiliser un profil temporaire
+- --category-performance=false : désactiver les outils de performance
+- --category-network=false : désactiver les outils réseau
+- --category-emulation=false : désactiver les outils d'émulation
+
+Bonnes pratiques :
+- Toujours utiliser take_snapshot() avant d'interagir avec la page pour connaître les uid des éléments
+- Privilégier take_snapshot() à take_screenshot() pour obtenir des uid exploitables
+- Utiliser wait_for() ou laisser le tool gérer automatiquement les attentes
 
 Checkpoint :
 - "Ouvre https://example.com dans Chrome"
-- "Extrait le titre H1 de la page"
-- "Prends un screenshot de la page"
-- Commit : feat: tool-10 — mcp chrome playwright
+- "Prends un snapshot de la page et liste les éléments visibles"
+- "Récupère le titre H1 de la page via evaluate_script"
+- "Prends un screenshot de la page entière"
+- "Va sur https://huggingface.co et prends un snapshot"
+- "Cherche 'smolagents' dans la barre de recherche et valide avec Enter"
+- "Liste les requêtes réseau de la page"
+- "Vérifie les messages console de la page"
+- Commit : feat: tool-10 — mcp chrome devtools
 
 ---
 

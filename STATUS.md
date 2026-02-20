@@ -41,7 +41,7 @@ Architecture : Next.js 16 (gateway) + Python smolagents (agent) + Gradio (UI dev
 | **TOOL-4** | ⏳ | MCP Web Search Z.ai |
 | **TOOL-5** | ⏳ | MCP Web Reader Z.ai |
 | **TOOL-6** | ⏳ | MCP Zread GitHub |
-| **TOOL-10** | ⏳ | MCP Chrome Playwright |
+| **TOOL-10** | ⏳ | MCP Chrome DevTools |
 
 ---
 

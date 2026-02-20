@@ -40,7 +40,7 @@ via MCPClient ou ToolCollection.from_mcp() au démarrage de FastAPI.
 Le fichier main.py doit être modifié pour :
 1. Charger les tools locaux depuis tools/__init__.py
 2. Charger les tools MCP Z.ai (HTTP remote) au démarrage
-3. Charger les tools MCP stdio (Vision, Playwright) au démarrage
+3. Charger les tools MCP stdio (Vision, Chrome DevTools) au démarrage
 4. Passer tous les tools au CodeAgent
 
 Pattern général à maintenir dans main.py :
@@ -340,7 +340,7 @@ Commit message : feat(tools): tool-9 mouse keyboard control
 
 ---
 
-## TOOL-10 — MCP Chrome DevTools (Playwright)
+## TOOL-10 — MCP Chrome DevTools (Puppeteer)
 
 https://github.com/ChromeDevTools/chrome-devtools-mcp/
 
@@ -502,7 +502,7 @@ TOOL-7   MCP Vision GLM-4.6V
 TOOL-8   Screenshot Windows
 TOOL-9   Souris/Clavier
          → Checkpoint intermédiaire : pilotage PC complet fonctionnel
-TOOL-10  MCP Chrome Playwright
+TOOL-10  MCP Chrome DevTools
          → CHECKPOINT FINAL : tous les tools validés → passer au MODULE 4
 ```
 
