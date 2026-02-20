@@ -372,6 +372,7 @@ Done ✅
 
 **Timeouts configurés** :
 - **Gateway → Agent** : 360 secondes (6 minutes) dans `gateway/lib/agent-client.ts` - Augmenté pour GLM-4.7 screenshot+vision
+- **Gateway → Agent (models)** : 5 secondes dans `gateway/app/api/models/route.ts` - Endpoint léger de listing
 - **Agent → Code Python** : 240 secondes (4 minutes) dans `agent/main.py` via `executor_kwargs` - Augmenté pour GLM-4.7 screenshot+vision
 - **Gradio UI** : 300 secondes (5 minutes) dans `agent/gradio_app.py`
 - **Vision (Ollama)** : 180 secondes (3 minutes) dans `agent/tools/vision.py` - qwen3-vl:2b est rapide

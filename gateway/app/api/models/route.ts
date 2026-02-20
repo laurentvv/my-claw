@@ -9,6 +9,7 @@ export async function GET() {
       headers: {
         "Content-Type": "application/json",
       },
+      signal: AbortSignal.timeout(5_000), // 5 seconds
     })
 
     if (!response.ok) {
