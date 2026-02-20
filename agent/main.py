@@ -160,14 +160,20 @@ def get_model(model_id: str = "main") -> LiteLLMModel:
         # Utiliser le modèle standard pour Ollama
         model_class = LiteLLMModel
 
-    return model_class(
-        model_id=model_name,
-        api_base=base_url,
-        api_key=api_key,
-        num_ctx=32768,
-        extra_body={"think": False},
-        stop=stop_sequences,
-    )
+    # Construire les kwargs de base
+    kwargs = {
+        "model_id": model_name,
+        "api_base": base_url,
+        "api_key": api_key,
+        "stop": stop_sequences,
+    }
+
+    # Ajouter les paramètres spécifiques à Ollama uniquement pour les modèles Ollama
+    if model_id not in ["code", "reason"]:
+        kwargs["num_ctx"] = 32768
+        kwargs["extra_body"] = {"think": False}
+
+    return model_class(**kwargs)
 
 
 def clean_glm_response(text: str) -> str:
