@@ -3,9 +3,10 @@ import logging
 import re
 import requests
 from pathlib import Path
+from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
-from smolagents import CodeAgent, LiteLLMModel, MCPClient
+from smolagents import CodeAgent, LiteLLMModel, ToolCollection
 from mcp import StdioServerParameters
 from dotenv import load_dotenv
 from tools import TOOLS
@@ -101,11 +102,75 @@ def detect_models() -> dict[str, tuple[str, str]]:
 MODELS = detect_models()
 
 
-app = FastAPI(title="my-claw agent", version="0.1.0")
+# Variables globales pour les outils MCP Chrome DevTools
+_mcp_tools: ToolCollection | None = None
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """
+    Gestion du cycle de vie du client MCP Chrome DevTools.
+
+    Startup:
+    - Initialise le client MCP Chrome DevTools via ToolCollection.from_mcp()
+    - Charge les outils MCP disponibles
+
+    Shutdown:
+    - Ferme proprement le client MCP
+    """
+    global _mcp_tools
+
+    # Startup: initialiser Chrome DevTools MCP via ToolCollection.from_mcp()
+    logger.info("Initialisation Chrome DevTools MCP via ToolCollection.from_mcp()...")
+    try:
+        chrome_devtools_params = StdioServerParameters(
+            command="npx",
+            args=["-y", "chrome-devtools-mcp@latest"],
+            env={**os.environ}  # Important pour trouver Node.js sur Windows
+        )
+
+        # Utiliser ToolCollection.from_mcp() pour charger les outils MCP
+        _mcp_tools = ToolCollection.from_mcp(chrome_devtools_params)
+        logger.info(f"✓ Chrome DevTools MCP chargé : {len(_mcp_tools.tools)} outils")
+        logger.info(f"  Outils: {[t.name for t in _mcp_tools.tools]}")
+
+    except Exception as e:
+        logger.warning(f"✗ Impossible de charger Chrome DevTools MCP : {e}")
+        logger.warning("  L'agent fonctionnera avec les outils locaux uniquement")
+        _mcp_tools = None
+
+    yield  # L'application tourne ici, le client MCP reste actif
+
+    # Shutdown: fermer proprement le client MCP
+    logger.info("Arrêt Chrome DevTools MCP...")
+    if _mcp_tools is not None:
+        try:
+            _mcp_tools.__exit__()
+            logger.info("✓ Chrome DevTools MCP fermé")
+        except Exception as e:
+            logger.error(f"✗ Erreur lors de la fermeture du client MCP : {e}")
+
+
+app = FastAPI(title="my-claw agent", version="0.1.0", lifespan=lifespan)
+
+
+def get_all_tools() -> list:
+    """
+    Retourne tous les outils disponibles (locaux + MCP).
+
+    Returns:
+        list: Liste des outils disponibles
+    """
+    all_tools = TOOLS.copy()
+    if _mcp_tools is not None:
+        all_tools.extend(_mcp_tools.tools)
+    return all_tools
+
 
 # Log des outils disponibles au démarrage
 logger.info(f"Tools disponibles: {len(TOOLS)} outils locaux")
 logger.info(f"Outils locaux: {[t.name for t in TOOLS]}")
+# Note: Les outils MCP Chrome DevTools seront chargés via lifespan au démarrage
 
 
 class CleanedLiteLLMModel(LiteLLMModel):
@@ -232,44 +297,33 @@ class RunRequest(BaseModel):
 @app.post("/run")
 async def run(req: RunRequest):
     try:
-        # Configurer les paramètres MCP pour Chrome DevTools
-        chrome_devtools_params = StdioServerParameters(
-            command="npx",
-            args=["-y", "chrome-devtools-mcp@latest"],
-            env={**os.environ}
+        # Récupérer tous les outils disponibles (locaux + MCP)
+        all_tools = get_all_tools()
+        mcp_count = len(all_tools) - len(TOOLS) if _mcp_tools is not None else 0
+        logger.info(f"Exécution avec {len(TOOLS)} outils locaux + {mcp_count} outils MCP Chrome DevTools")
+
+        agent = CodeAgent(
+            tools=all_tools,
+            model=get_model(req.model),
+            max_steps=10,
+            verbosity_level=1,
+            additional_authorized_imports=[
+                "requests",
+                "urllib",
+                "json",
+                "csv",
+                "pathlib",
+                "os",
+                "subprocess",
+            ],
+            executor_kwargs={
+                "timeout_seconds": 240,
+            },
+            instructions=SKILLS,
         )
-        
-        # Utiliser MCPClient comme context manager
-        with MCPClient(chrome_devtools_params) as mcp_tools:
-            # Fusionner les outils locaux et MCP
-            all_tools = TOOLS.copy()
-            all_tools.extend(mcp_tools)
-            
-            mcp_count = len(mcp_tools)
-            logger.info(f"Exécution avec {len(TOOLS)} outils locaux + {mcp_count} outils MCP Chrome DevTools")
-            
-            agent = CodeAgent(
-                tools=all_tools,
-                model=get_model(req.model),
-                max_steps=10,
-                verbosity_level=1,
-                additional_authorized_imports=[
-                    "requests",
-                    "urllib",
-                    "json",
-                    "csv",
-                    "pathlib",
-                    "os",
-                    "subprocess",
-                ],
-                executor_kwargs={
-                    "timeout_seconds": 240,
-                },
-                instructions=SKILLS,
-            )
-            prompt = build_prompt_with_history(req.message, req.history)
-            result = agent.run(prompt)
-            return {"response": str(result)}
+        prompt = build_prompt_with_history(req.message, req.history)
+        result = agent.run(prompt)
+        return {"response": str(result)}
     except Exception as e:
         logger.error(f"Agent error: {type(e).__name__}: {e}")
         raise HTTPException(status_code=500, detail=str(e))
