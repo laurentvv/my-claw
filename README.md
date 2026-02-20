@@ -2,6 +2,8 @@
 
 Assistant personnel minimaliste, self-hosted, privacy-first.
 
+📊 **Vue rapide** : [STATUS.md](STATUS.md) | 📋 **Détails complets** : [PROGRESS.md](PROGRESS.md)
+
 ## Architecture
 
 ```
@@ -81,8 +83,15 @@ uv run python gradio_app.py          # → http://localhost:7860
 
 ## Documentation
 
-- [AGENTS.md](./AGENTS.md) — Guide complet d'architecture et d'implémentation
-- [PROGRESS.md](./PROGRESS.md) — État d'avancement du projet
-- [LEARNING.md](./LEARNING.md) — Découvertes techniques et apprentissages
-- [PLAN.md](./PLAN.md) — Plan global et architecture cible
-- [IMPLEMENTATION-TOOLS.md](./IMPLEMENTATION-TOOLS.md) — Plan d'implémentation des outils smolagents
+### Vue d'ensemble
+- 📊 [STATUS.md](./STATUS.md) — **Vue rapide** du projet (statut, progression, stack)
+- 📋 [PROGRESS.md](./PROGRESS.md) — État d'avancement détaillé (checkpoints, validations)
+
+### Architecture et plan
+- 🏗️ [AGENTS.md](./AGENTS.md) — Guide complet d'architecture et d'implémentation
+- 🗺️ [PLAN.md](./PLAN.md) — Plan global et architecture cible
+- 🛠️ [IMPLEMENTATION-TOOLS.md](./IMPLEMENTATION-TOOLS.md) — Plan d'implémentation des outils smolagents
+
+### Techniques et apprentissages
+- 📚 [LEARNING.md](./LEARNING.md) — Découvertes techniques et solutions
+- 🎯 [agent/SKILLS.md](./agent/SKILLS.md) — Patterns de code réutilisables pour l'agent
