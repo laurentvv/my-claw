@@ -187,7 +187,7 @@ Règles modèles :
 ### agent/.env
 - OLLAMA_BASE_URL : http://localhost:11434
 - ZAI_API_KEY : optionnel
-- ZAI_BASE_URL : https://open.bigmodel.cn/api/paas/v4
+- ZAI_BASE_URL : https://api.z.ai/api/coding/paas/v4
 - SCREENSHOT_DIR : C:\tmp\myclawshots (défaut)
 
 ---
