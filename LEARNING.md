@@ -355,6 +355,17 @@ Done ✅
   - Par défaut, seuls quelques modules stdlib sont autorisés : `statistics`, `collections`, `re`, `math`, etc.
   - Pour utiliser `requests`, `urllib`, `json`, etc., il faut les ajouter explicitement
   - Exemple : `additional_authorized_imports=["requests", "urllib", "json", "csv", "pathlib", "os", "subprocess"]`
+- **Solution 3** : Fournir des **skills** (exemples de code) directement dans `instructions` (2026-02-20)
+  - Les LLM ont tendance à régénérer le code à chaque fois, ce qui est lent et peut introduire des erreurs
+  - En fournissant des patterns de code concrets, l'agent peut les copier directement
+  - **Fichier externe** : Les skills sont définis dans `agent/skills.txt` et chargés au démarrage
+  - Avantages : Plus rapide, plus fiable, moins de tokens consommés, facile à modifier sans toucher au code
+  - Patterns fournis : screenshot+vision, OCR, screenshot région, HTTP requests, keyboard automation, clipboard, file operations
+  - Pour ajouter un skill : éditer `agent/skills.txt` et redémarrer le serveur
+  - **IMPORTANT** : Tous les skills doivent utiliser `final_answer()` pour retourner le résultat
+    - ❌ Problème : L'agent essaie de reformuler la réponse en texte au Step 2 → Erreur de parsing → Aucune réponse envoyée
+    - ✅ Solution : Utiliser `final_answer()` dans le code pour terminer immédiatement
+    - Exemple : `final_answer(f"Screenshot saved: {screenshot_path}\n\nAnalysis: {analysis}")`
 - **Résultat** : L'agent préfère écrire du code Python natif plutôt que d'appeler des commandes système
 - Cela évite les problèmes de compatibilité PowerShell/Bash et simplifie le code généré
 - **Documentation** : https://huggingface.co/docs/smolagents/tutorials/building_good_agents

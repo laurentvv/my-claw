@@ -2,6 +2,7 @@ import os
 import logging
 import re
 import requests
+from pathlib import Path
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from smolagents import CodeAgent, LiteLLMModel
@@ -12,6 +13,24 @@ load_dotenv()
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+# Charger les skills depuis le fichier externe
+def load_skills() -> str:
+    """Charge les skills (patterns de code) depuis agent/skills.txt"""
+    skills_path = Path(__file__).parent / "skills.txt"
+    try:
+        with open(skills_path, "r", encoding="utf-8") as f:
+            skills = f.read()
+        logger.info(f"✓ Skills chargés depuis {skills_path} ({len(skills)} chars)")
+        return skills
+    except FileNotFoundError:
+        logger.warning(f"✗ Fichier skills.txt non trouvé: {skills_path}")
+        return "You are a Python coding expert. ALWAYS prefer writing Python code directly over using external tools."
+    except Exception as e:
+        logger.error(f"✗ Erreur lors du chargement des skills: {e}")
+        return "You are a Python coding expert. ALWAYS prefer writing Python code directly over using external tools."
+
+SKILLS = load_skills()
 
 # Configuration des modèles par catégorie
 # Chaque catégorie a une liste de modèles préférés (ordre de priorité)
@@ -211,28 +230,7 @@ async def run(req: RunRequest):
             executor_kwargs={
                 "timeout_seconds": 240,  # Timeout de 240 secondes (4 minutes) pour l'exécution du code Python
             },
-            instructions="""You are a Python coding expert. ALWAYS prefer writing Python code directly over using external tools.
-
-IMPORTANT RULES:
-- For HTTP requests: Use Python's requests library or urllib, NOT os_exec with curl
-- For file operations: Use Python's built-in file operations, NOT os_exec
-- For data processing: Use Python directly (json, csv, pandas, etc.)
-- Only use os_exec for true system-level operations (Windows registry, system commands, launching apps)
-
-Example - GOOD ✅:
-<code>
-import requests
-response = requests.get("https://wttr.in/Nancy?format=3")
-print(response.text)
-</code>
-
-Example - BAD ❌:
-<code>
-result = os_exec(command="curl https://wttr.in/Nancy?format=3", timeout=30)
-print(result)
-</code>
-
-Remember: If you can do it in Python, DO IT IN PYTHON!""",
+            instructions=SKILLS,  # Chargé depuis agent/skills.txt
         )
         prompt = build_prompt_with_history(req.message, req.history)
         result = agent.run(prompt)

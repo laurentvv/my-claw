@@ -70,9 +70,14 @@ Règle absolue : un tool validé avant d'implémenter le suivant.
 
 **Améliorations récentes (2026-02-20) :**
 - ✅ Fix GLM-4.7 : Nettoyage automatique des balises `</code` générées par GLM-4.7
-- ✅ Timeouts augmentés : Gateway 5min, Agent 3min pour l'exécution du code Python
+- ✅ Timeouts augmentés : Gateway 6min, Agent 4min pour l'exécution du code Python (GLM-4.7 screenshot+vision)
 - ✅ Guidage de l'agent : `instructions` + `additional_authorized_imports` pour préférer Python natif
 - ✅ TOOL-7 Vision : Implémenté avec Ollama local (qwen3-vl:2b) au lieu de Z.ai MCP
+- ✅ Skills (patterns de code) : L'agent reçoit des exemples de code réutilisables depuis `agent/skills.txt`
+  - Screenshot + vision, OCR, screenshot région, HTTP requests, keyboard automation, clipboard, file operations
+  - Plus rapide, plus fiable, moins de tokens consommés
+  - Facile à modifier sans toucher au code (juste éditer skills.txt)
+  - Documentation : `agent/SKILLS.md`
 
 ### TOOL-1 — Fichiers Windows
 **Statut : DONE**
@@ -300,8 +305,10 @@ my-claw/
 │   └── validation-module3.md
 ├── agent/
 │   ├── pyproject.toml + uv.lock
-│   ├── main.py                    DONE module 1 + GLM-4.7 fix + timeouts
+│   ├── main.py                    DONE module 1 + GLM-4.7 fix + timeouts + skills loader
 │   ├── gradio_app.py              DONE module 1
+│   ├── skills.txt                 Patterns de code réutilisables (chargés au démarrage)
+│   ├── SKILLS.md                  Documentation des skills
 │   └── tools/
 │       ├── __init__.py            DONE — contient TOOLS = [FileSystemTool(), OsExecTool(), ClipboardTool(), VisionTool(), ScreenshotTool(), MouseKeyboardTool()]
 │       ├── file_system.py          ✅ DONE — TOOL-1
