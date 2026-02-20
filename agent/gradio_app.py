@@ -7,7 +7,7 @@ load_dotenv()
 
 AGENT_URL = os.environ.get("AGENT_URL", "http://localhost:8000")
 
-MODELS = ["fast", "smart", "main", "code", "reason"]
+MODELS = ["fast", "smart", "main", "vision", "code", "reason"]
 
 
 def chat(message: str, history: list, model_choice: str) -> str:
@@ -22,7 +22,7 @@ def chat(message: str, history: list, model_choice: str) -> str:
         resp = requests.post(
             f"{AGENT_URL}/run",
             json={"message": message, "history": history_dicts, "model": model_choice},
-            timeout=120,
+            timeout=300,  # 5 minutes pour les analyses d'images via MCP Vision
         )
         resp.raise_for_status()
         return resp.json()["response"]
@@ -38,7 +38,7 @@ demo = gr.ChatInterface(
         gr.Dropdown(
             choices=MODELS,
             value="smart",
-            label="Modèle",
+            label="Modèle (smart=qwen3 recommandé, vision=qwen3-vl:2b pour vision locale)",
         )
     ],
     title="my-claw — Dev Interface",

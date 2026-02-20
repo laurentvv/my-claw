@@ -1,11 +1,12 @@
 # AGENTS.md — my-claw Assistant Personnel Hybride
-> Fichier de guidage pour les IA de codage (Claude Code, Cursor, Codex, Windsurf...)
+> Fichier de guidage pour les IA de codage (Kilo Code, Crush, Claude Code, Cursor, Codex, Windsurf...)
 > Architecture : Next.js 16 (gateway) + Python smolagents (cerveau) + Gradio (UI dev)
 
 ---
 
 ## RÈGLES IMPÉRATIVES POUR L'IA DE CODAGE
 
+0. **Lis LEARNING.md** - avant chaque tâche. Mets **LEARNING.md** à jour avec les nouvelles découvertes après.
 1. **STOP à chaque CHECKPOINT** — attendre validation explicite de l'utilisateur avant de continuer
 2. **Un module à la fois** — ne jamais anticiper le module suivant
 3. **Lire le skill correspondant** dans `.claude/skills/` avant de coder quoi que ce soit
@@ -15,6 +16,8 @@
 7. **Pas de secrets dans le code** — toujours process.env ou os.environ
 8. **Webhooks** : répondre HTTP 200 immédiatement, traiter en async
 9. **Valider TypeScript** : npx tsc --noEmit doit passer avant chaque commit
+10. **lancement serveur** : Ne jamais exectuter : **npm run** dev ou **uv run uvicorn main:app --reload**, demander à l'utilisateur de le lancer et de donné les erreurs/informations
+11. **max_steps** : 5 pour tâches simples, 10 pour pilotage PC complexe (TOOL-9)
 
 ---
 
@@ -24,7 +27,7 @@
 |--------|-------------|---------|-------|
 | Gateway | Next.js | 16+ | App Router obligatoire |
 | ORM | Prisma | 7+ | SQLite local |
-| Runtime JS | Node.js | 22+ | |
+| Runtime JS | Node.js | 24+ | |
 | Gestionnaire Python | uv | latest | Jamais pip |
 | Agent LLM | smolagents | 1.9+ | CodeAgent |
 | API serveur Python | FastAPI | 0.115+ | |
@@ -41,11 +44,12 @@
 
 | ID | Modèle | Taille | Usage |
 |----|--------|--------|-------|
-| fast | qwen3:4b | 2.6GB | Réponses rapides |
-| smart | qwen3:8b | 5.2GB | Usage quotidien |
-| main | qwen3:14b | 9.3GB | Modèle principal — défaut |
+| fast | gemma3:latest | 3.3GB | Réponses rapides |
+| smart | qwen3:latest (8b) | 5.2GB | Usage quotidien — recommandé |
+| main | qwen3:latest (8b) | 5.2GB | Modèle principal — défaut |
+| vision | qwen3-vl:2b | ~2GB | Vision locale (TOOL-7) |
 
-### Z.ai — Cloud (données envoyées à Z.ai)
+### Z.ai — Cloud (données envoyées à Z.ai) - OPTIONNEL
 
 | ID | Modèle | Usage |
 |----|--------|-------|
@@ -53,12 +57,18 @@
 | reason | glm-4.7 | Raisonnement profond |
 
 Règles modèles :
-- Modèle par défaut : main (qwen3:14b)
+- Modèle par défaut : main (qwen3:8b)
+- **Détection automatique** : L'agent détecte les modèles Ollama installés au démarrage via `GET /api/tags`
+- **Préférences par catégorie** : Chaque catégorie (fast/smart/main/vision) a une liste de modèles préférés
+- **Fallback intelligent** : Si le modèle préféré n'est pas installé, utilise le suivant dans la liste
 - Si ZAI_API_KEY absent : fallback silencieux sur main
 - think: false en mode agent (évite verbosité Qwen3)
 - num_ctx: 32768 pour tous les modèles Ollama
+- max_steps=5 pour tâches simples, 10 pour pilotage PC complexe
 - Provider Ollama : LiteLLMModel avec prefix ollama_chat/
 - Provider Z.ai : LiteLLMModel avec prefix openai/ (compatible OpenAI)
+- TOOL-7 (analyze_image) : utilise qwen3-vl:2b en local via Ollama
+- **API `/models`** : Endpoint pour récupérer la liste des modèles disponibles
 
 ---
 
@@ -138,8 +148,12 @@ Règles modèles :
 
 ## OUTILS smolagents
 
-### V1 — Actifs
-Aucun outil pour l'instant — l'agent répond en langage naturel uniquement.
+### V1 — Actifs (implémentés et validés)
+- **FileSystemTool** (TOOL-1) : read/write/create/delete/list/move/search
+- **OsExecTool** (TOOL-2) : exécution PowerShell
+- **ClipboardTool** (TOOL-3) : lecture/écriture presse-papier
+- **ScreenshotTool** (TOOL-8) : capture d'écran Windows
+- **MouseKeyboardTool** (TOOL-9) : contrôle souris/clavier (bloqué par manque de Vision)
 
 ### V2 — Bloqués, ne pas implémenter
 - web_search via SearXNG local
@@ -151,7 +165,10 @@ Aucun outil pour l'instant — l'agent répond en langage naturel uniquement.
 - Toujours sous-classe Tool (pas décorateur @tool) pour compatibilité Ollama
 - Imports dans forward(), pas au top-level du fichier
 - Timeout 10s sur tous les appels HTTP
-- max_steps=5 obligatoire sur CodeAgent
+- max_steps=5 pour tâches simples, 10 pour pilotage PC complexe
+- pyautogui.FAILSAFE=False configuré (pas de coin haut-gauche pour arrêter)
+- time.sleep(0.5) après chaque action pyautogui pour laisser l'OS réagir
+- Logs de debug ajoutés dans mouse_keyboard.py pour diagnostiquer les problèmes
 
 ---
 
@@ -165,11 +182,13 @@ Aucun outil pour l'instant — l'agent répond en langage naturel uniquement.
 - NEXTCLOUD_BASE_URL
 - NEXTCLOUD_BOT_SECRET
 - NEXTCLOUD_BOT_ID
+- SCREENSHOT_DIR : C:\tmp\myclawshots (optionnel, défaut: C:\tmp\myclawshots)
 
 ### agent/.env
 - OLLAMA_BASE_URL : http://localhost:11434
 - ZAI_API_KEY : optionnel
 - ZAI_BASE_URL : https://open.bigmodel.cn/api/paas/v4
+- SCREENSHOT_DIR : C:\tmp\myclawshots (défaut)
 
 ---
 
@@ -191,6 +210,8 @@ Aucun outil pour l'instant — l'agent répond en langage naturel uniquement.
 - Ne jamais logger le contenu des messages
 - Logger uniquement : canal, timestamp, durée, modèle
 - Valider signature/token sur tous les webhooks
+- pyautogui.FAILSAFE=False configuré (pas de coin haut-gauche pour arrêter)
+- time.sleep(0.5) après chaque action pyautogui pour laisser l'OS réagir
 
 ---
 
@@ -202,6 +223,7 @@ Aucun outil pour l'instant — l'agent répond en langage naturel uniquement.
 - Pas de pip install ou requirements.txt
 - Pas de features V2 sans validation explicite
 - Pas de Telegram, Discord, Slack, Signal
+- Pas de pilotage PC sans Vision (TOOL-7 requis pour TOOL-9)
 
 ---
 
@@ -219,6 +241,7 @@ Aucun outil pour l'instant — l'agent répond en langage naturel uniquement.
 ## RÉFÉRENCES
 
 - smolagents : https://huggingface.co/docs/smolagents
+- smolagents MCP : https://huggingface.co/docs/smolagents/tutorials/mcp
 - Prisma 7 Config : https://pris.ly/d/config-datasource
 - Z.ai GLM-4.7 : https://open.bigmodel.cn/dev/api
 - Ollama API : https://github.com/ollama/ollama/blob/main/docs/api.md
@@ -227,3 +250,5 @@ Aucun outil pour l'instant — l'agent répond en langage naturel uniquement.
 - Next.js 16 : https://nextjs.org/docs/app
 - Gradio : https://www.gradio.app/docs
 - FastAPI : https://fastapi.tiangolo.com
+- pyautogui : https://pyautogui.readthedocs.io
+- Pillow : https://pillow.readthedocs.io

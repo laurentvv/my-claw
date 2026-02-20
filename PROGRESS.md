@@ -1,6 +1,6 @@
 # PROGRESS.md — État d'avancement my-claw
 
-Dernière mise à jour : Février 2026
+Dernière mise à jour : 2026-02-20
 Repo : https://github.com/laurentvv/my-claw
 
 ---
@@ -12,212 +12,318 @@ Repo : https://github.com/laurentvv/my-claw
 
 ---
 
-## MODULE 0 — Socle & Configuration
-**Statut : DONE**
+## MODULE 0 — Socle & Configuration — DONE
 
-- Repo GitHub créé : https://github.com/laurentvv/my-claw
-- Structure dossiers : gateway/ (Next.js) + agent/ (Python)
-- .gitignore complet (Node, Python, .env, .db, .venv, modèles)
-- .env.example avec toutes les variables documentées
-- Next.js 16 initialisé avec App Router + TypeScript + Tailwind
-- Python uv initialisé avec pyproject.toml
-- Ollama opérationnel avec 3 modèles disponibles :
-  - qwen3:4b (2.6GB)
-  - qwen3:8b (5.2GB)
-  - qwen3:14b (9.3GB)
-- Bonus déjà présents sur Ollama :
-  - nomic-embed-text (utile pour mémoire vectorielle V2)
-  - embeddinggemma (utile pour mémoire vectorielle V2)
-  - lfm2.5-thinking:1.2b
+- Repo GitHub, structure gateway/ + agent/, .gitignore, .env.example, setup.ps1
+- Next.js 16 App Router + TypeScript + Tailwind
+- Python uv + pyproject.toml
+- Ollama : qwen3:4b / qwen3:8b / qwen3:14b + nomic-embed-text + embeddinggemma
 
 ---
 
-## MODULE 1 — Cerveau Python (smolagents + FastAPI + Gradio)
-**Statut : DONE**
+## MODULE 1 — Cerveau Python — DONE
 
-- agent/main.py : FastAPI avec POST /run et GET /health
-- agent/gradio_app.py : interface Gradio fonctionnelle
-- agent/tools/__init__.py : TOOLS = [] prêt à recevoir les outils
-- Correction bug Gradio 5 : historique en dicts {role, content} pas en tuples
-- Modèles configurés : fast/smart/main (Ollama) + code/reason (Z.ai)
-- Fallback automatique Z.ai → main si ZAI_API_KEY absent
-- think: false activé pour Qwen3 en mode agent
-- num_ctx: 32768 pour tous les modèles Ollama
-
-Aucun outil actif — l'agent répond en langage naturel uniquement.
+- agent/main.py : FastAPI POST /run + GET /health
+- agent/gradio_app.py : Gradio fonctionnel, bug Gradio 5 corrigé
+- agent/tools/__init__.py : TOOLS = [] prêt
+- Modèles : fast/smart/main (Ollama) + code/reason (Z.ai), fallback auto
+- think: false, num_ctx: 32768 pour Qwen3
 
 ---
 
-## MODULE 2 — Mémoire (Next.js + Prisma 7 + SQLite)
-**Statut : DONE**
+## MODULE 2 — Mémoire Prisma 7 + SQLite — DONE
 
-- gateway/prisma/schema.prisma : 4 tables (Conversation, Message, CronJob, Settings)
-- gateway/prisma.config.ts : configuration Prisma 7 avec datasource.url
-- gateway/lib/db.ts : singleton PrismaClient avec PrismaLibSQL
-- gateway/lib/memory.ts : helpers getOrCreateConversation, addMessage, getHistory
-- gateway/lib/agent-client.ts : appel HTTP vers Python :8000
+- gateway/prisma/schema.prisma : Conversation, Message, CronJob, Settings
+- gateway/prisma.config.ts : datasource.url (Prisma 7, pas de url dans schema)
+- gateway/lib/db.ts : PrismaLibSQL({ url: string }) directement
+- gateway/lib/memory.ts : getOrCreateConversation, addMessage, getHistory
+- gateway/lib/agent-client.ts : appel HTTP :8000
 - Migration init appliquée, dev.db créé
-- Dépendances : prisma, @prisma/client, @prisma/adapter-libsql, @libsql/client
-
-Notes Prisma 7 critiques (breaking changes) :
-- url retiré de schema.prisma
-- PrismaLibSQL prend { url: string } directement (pas createClient())
-- prisma.config.ts utilise datasource.url (pas adapter ni earlyAccess)
 
 ---
 
-## MODULE 3 — WebChat (Next.js UI)
+## MODULE 3 — WebChat — DONE
+
+- gateway/app/(webchat)/page.tsx : UI React Tailwind mobile-friendly
+- gateway/app/api/chat/route.ts : SSE streaming, auth Bearer token, mémoire
+- Sélecteur modèle, historique persistant, rejet 401 sans token
+- Rapport complet : plans/validation-module3.md
+
+---
+
+## DÉCISION — WhatsApp retiré (2026-02-19)
+
+Retiré définitivement. Nextcloud Talk suffit, pas de dépendance Meta souhaitée.
+Les modules 4/5/6/7/8 originaux ont été renumérotés en conséquence.
+
+---
+
+## MODULE TOOLS — Extensions Smolagents
+**Statut : EN COURS — PRIORITAIRE avant Nextcloud Talk**
+
+Objectif : rendre l'agent autonome sur la machine Windows.
+Modèle principal : glm-4.7 (Z.ai cloud) ou qwen3:8b (Ollama local).
+Règle absolue : un tool validé avant d'implémenter le suivant.
+
+**Outils locaux implémentés :** ✅ TOOL-1, ✅ TOOL-2, ✅ TOOL-3, ✅ TOOL-7, ✅ TOOL-8, ⚠️ TOOL-9 (bloqué par manque de Vision)
+**Outils MCP à implémenter :** TOOL-4, TOOL-5, TOOL-6, TOOL-10
+
+**Améliorations récentes (2026-02-20) :**
+- ✅ Fix GLM-4.7 : Nettoyage automatique des balises `</code` générées par GLM-4.7
+- ✅ Timeouts augmentés : Gateway 6min, Agent 4min pour l'exécution du code Python (GLM-4.7 screenshot+vision)
+- ✅ Guidage de l'agent : `instructions` + `additional_authorized_imports` pour préférer Python natif
+- ✅ TOOL-7 Vision : Implémenté avec Ollama local (qwen3-vl:2b) au lieu de Z.ai MCP
+- ✅ Skills (patterns de code) : L'agent reçoit des exemples de code réutilisables depuis `agent/skills.txt`
+  - Screenshot + vision, OCR, screenshot région, HTTP requests, keyboard automation, clipboard, file operations
+  - Plus rapide, plus fiable, moins de tokens consommés
+  - Facile à modifier sans toucher au code (juste éditer skills.txt)
+  - Documentation : `agent/SKILLS.md`
+
+### TOOL-1 — Fichiers Windows
 **Statut : DONE**
 
-- gateway/app/(webchat)/page.tsx : UI React avec Tailwind, mobile-friendly
-- gateway/app/api/chat/route.ts : endpoint POST/GET avec auth token
-- Authentification via header Authorization: Bearer {WEBCHAT_TOKEN}
-- Streaming Server-Sent Events (SSE) pour les réponses agent
-- Sauvegarde des messages en DB SQLite via lib/memory.ts
-- Chargement historique persistant
-- Sélecteur de modèle (fast/smart/main/code/reason)
-- Rejet correct des requêtes non authentifiées (401)
+Fichiers créés :
+- agent/tools/file_system.py : sous-classe Tool, opérations read/write/create/delete/list/move/search
+- Pas de whitelist, accès total, machine dédiée mono-utilisateur
+- Dépendances : pathlib + shutil (stdlib, rien à ajouter)
+- FileSystemTool ajouté dans agent/tools/__init__.py TOOLS
 
-Tests validés :
-- Gateway Next.js répond sur :3000
-- Agent Python répond sur :8000
-- POST /api/chat avec token streaming SSE fonctionnel
-- Conversation ID généré et persisté en DB
-- Messages user et assistant sauvegardés
-- GET /api/chat retourne l'historique
-- Rejet des requêtes sans token (401)
-- UI React affiche les messages et gère le login
+Checkpoint :
+- ✅ Gradio avec glm-4.7 : "Crée un fichier C:\tmp\test.txt avec le contenu Bonjour"
+- ✅ Vérifier que le fichier existe sur le disque
+- ✅ "Lis le fichier C:\tmp\test.txt" → retourne "Bonjour"
+- ✅ "Renomme-le en test2.txt" → fichier renommé
+- ✅ "Supprime test2.txt" → fichier supprimé
+- ✅ Commit : feat: tool-1 — file system windows
 
-Rapport complet : plans/validation-module3.md
+### TOOL-2 — Exécution OS Windows (PowerShell)
+**Statut : DONE**
 
----
+Fichiers créés :
+- agent/tools/os_exec.py : sous-classe Tool, subprocess.run() PowerShell
+- Retourne stdout, stderr, returncode, timeout 30s par défaut
+- OsExecTool ajouté dans TOOLS
 
-## DÉCISION — WhatsApp retiré définitivement
+Checkpoint :
+- ✅ "Exécute Get-Date" → date actuelle retournée
+- ✅ "Liste les processus actifs (Get-Process | Select -First 5)"
+- ✅ "Crée un dossier C:\tmp\testdir via PowerShell"
+- ✅ Commit : feat: tool-2 — os powershell
 
-WhatsApp supprimé du plan le 2026-02-19.
-Raison : Nextcloud Talk suffit pour usage perso, pas de dépendance Meta souhaitée.
-Les anciens modules 4 (WhatsApp) et 5 (Nextcloud) sont renumérotés en conséquence.
+### TOOL-3 — Presse-papier Windows
+**Statut : DONE**
 
----
+Fichiers créés :
+- agent/tools/clipboard.py : sous-classe Tool, read_clipboard + write_clipboard
+- Dépendance : uv add pyperclip
+- ClipboardTool ajouté dans TOOLS
 
-## MODULE 4 — Canal Nextcloud Talk
-**Statut : A FAIRE — PROCHAIN MODULE**
+Checkpoint :
+- ✅ "Écris 'Hello World' dans le presse-papier"
+- ✅ Ctrl+V dans Notepad vérifie manuellement
+- ✅ "Lis le contenu du presse-papier" → retourne "Hello World"
+- ✅ Commit : feat: tool-3 — clipboard
 
-À implémenter :
-- gateway/app/api/webhook/nextcloud/route.ts
-  - Vérification signature HMAC-SHA256 obligatoire
-  - Headers : X-Nextcloud-Talk-Random + X-Nextcloud-Talk-Signature
-  - Utiliser crypto.timingSafeEqual pour comparer les signatures
-  - Répondre HTTP 200 immédiatement, traiter en async
-- gateway/lib/channels/nextcloud.ts
-  - Fonction send(token, message)
-  - POST vers {NC_BASE_URL}/ocs/v2.php/apps/spreed/api/v1/bot/{BOT_ID}/message
-  - Header OCS-APIRequest: true
-- Enregistrer le bot dans l'admin Nextcloud, récupérer le secret NEXTCLOUD_BOT_SECRET
-
-Variables d'env à remplir dans gateway/.env.local :
-- NEXTCLOUD_BASE_URL
-- NEXTCLOUD_BOT_SECRET
-- NEXTCLOUD_BOT_ID
-
-Checkpoint attendu :
-- Envoyer un message au bot dans Nextcloud Talk → réponse de l'agent
-- Mauvaise signature → HTTP 401
-- Historique de la conversation visible dans Prisma Studio
-- Commit : feat: module 4 — nextcloud talk
-
----
-
-## MODULE 5 — Cron & Proactivité
+### TOOL-4 — MCP Web Search Z.ai
 **Statut : A FAIRE**
 
-À implémenter :
-- gateway/app/api/cron/route.ts
-  - Protégé par header X-Cron-Secret
-  - Lit les CronJobs actifs en DB
-  - Exécute via agent Python et envoie la réponse sur Nextcloud Talk
-- Configuration crontab système : appel chaque minute vers /api/cron
-- UI minimaliste pour créer/activer/désactiver des CronJobs
+Intégration :
+- MCPClient HTTP streamable vers https://api.z.ai/api/mcp/web_search_prime/mcp
+- Header Authorization: Bearer {ZAI_API_KEY}
+- Outil exposé : webSearchPrime
+- Initialisation dans agent/main.py au démarrage
+- Ajouter à TOOLS
+
+Checkpoint :
+- ZAI_API_KEY configuré dans agent/.env
+- "Quelle est la météo à Paris aujourd'hui ?" → résultats temps réel
+- Vérifier dans les logs que webSearchPrime a bien été appelé
+- Commit : feat: tool-4 — mcp web search zai
+
+### TOOL-5 — MCP Web Reader Z.ai
+**Statut : A FAIRE**
+
+Intégration :
+- URL : https://api.z.ai/api/mcp/web_reader/mcp
+- Outil exposé : webReader
+- Même pattern que TOOL-4
+
+Checkpoint :
+- "Lis la page https://example.com et résume-la"
+- Retour : titre + contenu principal + liens
+- Commit : feat: tool-5 — mcp web reader zai
+
+### TOOL-6 — MCP Zread Z.ai (GitHub)
+**Statut : A FAIRE**
+
+Intégration :
+- URL : https://api.z.ai/api/mcp/zread/mcp
+- Outils exposés : search_doc, get_repo_structure, read_file
+- Repos GitHub publics uniquement
+
+Checkpoint :
+- "Donne-moi la structure du repo huggingface/smolagents"
+- "Lis le fichier README.md de ce repo"
+- Commit : feat: tool-6 — mcp zread github
+
+### TOOL-7 — Vision locale (Ollama qwen3-vl:2b)
+**Statut : ✅ DONE**
+
+Fichiers créés :
+- agent/tools/vision.py : sous-classe Tool, analyse d'images via Ollama qwen3-vl:2b
+- Modèle local : qwen3-vl:2b (2.3GB) - 100% local, 0 donnée sortante
+- Timeout : 180 secondes (3 minutes) pour l'analyse d'images
+
+Fonctionnalités :
+- analyze_image(image_path, prompt) : analyse générale d'image avec prompt personnalisé
+- Utilise l'API Ollama /api/chat avec support des images en base64
+- Logs détaillés pour le debugging
+
+Checkpoint :
+- ✅ Installer le modèle : `ollama pull qwen3-vl:2b`
+- ✅ Démarrer le serveur : `uv run uvicorn main:app --reload`
+- ✅ Vérifier logs : "✓ vision: qwen3-vl:2b"
+- ✅ Test Gradio : "Prends un screenshot et décris ce que tu vois"
+- ✅ Test OCR : "Prends un screenshot et extrait le texte visible"
+- ✅ Commit : feat: tool-7 — vision locale ollama qwen3-vl
+
+Impact :
+- ✅ 100% local, pas de dépendance cloud pour la vision
+- ✅ Permet l'analyse d'images, OCR, compréhension de diagrammes
+- ⚠️ TOOL-9 reste bloqué : qwen3-vl:2b seul ne suffit pas pour le pilotage PC autonome
+  - L'agent a besoin d'un modèle plus puissant (GLM-4.6V via Z.ai MCP) pour coordonner screenshot + vision + actions
+  - Alternative : Utiliser glm-4.7 comme orchestrateur avec qwen3-vl:2b comme outil vision
+
+### TOOL-8 — Screenshot Windows
+**Statut : DONE**
+
+Fichiers créés :
+- agent/tools/screenshot.py : sous-classe Tool
+- pyautogui.screenshot() → sauvegarde C:\tmp\myclawshots\screen_{timestamp}.png
+- Retourne le chemin absolu
+- Dépendances : uv add pyautogui pillow
+- Option région : screenshot(region=(x, y, w, h))
+
+Checkpoint :
+- ✅ "Prends un screenshot de l'écran" → chemin retourné
+- ✅ Vérifier que le fichier PNG existe et est lisible
+- ✅ Enchaîner avec TOOL-7 : "Prends un screenshot et décris ce que tu vois" → Fonctionne avec qwen3-vl:2b
+- ✅ Commit : feat: tool-8 — screenshot windows
+
+### TOOL-9 — Contrôle souris et clavier
+**Statut : DONE mais BLOQUÉ par manque de Vision avancée**
+
+Fichiers créés :
+- agent/tools/mouse_keyboard.py : sous-classe Tool
+- Opérations : click, double_click, move, type, hotkey, drag
+- pyautogui déjà installé avec TOOL-8
+- Logs de debug ajoutés pour diagnostiquer les problèmes
+
+Checkpoint :
+- ❌ "Ouvre le menu Démarrer" → hotkey Win → LLM clique sur (0,0) au lieu d'utiliser hotkey
+- ❌ "Tape notepad et appuie sur Entrée" → LLM ne sait pas comment séquencer les actions
+- ⚠️ Screenshot pour vérifier que Notepad s'est ouvert → qwen3-vl:2b peut décrire mais pas coordonner
+- ✅ Commit : feat: tool-9 — mouse keyboard control
+
+**Problème identifié (2026-02-20)** :
+- L'agent LLM ne sait pas comment utiliser correctement mouse_keyboard
+- Il invente des coordonnées incorrectes au lieu d'utiliser les bonnes opérations (hotkey)
+- TOOL-7 (qwen3-vl:2b) peut analyser des images mais ne suffit pas pour le pilotage PC autonome
+- **Solution requise** : Modèle orchestrateur plus puissant (glm-4.7) + Vision (qwen3-vl:2b ou GLM-4.6V via Z.ai MCP)
+- **Alternative** : Améliorer les instructions de l'agent avec des exemples concrets de séquences d'actions
+
+### TOOL-10 — MCP Chrome DevTools (Playwright)
+**Statut : A FAIRE**
+
+Intégration :
+- StdioServerParameters : npx @playwright/mcp@latest
+- Piloter Chrome headless ou visible
+- Outils : navigate, click, fill, extract_text, screenshot_page
+
+Checkpoint :
+- "Ouvre https://example.com dans Chrome"
+- "Extrait le titre H1 de la page"
+- "Prends un screenshot de la page"
+- Commit : feat: tool-10 — mcp chrome playwright
 
 ---
 
-## MODULE 6 — Z.ai GLM-4.7 + Health Check
-**Statut : A FAIRE**
+## MODULE 4 — Canal Nextcloud Talk — A FAIRE (après tous les tools)
 
-À implémenter :
-- Configuration ZAI_API_KEY dans agent/.env
-- Test modèles code (glm-4.7-flash) et reason (glm-4.7) via Gradio
-- gateway/app/api/health/route.ts
-  - Statut Ollama (:11434)
-  - Statut agent Python (:8000)
-  - Statut DB SQLite (ping Prisma)
+- gateway/app/api/webhook/nextcloud/route.ts : HMAC-SHA256
+- gateway/lib/channels/nextcloud.ts : send(token, message)
+- Variables : NEXTCLOUD_BASE_URL, NEXTCLOUD_BOT_SECRET, NEXTCLOUD_BOT_ID
 
 ---
 
-## MODULE 7 — Identity & Persona
-**Statut : A FAIRE**
+## MODULE 5 — Cron & Proactivité — A FAIRE
 
-À implémenter :
-- UI d'édition du system prompt dans WebChat
-- Injection du system prompt dans chaque appel à l'agent Python
-- Persistance dans la table Settings (clés : system_prompt, persona_name)
+- /api/cron protégé X-Cron-Secret, CronJobs DB, crontab système
+
+---
+
+## MODULE 6 — Z.ai + Health Check — A FAIRE
+
+- ZAI_API_KEY agent/.env, /api/health tous services
+
+---
+
+## MODULE 7 — Identity & Persona — A FAIRE
+
+- System prompt éditable WebChat, injection chaque appel, Settings DB
 
 ---
 
 ## MODULES V2 — BLOQUES
 
-Ne pas implémenter avant décision explicite de l'utilisateur dans ce fichier.
-
-- V2-A : Voice/STT sur Nextcloud Talk (whisper.cpp + ffmpeg)
-  Note : l'API bot NC Talk ne supporte pas l'envoi audio — STT entrant uniquement
-- V2-B : Exécution de code sandbox (Pyodide ou Docker)
-- V2-C : Lecture/écriture fichiers whitelist /data/allowed/
-- V2-D : Browser control Playwright headless
-- V2-E : Mémoire vectorielle — nomic-embed-text déjà dispo sur Ollama, prêt quand décidé
+- V2-A : Voice STT Nextcloud Talk (whisper.cpp)
+- V2-B : Code sandbox (remplacé en partie par TOOL-2)
+- V2-C : Fichiers whitelist (remplacé par TOOL-1 accès total)
+- V2-D : Browser control (remplacé par TOOL-10)
+- V2-E : Mémoire vectorielle (nomic-embed-text prêt sur Ollama)
 
 ---
 
-## STRUCTURE ACTUELLE DU REPO
+## STRUCTURE REPO (état actuel)
 
 ```
 my-claw/
 ├── AGENTS.md
 ├── PLAN.md
-├── PROGRESS.md               ← CE FICHIER
+├── PROGRESS.md
 ├── COMPARATIF.md
 ├── README.md
 ├── .env.example
 ├── .gitignore
 ├── setup.ps1
-├── .claude/
-│   └── skills/
-│       ├── smolagents-tools/SKILL.md
-│       ├── prisma-patterns/SKILL.md
-│       ├── nextjs-api-routes/SKILL.md
-│       └── channel-webhooks/SKILL.md
+├── .claude/skills/
+│   ├── smolagents-tools/SKILL.md
+│   ├── prisma-patterns/SKILL.md
+│   ├── nextjs-api-routes/SKILL.md
+│   └── channel-webhooks/SKILL.md
 ├── plans/
 │   └── validation-module3.md
 ├── agent/
-│   ├── pyproject.toml
-│   ├── uv.lock
-│   ├── main.py               DONE module 1
-│   ├── gradio_app.py         DONE module 1
+│   ├── pyproject.toml + uv.lock
+│   ├── main.py                    DONE module 1 + GLM-4.7 fix + timeouts + skills loader
+│   ├── gradio_app.py              DONE module 1
+│   ├── skills.txt                 Patterns de code réutilisables (chargés au démarrage)
+│   ├── SKILLS.md                  Documentation des skills
 │   └── tools/
-│       └── __init__.py       DONE module 1
+│       ├── __init__.py            DONE — contient TOOLS = [FileSystemTool(), OsExecTool(), ClipboardTool(), VisionTool(), ScreenshotTool(), MouseKeyboardTool()]
+│       ├── file_system.py          ✅ DONE — TOOL-1
+│       ├── os_exec.py             ✅ DONE — TOOL-2 (fix curl PowerShell)
+│       ├── clipboard.py           ✅ DONE — TOOL-3
+│       ├── vision.py              ✅ DONE — TOOL-7 (Ollama qwen3-vl:2b)
+│       ├── screenshot.py          ✅ DONE — TOOL-8
+│       └── mouse_keyboard.py      ⚠️ DONE — TOOL-9 (bloqué par manque de Vision avancée)
 └── gateway/
-    ├── prisma.config.ts      DONE module 2
-    ├── prisma/
-    │   ├── schema.prisma     DONE module 2
-    │   ├── dev.db            DONE module 2 (gitignored)
-    │   └── migrations/       DONE module 2
-    ├── lib/
-    │   ├── db.ts             DONE module 2
-    │   ├── memory.ts         DONE module 2
-    │   └── agent-client.ts   DONE module 2
+    ├── prisma.config.ts           DONE module 2
+    ├── prisma/schema.prisma       DONE module 2
+    ├── lib/db.ts                  DONE module 2
+    ├── lib/memory.ts              DONE module 2
+    ├── lib/agent-client.ts        DONE module 2
     └── app/
-        ├── (webchat)/
-        │   └── page.tsx      DONE module 3
-        └── api/
-            └── chat/
-                └── route.ts  DONE module 3
+        ├── (webchat)/page.tsx     DONE module 3
+        └── api/chat/route.ts      DONE module 3
 ```

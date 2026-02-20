@@ -9,7 +9,7 @@ export async function runAgent(
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ message, history, model }),
-    signal: AbortSignal.timeout(120_000),
+    signal: AbortSignal.timeout(360_000), // 6 minutes (360 secondes)
   })
 
   if (!res.ok) {
