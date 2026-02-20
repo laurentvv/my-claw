@@ -132,7 +132,20 @@ class CleanedLiteLLMModel(LiteLLMModel):
 
 
 def get_model(model_id: str = "main") -> LiteLLMModel:
-    model_name, base_url = MODELS.get(model_id, MODELS["main"])
+    # Fallback sécurisé : si model_id n'existe pas, essayer "main", sinon prendre le premier modèle disponible
+    if model_id not in MODELS:
+        if "main" in MODELS:
+            fallback = MODELS["main"]
+        elif MODELS:
+            # Prendre le premier modèle disponible
+            fallback = next(iter(MODELS.values()))
+            logger.warning(f"Modèle '{model_id}' non trouvé, fallback sur {fallback[0]}")
+        else:
+            # Aucun modèle disponible du tout
+            raise RuntimeError("Aucun modèle LLM disponible. Vérifiez qu'Ollama est démarré ou que ZAI_API_KEY est configuré.")
+        model_name, base_url = fallback
+    else:
+        model_name, base_url = MODELS[model_id]
 
     # Déterminer l'API key selon le provider
     if model_id in ["code", "reason"]:

@@ -456,6 +456,29 @@ MODEL_PREFERENCES = {
 - ✅ Logs clairs des modèles détectés
 - ✅ API `/models` pour le frontend
 
+**Bug critique corrigé (2026-02-20)** : KeyError si aucun modèle Ollama installé
+
+**Problème** : Si aucun modèle Ollama n'est installé, `MODELS` ne contient que les modèles cloud (`code`, `reason`). Le fallback `MODELS.get(model_id, MODELS["main"])` lève alors une `KeyError` car `"main"` n'existe pas, crashant l'endpoint `/run`.
+
+**Solution** : Fallback sécurisé en cascade dans `get_model()` :
+```python
+if model_id not in MODELS:
+    if "main" in MODELS:
+        fallback = MODELS["main"]
+    elif MODELS:
+        # Prendre le premier modèle disponible
+        fallback = next(iter(MODELS.values()))
+        logger.warning(f"Modèle '{model_id}' non trouvé, fallback sur {fallback[0]}")
+    else:
+        # Aucun modèle disponible du tout
+        raise RuntimeError("Aucun modèle LLM disponible. Vérifiez qu'Ollama est démarré ou que ZAI_API_KEY est configuré.")
+```
+
+**Résultat** :
+- ✅ Pas de crash si aucun modèle Ollama installé
+- ✅ Fallback sur le premier modèle disponible (ex: `code` ou `reason` si ZAI_API_KEY configuré)
+- ✅ Message d'erreur clair si aucun modèle disponible du tout
+
 ### Découverte technique (pathlib)
 - pathlib.Path utilisé pour tous les chemins Windows
 - encode="utf-8" par défaut pour compatibilité
