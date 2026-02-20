@@ -1,13 +1,12 @@
 "use client"
 
 import { useState, useEffect, useRef, FormEvent } from "react"
+import ModelSelector from "@/components/ModelSelector"
 
 type Message = {
   role: "user" | "assistant"
   content: string
 }
-
-type Model = "fast" | "smart" | "main" | "code" | "reason"
 
 export default function WebChatPage() {
   const [token, setToken] = useState("")
@@ -16,7 +15,7 @@ export default function WebChatPage() {
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState("")
   const [isLoading, setIsLoading] = useState(false)
-  const [selectedModel, setSelectedModel] = useState<Model>("main")
+  const [selectedModel, setSelectedModel] = useState<string>("main")
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const abortControllerRef = useRef<AbortController | null>(null)
 
@@ -212,17 +211,11 @@ export default function WebChatPage() {
       <header className="flex items-center justify-between px-4 py-3 bg-white dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800">
         <div className="flex items-center gap-4">
           <h1 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">my-claw</h1>
-          <select
+          <ModelSelector
             value={selectedModel}
-            onChange={(e) => setSelectedModel(e.target.value as Model)}
+            onChange={setSelectedModel}
             className="px-3 py-1.5 text-sm border border-zinc-300 dark:border-zinc-700 rounded bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100"
-          >
-            <option value="fast">fast (qwen3:4b)</option>
-            <option value="smart">smart (qwen3:8b)</option>
-            <option value="main">main (qwen3:14b)</option>
-            <option value="code">code (GLM-4.7-flash)</option>
-            <option value="reason">reason (GLM-4.7)</option>
-          </select>
+          />
         </div>
         <button
           onClick={handleLogout}

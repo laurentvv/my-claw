@@ -547,22 +547,24 @@ try {
     # ÉTAPE 2: Configuration de l'environnement
     # ============================================================
     Write-Header "ÉTAPE 2: Configuration de l'environnement"
-    
-    # Copier .env.example vers .env.local dans le répertoire gateway
+
+    # Copier gateway/.env.example vers gateway/.env.local
+    $gatewayEnvExample = Join-Path $PSScriptRoot "gateway\.env.example"
     $gatewayEnvFile = Join-Path $PSScriptRoot "gateway\.env.local"
-    $envFileSuccess = Set-EnvironmentFile -SourceFile ".env.example" -TargetFile $gatewayEnvFile
-    
+    $envFileSuccess = Set-EnvironmentFile -SourceFile $gatewayEnvExample -TargetFile $gatewayEnvFile
+
     if (-not $envFileSuccess) {
-        Write-Error "Échec de la configuration de l'environnement"
+        Write-Error "Échec de la configuration de l'environnement Gateway"
         exit 1
     }
-    
-    # Copier .env.example vers .env dans le répertoire agent
+
+    # Copier agent/.env.example vers agent/.env
+    $agentEnvExample = Join-Path $PSScriptRoot "agent\.env.example"
     $agentEnvFile = Join-Path $PSScriptRoot "agent\.env"
-    $agentEnvFileSuccess = Set-EnvironmentFile -SourceFile ".env.example" -TargetFile $agentEnvFile
-    
+    $agentEnvFileSuccess = Set-EnvironmentFile -SourceFile $agentEnvExample -TargetFile $agentEnvFile
+
     if (-not $agentEnvFileSuccess) {
-        Write-Error "Échec de la configuration de l'environnement agent"
+        Write-Error "Échec de la configuration de l'environnement Agent"
         exit 1
     }
     

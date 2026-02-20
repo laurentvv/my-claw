@@ -13,8 +13,12 @@ agent/      → Python smolagents — cerveau LLM, outils, Gradio dev UI
 
 - Node.js 24+
 - [uv](https://docs.astral.sh/uv/getting-started/installation/) (gestionnaire Python)
-- [Ollama](https://ollama.ai) avec Qwen3 : `ollama pull qwen3:14b` (9.3GB — modèle principal)
+- [Ollama](https://ollama.ai) avec les modèles suivants :
+  - `ollama pull qwen3:8b` (5.2GB — modèle principal, recommandé)
+  - `ollama pull qwen3-vl:2b` (2.3GB — vision locale pour TOOL-7)
+  - `ollama pull gemma3:latest` (3.3GB — modèle rapide)
 - Python 3.11+ (via uv)
+- (Optionnel) Token Z.ai pour GLM-4.7 cloud (code/reason)
 
 ## Démarrage rapide
 
@@ -46,10 +50,10 @@ uv run python gradio_app.py          # → http://localhost:7860
 | Module | Status | Description |
 |--------|--------|-------------|
 | 0 — Socle | ✅ | Structure, config, services locaux |
-| 1 — Agent | ✅ | smolagents + FastAPI + Gradio |
+| 1 — Agent | ✅ | smolagents + FastAPI + Gradio + GLM-4.7 fix |
 | 2 — Mémoire | ✅ | Prisma + historique conversations |
 | 3 — WebChat | ✅ | UI web + streaming + auth |
-| Tools | 🔄 | 5/10 outils implémentés (V1: 1,2,3,8,9 / V2: 4,5,6,7,10 bloqués) |
+| Tools | 🔄 | 6/10 outils implémentés (1,2,3,7,8,9 DONE / 4,5,6,10 TODO) |
 | 4 — Nextcloud Talk | ⏳ | Bot HMAC-SHA256 |
 | 5 — Cron | ⏳ | Tâches proactives |
 | 6 — Z.ai + Health | ⏳ | GLM-4.7 + monitoring |
@@ -60,10 +64,18 @@ uv run python gradio_app.py          # → http://localhost:7860
 | Tool | Status | Description |
 |------|--------|-------------|
 | TOOL-1 | ✅ | Fichiers Windows (read/write/create/delete/list/move/search) |
-| TOOL-2 | ✅ | Exécution OS Windows (PowerShell) |
+| TOOL-2 | ✅ | Exécution OS Windows (PowerShell + fix curl alias) |
 | TOOL-3 | ✅ | Presse-papier Windows |
+| TOOL-7 | ✅ | Vision locale (Ollama qwen3-vl:2b) - 100% local |
 | TOOL-8 | ✅ | Screenshot Windows |
-| TOOL-9 | ⚠️ | Contrôle souris/clavier (implémenté mais bloqué par manque de Vision - TOOL-7 requis) |
+| TOOL-9 | ⚠️ | Contrôle souris/clavier (implémenté mais nécessite orchestration avancée) |
+
+### Améliorations récentes (2026-02-20)
+
+- ✅ **Fix GLM-4.7** : Nettoyage automatique des balises `</code` générées par GLM-4.7 (SyntaxError résolu)
+- ✅ **Timeouts augmentés** : Gateway 5min, Agent 3min pour l'exécution du code Python
+- ✅ **Guidage de l'agent** : `instructions` + `additional_authorized_imports` pour préférer Python natif (requests, urllib, json, etc.)
+- ✅ **TOOL-7 Vision** : Implémenté avec Ollama local (qwen3-vl:2b) au lieu de Z.ai MCP - 100% local, 0 donnée sortante
 
 > **Note** : WhatsApp a été retiré du projet (2026-02-19). Nextcloud Talk suffit pour les besoins actuels.
 

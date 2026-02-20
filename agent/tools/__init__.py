@@ -1,8 +1,7 @@
 """
 Tools package for smolagents CodeAgent.
 
-Local tools are imported here and added to the TOOLS list.
-MCP tools are loaded dynamically in main.py.
+All tools are local - 100% local, 0 donnée sortante.
 """
 
 from .file_system import FileSystemTool
@@ -10,5 +9,13 @@ from .os_exec import OsExecTool
 from .clipboard import ClipboardTool
 from .screenshot import ScreenshotTool
 from .mouse_keyboard import MouseKeyboardTool
+from .vision import VisionTool
 
-TOOLS = [FileSystemTool(), OsExecTool(), ClipboardTool(), ScreenshotTool(), MouseKeyboardTool()]
+TOOLS = [
+    FileSystemTool(),
+    OsExecTool(),
+    ClipboardTool(),
+    ScreenshotTool(),
+    MouseKeyboardTool(),
+    VisionTool(),
+]

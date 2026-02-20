@@ -71,13 +71,13 @@ System prompt éditable, injection dans chaque appel, persistance Settings.
 
 Ce module s'implémente AVANT le module 4 (Nextcloud Talk).
 Objectif : rendre l'agent autonome sur la machine Windows.
-Modèle privilégié : glm-4.7 (token Z.ai disponible).
+Modèles : qwen3:8b (Ollama local, recommandé) ou glm-4.7 (Z.ai cloud, optionnel).
 Règle : un tool = un checkpoint = validation avant le suivant.
 
-### Contexte Z.ai Coding Plan Lite
-- 100 calls/mois partagés entre web search, web reader et zread
-- 5h de pool vision GLM-4.6V/mois
-- Stratégie : tools sans quota en priorité, MCP Z.ai à la demande uniquement
+### Stratégie Local-First
+- Priorité aux outils 100% locaux (Ollama)
+- Z.ai cloud uniquement pour ce que le local ne peut pas faire (web search, web reader, zread)
+- Vision : qwen3-vl:2b (Ollama local) au lieu de GLM-4.6V (Z.ai cloud)
 
 ### TOOL-1 — Fichiers Windows (accès total)
 Priorité : 1 | Quota : 0 | Dépendance : pathlib stdlib
@@ -133,26 +133,22 @@ Repos GitHub publics uniquement.
 
 Checkpoint : explorer la structure de huggingface/smolagents, lire un fichier clé.
 
-### TOOL-7 — MCP Vision Z.ai (GLM-4.6V)
-Priorité : 7 | Quota : oui (5h pool vision/mois) | Dépendance : Node.js 22+, ZAI_API_KEY
+### TOOL-7 — Vision locale (Ollama qwen3-vl:2b)
+Priorité : 7 | Quota : 0 (100% local) | Dépendance : Ollama + qwen3-vl:2b
 
-Intégration via ToolCollection.from_mcp() avec StdioServerParameters.
-Commande : npx -y @z_ai/mcp-server@latest
-Env : Z_AI_API_KEY + Z_AI_MODE=ZAI
+Sous-classe Tool smolagents. Analyse d'images via Ollama qwen3-vl:2b.
+Modèle : qwen3-vl:2b (2.3GB) - vision locale, 0 donnée sortante.
+API : Ollama /api/chat avec support des images en base64.
+Timeout : 180 secondes (3 minutes) pour l'analyse.
 
-Outils exposés :
-- image_analysis : analyse générale d'image
-- extract_text_from_screenshot : OCR sur captures écran
-- ui_to_artifact : transformer une UI en code/specs
-- video_analysis : analyser une vidéo locale (max 8MB, MP4/MOV/M4V)
-- diagnose_error_screenshot : analyser une erreur visible à l'écran
-- understand_technical_diagram : lire un schéma d'architecture
-- ui_diff_check : comparer deux captures UI
-- analyze_data_visualization : lire un graphique/dashboard
+Fonctionnalités :
+- analyze_image(image_path, prompt) : analyse générale d'image avec prompt personnalisé
+- OCR : extraction de texte depuis des screenshots
+- Compréhension de diagrammes, graphiques, interfaces
 
-Bonne pratique : passer le chemin du fichier image, pas coller une image directement.
+Installation : `ollama pull qwen3-vl:2b`
 
-Checkpoint : analyser un screenshot existant, décrire ce qu'il voit.
+Checkpoint : analyser un screenshot existant, décrire ce qu'il voit, extraire du texte.
 
 ### TOOL-8 — Screenshot Windows
 Priorité : 8 | Quota : 0 | Dépendance : pyautogui, pillow (uv add pyautogui pillow)
@@ -162,6 +158,7 @@ Sauvegarder dans un dossier temporaire configurable (défaut : C:\tmp\myclawshot
 Retourner le chemin absolu du fichier — utilisé directement avec TOOL-7.
 
 Checkpoint : prendre un screenshot, obtenir le chemin, passer à TOOL-7 pour description.
+**Statut : ✅ DONE** - Fonctionne parfaitement avec TOOL-7 (qwen3-vl:2b).
 
 ### TOOL-9 — Contrôle souris et clavier
 Priorité : 9 | Quota : 0 | Dépendance : pyautogui (déjà installé avec TOOL-8)
@@ -171,6 +168,7 @@ keyboard_type(text), keyboard_hotkey(*keys), mouse_drag(x1, y1, x2, y2).
 S'appuie sur les coordonnées fournies par TOOL-7 Vision.
 
 Checkpoint : ouvrir le menu Démarrer (Win), taper "notepad", Entrée, vérifier via screenshot.
+**Statut : ⚠️ DONE mais bloqué** - L'outil fonctionne mais nécessite un orchestrateur plus puissant (glm-4.7) pour coordonner screenshot + vision + actions de manière autonome.
 
 ### TOOL-10 — MCP Chrome DevTools (Playwright)
 Priorité : 10 | Quota : 0 | Dépendance : npx @playwright/mcp@latest
@@ -193,18 +191,20 @@ User: "Ouvre Notepad et écris un résumé de ma journée"
          ↓
     TOOL-8 screenshot → C:\tmp\myclawshots\screen_001.png
          ↓
-    TOOL-7 vision → "bureau Windows visible, Notepad non ouvert"
+    TOOL-7 vision (qwen3-vl:2b) → "bureau Windows visible, Notepad non ouvert"
          ↓
     TOOL-9 keyboard → hotkey("win") → type("notepad") → hotkey("enter")
          ↓
     TOOL-8 screenshot → screen_002.png
          ↓
-    TOOL-7 vision → "Notepad ouvert, zone de texte vide, curseur actif"
+    TOOL-7 vision (qwen3-vl:2b) → "Notepad ouvert, zone de texte vide, curseur actif"
          ↓
-    TOOL-9 keyboard → type("Résumé du 19 février 2026...")
+    TOOL-9 keyboard → type("Résumé du 20 février 2026...")
          ↓
     Done
 ```
+
+**Note** : Cette architecture nécessite un modèle orchestrateur puissant (glm-4.7 recommandé) pour coordonner les outils de manière autonome. qwen3:8b seul ne suffit pas pour ce niveau de complexité.
 
 ---
 
@@ -214,8 +214,10 @@ User: "Ouvre Notepad et écris un résumé de ma journée"
 |-------|----------|--------|
 | WhatsApp | Retiré définitivement | Dépendance Meta inutile pour usage perso |
 | SearXNG | Remplacé par MCP Web Search Z.ai | Déjà dans le token, zéro infra supplémentaire |
-| Modèle principal tools | glm-4.7 | Token disponible, meilleur pour l'orchestration |
-| Quota Z.ai Lite | Outils sans quota en priorité | 100 calls/mois partagés — utiliser avec parcimonie |
+| Modèle principal | qwen3:8b (Ollama local) | 100% local, 0 donnée sortante, performant |
+| Modèle orchestrateur | glm-4.7 (Z.ai cloud, optionnel) | Meilleur pour l'orchestration complexe (TOOL-9) |
+| Vision | qwen3-vl:2b (Ollama local) | 100% local au lieu de GLM-4.6V (Z.ai cloud) |
+| Quota Z.ai | Outils sans quota en priorité | 100 calls/mois partagés — utiliser avec parcimonie |
 | Docker | Non pour l'app | Complexité inutile, machine dédiée |
 | Redis | Non | Pas de besoin de queue pour mono-utilisateur |
 
@@ -225,9 +227,9 @@ User: "Ouvre Notepad et écris un résumé de ma journée"
 
 - Machine dédiée Windows, mono-utilisateur
 - Local-first — Ollama prioritaire, Z.ai pour ce que le local ne peut pas faire
-- 14B max Ollama (qwen3:14b = modèle secondaire)
-- glm-4.7 = modèle principal pour les tools
-- Z.ai Lite : 100 calls web/reader/zread + 5h vision par mois
+- Modèles Ollama : qwen3:8b (principal), qwen3-vl:2b (vision), gemma3 (rapide)
+- glm-4.7 (Z.ai cloud) = optionnel pour orchestration complexe
+- Z.ai Lite : 100 calls web/reader/zread par mois (vision locale avec qwen3-vl:2b)
 - uv uniquement pour Python, jamais pip
 - Un tool validé avant d'implémenter le suivant
 
@@ -237,19 +239,19 @@ User: "Ouvre Notepad et écris un résumé de ma journée"
 
 ```
 MODULE 0   DONE   Socle
-MODULE 1   DONE   Cerveau Python
+MODULE 1   DONE   Cerveau Python + GLM-4.7 fix + timeouts
 MODULE 2   DONE   Mémoire Prisma
 MODULE 3   DONE   WebChat
+TOOL-1     DONE   Fichiers Windows
+TOOL-2     DONE   OS PowerShell + fix curl alias
+TOOL-3     DONE   Clipboard
+TOOL-7     DONE   Vision locale (qwen3-vl:2b)
+TOOL-8     DONE   Screenshot Windows
+TOOL-9     DONE   Souris/Clavier (bloqué par orchestration)
 ─────────────────────────────────── ← On est ici
-TOOL-1     TODO   Fichiers Windows          ← PROCHAIN
-TOOL-2     TODO   OS PowerShell
-TOOL-3     TODO   Clipboard
-TOOL-4     TODO   MCP Web Search Z.ai
+TOOL-4     TODO   MCP Web Search Z.ai       ← PROCHAIN
 TOOL-5     TODO   MCP Web Reader Z.ai
 TOOL-6     TODO   MCP Zread GitHub
-TOOL-7     TODO   MCP Vision GLM-4.6V
-TOOL-8     TODO   Screenshot Windows
-TOOL-9     TODO   Souris/Clavier
 TOOL-10    TODO   MCP Chrome Playwright
 ─────────────────────────────────── ← Après tools validés
 MODULE 4   TODO   Nextcloud Talk

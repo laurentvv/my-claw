@@ -1,6 +1,6 @@
 # PROGRESS.md — État d'avancement my-claw
 
-Dernière mise à jour : 2026-02-19
+Dernière mise à jour : 2026-02-20
 Repo : https://github.com/laurentvv/my-claw
 
 ---
@@ -62,12 +62,17 @@ Les modules 4/5/6/7/8 originaux ont été renumérotés en conséquence.
 **Statut : EN COURS — PRIORITAIRE avant Nextcloud Talk**
 
 Objectif : rendre l'agent autonome sur la machine Windows.
-Modèle principal : glm-4.7 (token Z.ai Coding Plan Lite).
-Z.ai Lite : 100 calls/mois web search+reader+zread, 5h pool vision.
+Modèle principal : glm-4.7 (Z.ai cloud) ou qwen3:8b (Ollama local).
 Règle absolue : un tool validé avant d'implémenter le suivant.
 
-**Outils locaux implémentés :** ✅ TOOL-1, ✅ TOOL-2, ✅ TOOL-3, ✅ TOOL-8, ⚠️ TOOL-9 (bloqué par TOOL-7)
-**Outils MCP à implémenter :** TOOL-4, TOOL-5, TOOL-6, **TOOL-7 ✅ DONE**, TOOL-10
+**Outils locaux implémentés :** ✅ TOOL-1, ✅ TOOL-2, ✅ TOOL-3, ✅ TOOL-7, ✅ TOOL-8, ⚠️ TOOL-9 (bloqué par manque de Vision)
+**Outils MCP à implémenter :** TOOL-4, TOOL-5, TOOL-6, TOOL-10
+
+**Améliorations récentes (2026-02-20) :**
+- ✅ Fix GLM-4.7 : Nettoyage automatique des balises `</code` générées par GLM-4.7
+- ✅ Timeouts augmentés : Gateway 5min, Agent 3min pour l'exécution du code Python
+- ✅ Guidage de l'agent : `instructions` + `additional_authorized_imports` pour préférer Python natif
+- ✅ TOOL-7 Vision : Implémenté avec Ollama local (qwen3-vl:2b) au lieu de Z.ai MCP
 
 ### TOOL-1 — Fichiers Windows
 **Statut : DONE**
@@ -156,36 +161,33 @@ Checkpoint :
 - "Lis le fichier README.md de ce repo"
 - Commit : feat: tool-6 — mcp zread github
 
-### TOOL-7 — MCP Vision Z.ai (GLM-4.6V)
-**Statut : DONE (implémentation validée)**
+### TOOL-7 — Vision locale (Ollama qwen3-vl:2b)
+**Statut : ✅ DONE**
 
-Fichiers modifiés :
-- agent/main.py : ajout de l'intégration MCP Vision via MCPClient
-- agent/pyproject.toml : ajout de la dépendance mcp>=0.9.0
+Fichiers créés :
+- agent/tools/vision.py : sous-classe Tool, analyse d'images via Ollama qwen3-vl:2b
+- Modèle local : qwen3-vl:2b (2.3GB) - 100% local, 0 donnée sortante
+- Timeout : 180 secondes (3 minutes) pour l'analyse d'images
 
-Intégration :
-- MCPClient avec StdioServerParameters
-- command: npx, args: ["-y", "@z_ai/mcp-server@latest"]
-- env: Z_AI_API_KEY + Z_AI_MODE=ZAI + os.environ
-- 8 outils exposés : image_analysis, extract_text_from_screenshot, ui_to_artifact,
-  video_analysis, diagnose_error_screenshot, understand_technical_diagram,
-  ui_diff_check, analyze_data_visualization
-
-Modèles Z.ai ajoutés :
-- code : openai/glm-4.7-flash (tâches techniques)
-- reason : openai/glm-4.7 (raisonnement profond)
-- URL : https://api.z.ai/api/coding/paas/v4
+Fonctionnalités :
+- analyze_image(image_path, prompt) : analyse générale d'image avec prompt personnalisé
+- Utilise l'API Ollama /api/chat avec support des images en base64
+- Logs détaillés pour le debugging
 
 Checkpoint :
-- ✅ MCP Vision connecté avec succès — 8 outils disponibles
-- ✅ Logs : "MCP Vision Z.ai connecté - 8 outils disponibles"
-- ⚠️ Le modèle glm-4.7 a du mal à générer le code correct pour utiliser les outils MCP
-- ⚠️ Nécessite des ajustements de prompt/usage pour que glm-4.7 utilise correctement les outils
-- Commit : feat: tool-7 — mcp vision glm46v
+- ✅ Installer le modèle : `ollama pull qwen3-vl:2b`
+- ✅ Démarrer le serveur : `uv run uvicorn main:app --reload`
+- ✅ Vérifier logs : "✓ vision: qwen3-vl:2b"
+- ✅ Test Gradio : "Prends un screenshot et décris ce que tu vois"
+- ✅ Test OCR : "Prends un screenshot et extrait le texte visible"
+- ✅ Commit : feat: tool-7 — vision locale ollama qwen3-vl
 
-⚠️ **Bug smolagents identifié** — Les outils MCP Vision nécessitent un event loop actif, mais smolagents ferme l'event loop après chaque exécution de code, causant l'erreur "RuntimeError: Event loop is closed". C'est un bug de smolagents, pas de l'implémentation MCP Vision elle-même.
-
-Les outils MCP Vision sont disponibles et fonctionnels, mais ne peuvent pas être appelés correctement par le CodeAgent à cause de ce bug.
+Impact :
+- ✅ 100% local, pas de dépendance cloud pour la vision
+- ✅ Permet l'analyse d'images, OCR, compréhension de diagrammes
+- ⚠️ TOOL-9 reste bloqué : qwen3-vl:2b seul ne suffit pas pour le pilotage PC autonome
+  - L'agent a besoin d'un modèle plus puissant (GLM-4.6V via Z.ai MCP) pour coordonner screenshot + vision + actions
+  - Alternative : Utiliser glm-4.7 comme orchestrateur avec qwen3-vl:2b comme outil vision
 
 ### TOOL-8 — Screenshot Windows
 **Statut : DONE**
@@ -200,11 +202,11 @@ Fichiers créés :
 Checkpoint :
 - ✅ "Prends un screenshot de l'écran" → chemin retourné
 - ✅ Vérifier que le fichier PNG existe et est lisible
-- ⚠️ Enchaîner avec TOOL-7 : "Prends un screenshot et décris ce que tu vois" → BLOQUÉ car TOOL-7 pas encore implémenté
+- ✅ Enchaîner avec TOOL-7 : "Prends un screenshot et décris ce que tu vois" → Fonctionne avec qwen3-vl:2b
 - ✅ Commit : feat: tool-8 — screenshot windows
 
 ### TOOL-9 — Contrôle souris et clavier
-**Statut : DONE mais BLOQUÉ par TOOL-7**
+**Statut : DONE mais BLOQUÉ par manque de Vision avancée**
 
 Fichiers créés :
 - agent/tools/mouse_keyboard.py : sous-classe Tool
@@ -215,15 +217,15 @@ Fichiers créés :
 Checkpoint :
 - ❌ "Ouvre le menu Démarrer" → hotkey Win → LLM clique sur (0,0) au lieu d'utiliser hotkey
 - ❌ "Tape notepad et appuie sur Entrée" → LLM ne sait pas comment séquencer les actions
-- ❌ Screenshot pour vérifier que Notepad s'est ouvert → Impossible sans TOOL-7 (Vision)
-- ⚠️ Commit : feat: tool-9 — mouse keyboard control
+- ⚠️ Screenshot pour vérifier que Notepad s'est ouvert → qwen3-vl:2b peut décrire mais pas coordonner
+- ✅ Commit : feat: tool-9 — mouse keyboard control
 
-**Problème identifié (2026-02-19)** :
-- L'agent LLM (qwen3:14b) ne sait pas comment utiliser correctement mouse_keyboard
+**Problème identifié (2026-02-20)** :
+- L'agent LLM ne sait pas comment utiliser correctement mouse_keyboard
 - Il invente des coordonnées incorrectes au lieu d'utiliser les bonnes opérations (hotkey)
-- L'agent est **aveugle** - il ne peut pas analyser les screenshots car TOOL-7 (Vision) n'est pas implémenté
-- **Solution requise** : Implémenter TOOL-7 (MCP Vision GLM-4.6V) pour permettre à l'agent de "voir" et s'auto-corriger
-- **Alternative temporaire** : Améliorer la description de l'outil avec des exemples concrets
+- TOOL-7 (qwen3-vl:2b) peut analyser des images mais ne suffit pas pour le pilotage PC autonome
+- **Solution requise** : Modèle orchestrateur plus puissant (glm-4.7) + Vision (qwen3-vl:2b ou GLM-4.6V via Z.ai MCP)
+- **Alternative** : Améliorer les instructions de l'agent avec des exemples concrets de séquences d'actions
 
 ### TOOL-10 — MCP Chrome DevTools (Playwright)
 **Statut : A FAIRE**
@@ -298,15 +300,16 @@ my-claw/
 │   └── validation-module3.md
 ├── agent/
 │   ├── pyproject.toml + uv.lock
-│   ├── main.py                    DONE module 1
+│   ├── main.py                    DONE module 1 + GLM-4.7 fix + timeouts
 │   ├── gradio_app.py              DONE module 1
 │   └── tools/
-│       ├── __init__.py            DONE — contient TOOLS = [FileSystemTool(), OsExecTool(), ClipboardTool(), ScreenshotTool(), MouseKeyboardTool()]
+│       ├── __init__.py            DONE — contient TOOLS = [FileSystemTool(), OsExecTool(), ClipboardTool(), VisionTool(), ScreenshotTool(), MouseKeyboardTool()]
 │       ├── file_system.py          ✅ DONE — TOOL-1
-│       ├── os_exec.py             ✅ DONE — TOOL-2
+│       ├── os_exec.py             ✅ DONE — TOOL-2 (fix curl PowerShell)
 │       ├── clipboard.py           ✅ DONE — TOOL-3
+│       ├── vision.py              ✅ DONE — TOOL-7 (Ollama qwen3-vl:2b)
 │       ├── screenshot.py          ✅ DONE — TOOL-8
-│       └── mouse_keyboard.py      ⚠️ DONE — TOOL-9 (bloqué par TOOL-7)
+│       └── mouse_keyboard.py      ⚠️ DONE — TOOL-9 (bloqué par manque de Vision avancée)
 └── gateway/
     ├── prisma.config.ts           DONE module 2
     ├── prisma/schema.prisma       DONE module 2

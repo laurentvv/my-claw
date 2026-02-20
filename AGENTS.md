@@ -44,27 +44,31 @@
 
 | ID | Modèle | Taille | Usage |
 |----|--------|--------|-------|
-| fast | qwen3:4b | 2.6GB | Réponses rapides |
-| smart | qwen3:8b | 5.2GB | Usage quotidien |
-| main | qwen3:14b | 9.3GB | Modèle principal — défaut |
+| fast | gemma3:latest | 3.3GB | Réponses rapides |
+| smart | qwen3:latest (8b) | 5.2GB | Usage quotidien — recommandé |
+| main | qwen3:latest (8b) | 5.2GB | Modèle principal — défaut |
+| vision | qwen3-vl:2b | ~2GB | Vision locale (TOOL-7) |
 
-### Z.ai — Cloud (données envoyées à Z.ai)
+### Z.ai — Cloud (données envoyées à Z.ai) - OPTIONNEL
 
 | ID | Modèle | Usage |
 |----|--------|-------|
 | code | glm-4.7-flash | Code, tâches techniques |
 | reason | glm-4.7 | Raisonnement profond |
-| vision | glm-4.6V | Analyse d'images via MCP Vision (TOOL-7) |
 
 Règles modèles :
-- Modèle par défaut : main (qwen3:14b)
+- Modèle par défaut : main (qwen3:8b)
+- **Détection automatique** : L'agent détecte les modèles Ollama installés au démarrage via `GET /api/tags`
+- **Préférences par catégorie** : Chaque catégorie (fast/smart/main/vision) a une liste de modèles préférés
+- **Fallback intelligent** : Si le modèle préféré n'est pas installé, utilise le suivant dans la liste
 - Si ZAI_API_KEY absent : fallback silencieux sur main
 - think: false en mode agent (évite verbosité Qwen3)
 - num_ctx: 32768 pour tous les modèles Ollama
 - max_steps=5 pour tâches simples, 10 pour pilotage PC complexe
 - Provider Ollama : LiteLLMModel avec prefix ollama_chat/
 - Provider Z.ai : LiteLLMModel avec prefix openai/ (compatible OpenAI)
-- GLM-4.6V : utilisé uniquement via MCP Vision (TOOL-7) pour analyse d'images
+- TOOL-7 (analyze_image) : utilise qwen3-vl:2b en local via Ollama
+- **API `/models`** : Endpoint pour récupérer la liste des modèles disponibles
 
 ---
 
