@@ -169,7 +169,6 @@ Règles modèles :
 - pyautogui.FAILSAFE=False configuré (pas de coin haut-gauche pour arrêter)
 - time.sleep(0.5) après chaque action pyautogui pour laisser l'OS réagir
 - Logs de debug ajoutés dans mouse_keyboard.py pour diagnostiquer les problèmes
-- TOOL-10 validé et fonctionnel via MCP Chrome DevTools
 
 ---
 
