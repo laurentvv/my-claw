@@ -7,6 +7,7 @@ class ClipboardTool(Tool):
     """Outil pour interagir avec le presse-papier Windows via pyperclip."""
 
     name = "clipboard"
+    structured_output = False
     description = """Lit ou écrit dans le presse-papier Windows.
     
     Opérations disponibles :
