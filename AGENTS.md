@@ -154,7 +154,9 @@ Règles modèles :
 - **ClipboardTool** (TOOL-3) : lecture/écriture presse-papier
 - **ScreenshotTool** (TOOL-8) : capture d'écran Windows
 - **ChromeDevTools MCP** (TOOL-10) : pilotage Chrome (Puppeteer)
-- **MouseKeyboardTool** (TOOL-9) : 🔄 contrôle souris/clavier (en cours - nécessite Vision)
+- **MouseKeyboardTool** (TOOL-9) : 🔄 contrôle souris/clavier (en cours)
+
+### V1 — Roadmap (À venir)
 - **Web Search MCP** (TOOL-4) : ⏳ recherche web Z.ai
 - **Web Reader MCP** (TOOL-5) : ⏳ lecture URL Z.ai
 - **Zread MCP** (TOOL-6) : ⏳ lecture GitHub Z.ai
