@@ -334,7 +334,7 @@ my-claw/
 │       ├── clipboard.py           ✅ DONE — TOOL-3
 │       ├── vision.py              ✅ DONE — TOOL-7 (Ollama qwen3-vl:2b)
 │       ├── screenshot.py          ✅ DONE — TOOL-8
-│       └── mouse_keyboard.py      ⚠️ DONE — TOOL-9 (bloqué par manque de Vision avancée)
+│       └── mouse_keyboard.py      🔄 EN COURS — TOOL-9
 └── gateway/
     ├── prisma.config.ts           DONE module 2
     ├── prisma/schema.prisma       DONE module 2
