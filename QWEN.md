@@ -47,25 +47,10 @@
 
 ### Startup Commands
 
-```bash
-# 1. Environment setup
-cp .env.example .env.local          # gateway/.env.local
-cp agent/.env.example agent/.env    # agent/.env
+Run the automatic setup script:
 
-# 2. Gateway (Next.js)
-cd gateway
-npm install
-npx prisma migrate dev --name init
-npm run dev                          # → http://localhost:3000
-
-# 3. Agent (Python with uv)
-cd agent
-uv sync                              # installs dependencies
-uv run uvicorn main:app --reload     # → http://localhost:8000
-
-# 4. Gradio dev UI (optional)
-cd agent
-uv run python gradio_app.py          # → http://localhost:7860
+```powershell
+./setup.ps1
 ```
 
 > **Important:** Never run `npm run dev` or `uv run uvicorn` without asking the user first. Ask the user to run and report any errors.

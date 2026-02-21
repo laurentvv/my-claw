@@ -10,7 +10,7 @@
 | | OpenClaw 🦞 | Mon Assistant ✅ |
 |---|---|---|
 | **Architecture** | Gateway Node.js persistant + daemon système | Next.js 16 tout-en-un |
-| **Installation** | CLI wizard + launchd/systemd daemon | `npm run dev` / `pm2 start` |
+| **Installation** | CLI wizard + launchd/systemd daemon | `./setup.ps1` |
 | **Utilisateurs** | Mono (mais complexe multi-agent) | Mono — assumé et simplifié |
 | **Vie privée** | Variable selon config | Machine dédiée, privacy-first |
 | **Modèles** | Cloud-first (Claude, GPT, xAI Grok...) | Local-first (Ollama) + Z.ai opt. |

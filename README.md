@@ -24,25 +24,10 @@ agent/      → Python smolagents — cerveau LLM, outils, Gradio dev UI
 
 ## Démarrage rapide
 
-```bash
-# 1. Variables d'environnement
-cp .env.example .env.local
-# Remplir les valeurs dans .env.local
+Lancer le script d'installation automatique :
 
-# 2. Gateway (Next.js)
-cd gateway
-npm install
-npx prisma migrate dev --name init
-npm run dev                          # → http://localhost:3000
-
-# 3. Agent (Python — uv)
-cd agent
-uv sync                              # installe les dépendances (pyautogui, pillow, pyperclip, etc.)
-uv run uvicorn main:app --reload     # → http://localhost:8000
-
-# 4. Gradio dev UI (optionnel)
-cd agent
-uv run python gradio_app.py          # → http://localhost:7860
+```powershell
+./setup.ps1
 ```
 
 > Pour ajouter une dépendance Python : `uv add <package>` (jamais pip)
