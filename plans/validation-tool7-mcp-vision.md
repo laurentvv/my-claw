@@ -29,7 +29,7 @@ Initialement prévu via MCP Z.ai (GLM-4.6V), le module a été refondu pour util
 
 - Classe `VisionTool` (sous-classe de `smolagents.Tool`).
 - Encodage des images en Base64.
-- Appel direct à l'API locale d'Ollama (`/api/generate`).
+- Appel direct à l'API locale d'Ollama (`/api/chat`).
 - Timeout de 180s pour permettre le traitement d'images complexes.
 
 ---
