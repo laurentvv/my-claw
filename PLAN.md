@@ -168,10 +168,10 @@ keyboard_type(text), keyboard_hotkey(*keys), mouse_drag(x1, y1, x2, y2).
 S'appuie sur les coordonnées fournies par TOOL-7 Vision.
 
 Checkpoint : ouvrir le menu Démarrer (Win), taper "notepad", Entrée, vérifier via screenshot.
-**Statut : ⚠️ DONE mais bloqué** - L'outil fonctionne mais nécessite un orchestrateur plus puissant (glm-4.7) pour coordonner screenshot + vision + actions de manière autonome.
+**Statut : 🔄 EN COURS (non validé)** - L'outil fonctionne mais nécessite un orchestrateur plus puissant (glm-4.7) pour coordonner screenshot + vision + actions de manière autonome.
 
 ### TOOL-10 — MCP Chrome DevTools (Playwright)
-Priorité : 10 | Quota : 0 | Dépendance : npx chrome-devtools-mcp@latest
+Priorité : 10 | Quota : 0 | Dépendance : npx chrome-devtools-mcp@latest | **Statut : ✅ DONE**
 
 Piloter Chrome headless ou visible via Chrome DevTools MCP (basé sur Puppeteer).
 Stdio local comme le MCP Vision.
@@ -264,12 +264,12 @@ TOOL-2     DONE   OS PowerShell + fix curl alias
 TOOL-3     DONE   Clipboard
 TOOL-7     DONE   Vision locale (qwen3-vl:2b)
 TOOL-8     DONE   Screenshot Windows
-TOOL-9     DONE   Souris/Clavier (bloqué par orchestration)
+TOOL-10    DONE   MCP Chrome DevTools
+TOOL-9     🔄     Souris/Clavier (en cours)
 ─────────────────────────────────── ← On est ici
 TOOL-4     TODO   MCP Web Search Z.ai       ← PROCHAIN
 TOOL-5     TODO   MCP Web Reader Z.ai
 TOOL-6     TODO   MCP Zread GitHub
-TOOL-10    TODO   MCP Chrome DevTools
 ─────────────────────────────────── ← Après tools validés
 MODULE 4   TODO   Nextcloud Talk
 MODULE 5   TODO   Cron

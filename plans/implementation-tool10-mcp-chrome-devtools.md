@@ -2,7 +2,7 @@
 
 > Date : 2026-02-20
 > Module : TOOL-10 — MCP Chrome DevTools (Puppeteer)
-> Statut : À implémenter
+> Statut : ✅ **DONE**
 > Priorité : Après validation des outils locaux existants
 
 ---

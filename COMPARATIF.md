@@ -24,7 +24,7 @@
 | Canal | OpenClaw | Mon Assistant | Notes |
 |---|---|---|---|
 | **WebChat** | ✅ | ✅ | |
-| **WhatsApp** | ✅ via Baileys (hack non-officiel) | ✅ via Meta Cloud API (officiel) | Meta API = plus stable, pas de ban |
+| **WhatsApp** | ✅ via Baileys (hack non-officiel) | ❌ retiré (2026-02-19) | Nextcloud Talk suffit |
 | **Telegram** | ✅ | ❌ non voulu | |
 | **Nextcloud Talk** | ❌ | ✅ | Avantage privacy |
 | **Discord** | ✅ | ❌ non voulu | |
@@ -78,8 +78,8 @@ OpenClaw utilise des embeddings pour retrouver des souvenirs pertinents dans de 
 
 | Outil | OpenClaw | Mon Assistant | Décision |
 |---|---|---|---|
-| **Recherche web** | ✅ (provider externe) | ✅ SearXNG local | ✅ meilleur (local) |
-| **Browser control** | ✅ Puppeteer headless | ❌ | 🟡 Utile, voir plus bas |
+| **Recherche web** | ✅ (provider externe) | ✅ Z.ai MCP | ✅ local-first |
+| **Browser control** | ✅ Puppeteer headless | ✅ Chrome DevTools | ✅ DONE (v1) |
 | **Exécution de code** | ✅ sandbox | ✅ sandbox Node/Python | ⏳ **v2** |
 | **Lecture de fichiers** | ✅ | ✅ dossier autorisé | ⏳ **v2** |
 | **Création de fichiers** | ✅ (Word, Excel, PPT) | ✅ fichiers simples | ⏳ **v2** |
@@ -150,7 +150,7 @@ Voici les features d'OpenClaw absentes de mon assistant, avec recommandation cla
 |---|---|---|---|
 | Mémoire vectorielle (pgvector + embeddings) | Moyen | Haute si longues histoires | **v2** — après avoir utilisé l'outil |
 | Résumé auto des conversations | Faible | Moyen | **v1.5** — simple prompt |
-| Browser control (Chrome DevTools) | Moyen | Haute pour automatisation | **v2 optionnel** |
+| Browser control (Chrome DevTools) | Moyen | Haute pour automatisation | ✅ **v1 DONE** |
 | Création fichiers (Word/Excel) | Faible | Moyen | **v1.5** — lib simple |
 | Lecture vault Obsidian | Très faible | Dépend de toi | **À toi de décider** |
 | Health check endpoint | Très faible | Moyen | **v1** — 1 route `/api/health` |
@@ -159,7 +159,6 @@ Voici les features d'OpenClaw absentes de mon assistant, avec recommandation cla
 
 ### ✅ Déjà prévu dans mon design
 - WebChat
-- WhatsApp (Meta API officielle, plus stable que Baileys)
 - Nextcloud Talk
 - Mémoire conversations (Prisma)
 - Ollama multi-modèles

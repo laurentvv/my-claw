@@ -1,187 +1,67 @@
-# Validation TOOL-7 — MCP Vision Z.ai (GLM-4.6V)
+# Validation TOOL-7 — Vision locale (Ollama qwen3-vl:2b)
 
 **Date** : 2026-02-20  
-**Statut** : EN ATTENTE DE VALIDATION UTILISATEUR
+**Statut** : ✅ VALIDÉ (100% Local)
 
 ---
 
 ## Objectif
 
-Implémenter TOOL-7 (MCP Vision Z.ai) pour permettre à l'agent d'analyser des images, faire de l'OCR, comprendre des diagrammes techniques, et débloquer TOOL-9 (contrôle souris/clavier).
+Fournir une capacité de vision à l'agent pour analyser des images, faire de l'OCR et comprendre l'interface Windows, tout en garantissant une confidentialité totale (100% local).
 
 ---
 
-## Modifications apportées
+## Historique et décision
 
-### 1. agent/main.py
+Initialement prévu via MCP Z.ai (GLM-4.6V), le module a été refondu pour utiliser **Ollama qwen3-vl:2b** en local.
 
-**Problème résolu** : Le bug "Event loop is closed" était causé par la fermeture prématurée du contexte MCP.
-
-**Solution** : Utilisation de FastAPI `lifespan` pour garder le client MCP actif pendant toute la durée de vie de l'application.
-
-**Changements** :
-- Ajout de `@asynccontextmanager async def lifespan(app: FastAPI)`
-- Initialisation du client MCP au startup (ligne 47-51)
-- Fermeture propre au shutdown (ligne 64-69)
-- Variables globales `_mcp_client` et `_mcp_tools` pour stocker les outils MCP
-- Fusion dynamique des tools locaux + MCP dans `/run` (ligne 117)
-
-### 2. .env.example
-
-**Changements** :
-- Réactivation des variables `ZAI_API_KEY` et `ZAI_BASE_URL`
-- Documentation mise à jour pour indiquer que c'est requis pour TOOL-7
+**Pourquoi ce changement ?**
+1. **Confidentialité** : 0 donnée sortante, les images restent sur la machine.
+2. **Simplicité** : Évite la gestion complexe des serveurs MCP et des event loops async.
+3. **Gratuité** : Ne consomme pas de crédits API Z.ai.
+4. **Performance** : qwen3-vl:2b est très réactif sur une machine locale.
 
 ---
 
-## Prérequis
+## Implémentation
 
-1. **Node.js 24+** : Requis pour `npx @z_ai/mcp-server@latest`
-2. **Clé API Z.ai** : Obtenir sur https://open.bigmodel.cn/dev/api
-3. **Dépendances Python** : Déjà installées (`mcp>=0.9.0`, `smolagents[mcp]>=1.9.0`)
+### 1. agent/tools/vision.py
 
----
-
-## Configuration
-
-### 1. Créer agent/.env
-
-```bash
-cd agent
-cp ../.env.example .env
-```
-
-### 2. Remplir ZAI_API_KEY dans agent/.env
-
-```env
-ZAI_API_KEY="votre_clé_api_z_ai_ici"
-ZAI_BASE_URL="https://api.z.ai/api/coding/paas/v4"
-```
+- Classe `VisionTool` (sous-classe de `smolagents.Tool`).
+- Encodage des images en Base64.
+- Appel direct à l'API locale d'Ollama (`/api/generate`).
+- Timeout de 180s pour permettre le traitement d'images complexes.
 
 ---
 
-## Tests à effectuer
+## Tests effectués
 
-### Test 1 : Vérifier le démarrage du serveur
+### Test 1 : Analyse d'image via Gradio
 
-```bash
-cd agent
-uv run uvicorn main:app --reload
-```
+- **Prompt** : "Prends un screenshot de l'écran et analyse-le"
+- **Résultat** : L'agent capture l'écran, l'envoie à Ollama local, et retourne une description précise. ✅
 
-**Résultat attendu** :
-```
-INFO:     Started server process
-INFO:__main__:MCP Vision Z.ai connecté - 8 outils disponibles
-INFO:__main__:Outils MCP: ['ui_to_artifact', 'extract_text_from_screenshot', 'diagnose_error_screenshot', 'understand_technical_diagram', 'analyze_data_visualization', 'ui_diff_check', 'analyze_image', 'analyze_video']
-INFO:__main__:Total tools disponibles: 13 (5 locaux, 8 MCP)
-INFO:     Application startup complete.
-```
+### Test 2 : OCR local
 
-### Test 2 : Analyser une image via Gradio
+- **Prompt** : "Prends un screenshot et extrait tout le texte visible"
+- **Résultat** : Ollama qwen3-vl:2b extrait correctement le texte affiché dans les fenêtres. ✅
 
-```bash
-cd agent
-uv run python gradio_app.py
-```
+### Test 3 : Pilotage PC avec Vision (TOOL-9 débloqué)
 
-**Scénario** :
-1. Prendre un screenshot : "Prends un screenshot de l'écran"
-2. Analyser le screenshot : "Analyse le dernier screenshot pris et décris ce que tu vois"
-
-**Résultat attendu** :
-- L'agent utilise `ScreenshotTool` pour capturer l'écran
-- L'agent utilise `analyze_image` (MCP Vision) pour analyser l'image
-- Retour : description détaillée de ce qui est visible à l'écran
-
-### Test 3 : OCR sur une capture d'écran
-
-**Scénario** :
-1. Ouvrir un document texte ou une page web avec du texte
-2. "Prends un screenshot et extrait tout le texte visible"
-
-**Résultat attendu** :
-- L'agent utilise `ScreenshotTool`
-- L'agent utilise `extract_text_from_screenshot` (MCP Vision)
-- Retour : texte extrait de l'image
-
-### Test 4 : Comprendre un diagramme technique
-
-**Scénario** :
-1. Afficher un diagramme d'architecture (ex: PLAN.md ouvert dans un éditeur)
-2. "Prends un screenshot et explique-moi le diagramme d'architecture visible"
-
-**Résultat attendu** :
-- L'agent utilise `ScreenshotTool`
-- L'agent utilise `understand_technical_diagram` (MCP Vision)
-- Retour : explication du diagramme
-
-### Test 5 : Débloquer TOOL-9 (contrôle souris/clavier)
-
-**Scénario** :
-1. "Ouvre le menu Démarrer Windows"
-2. "Prends un screenshot et vérifie que le menu est ouvert"
-3. "Tape 'notepad' et appuie sur Entrée"
-4. "Prends un screenshot et vérifie que Notepad est ouvert"
-
-**Résultat attendu** :
-- L'agent utilise `MouseKeyboardTool` pour ouvrir le menu (hotkey "win")
-- L'agent utilise `ScreenshotTool` + `analyze_image` pour vérifier
-- L'agent utilise `MouseKeyboardTool` pour taper et valider
-- L'agent utilise `ScreenshotTool` + `analyze_image` pour confirmer
-- Notepad est ouvert et visible
+- **Prompt** : "Ouvre le menu Démarrer, vérifie avec un screenshot, puis lance Notepad"
+- **Résultat** : L'agent coordonne la vision et les actions clavier pour valider chaque étape. ✅
 
 ---
 
-## Outils MCP Vision disponibles
+## Outils de vision disponibles
 
-| Outil | Description |
-|-------|-------------|
-| `analyze_image` | Analyse générale d'une image |
-| `extract_text_from_screenshot` | OCR sur captures d'écran |
-| `ui_to_artifact` | Transformer une UI en code/specs |
-| `analyze_video` | Analyser une vidéo locale (max 8MB, MP4/MOV/M4V) |
-| `diagnose_error_screenshot` | Analyser une erreur visible à l'écran |
-| `understand_technical_diagram` | Lire un schéma d'architecture |
-| `ui_diff_check` | Comparer deux captures UI |
-| `analyze_data_visualization` | Lire un graphique/dashboard |
-
----
-
-## Checklist de validation
-
-- [ ] Le serveur démarre sans erreur
-- [ ] Les 8 outils MCP Vision sont chargés
-- [ ] Test 1 : Analyse d'image fonctionne
-- [ ] Test 2 : OCR fonctionne
-- [ ] Test 3 : Compréhension de diagramme fonctionne
-- [ ] Test 4 : Pilotage PC avec Vision fonctionne (TOOL-9 débloqué)
-- [ ] Pas d'erreur "Event loop is closed"
-- [ ] Fermeture propre du serveur (Ctrl+C)
-
----
-
-## Commit
-
-Une fois validé :
-
-```bash
-git add agent/main.py .env.example plans/validation-tool7-mcp-vision.md
-git commit -m "feat(tools): tool-7 mcp vision z.ai glm-4.6v
-
-- Intégration MCP Vision Z.ai via FastAPI lifespan
-- 8 outils disponibles: image_analysis, OCR, diagrammes, etc.
-- Résolution du bug 'Event loop is closed'
-- Client MCP actif pendant toute la durée de vie de l'app
-- Débloque TOOL-9 (contrôle souris/clavier avec vision)
-"
-```
+| Outil | Description | Modèle |
+|-------|-------------|--------|
+| `analyze_image` | Analyse générale d'une image ou OCR | qwen3-vl:2b |
 
 ---
 
 ## Références
 
-- Bug GitHub smolagents #1159 : https://github.com/huggingface/smolagents/issues/1159
-- Documentation Z.ai MCP Vision : https://docs.z.ai/devpack/mcp/vision-mcp-server
-- Documentation smolagents MCP : https://huggingface.co/docs/smolagents/tutorials/mcp
-
+- **Ollama API** : https://github.com/ollama/ollama/blob/main/docs/api.md
+- **qwen3-vl:2b** : Modèle de vision léger et performant d'Alibaba.

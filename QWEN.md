@@ -14,7 +14,7 @@
 - **Agent** (`agent/`): Python smolagents + FastAPI — LLM brain with 7 local tools + MCP Chrome DevTools (26 tools)
 - **UI Dev** (`agent/gradio_app.py`): Gradio for development/testing
 
-**Current Status:** 7/10 tools implemented (TOOL-1,2,3,7,8,9,10 DONE)
+**Current Status:** 7/10 tools implémentés ou en cours (TOOL-1,2,3,7,8,10 DONE / TOOL-9 EN COURS)
 
 ---
 
@@ -253,8 +253,8 @@ my-claw/
 | **TOOL-3** | ✅ | Windows Clipboard |
 | **TOOL-7** | ✅ | Local Vision (Ollama qwen3-vl:2b) - 100% local |
 | **TOOL-8** | ✅ | Windows Screenshot |
-| **TOOL-9** | ⚠️ | Mouse/Keyboard Control (implemented but needs advanced orchestration) |
-| **TOOL-10** | ✅ | MCP Chrome DevTools (26 Puppeteer tools) - TESTED & VALIDATED |
+| **TOOL-9** | 🔄 | Mouse/Keyboard Control (en cours - nécessite orchestration) |
+| **TOOL-10** | ✅ | MCP Chrome DevTools (26 Puppeteer tools) - TESTÉ & VALIDÉ |
 
 ### Pending Tools
 
@@ -401,8 +401,8 @@ See `IMPLEMENTATION-TOOLS.md` for detailed implementation guide.
 
 ## Checkpoints
 
-Current checkpoint: **TOOL-9 DONE** (mouse/keyboard control implemented, blocked by orchestration)
+Current checkpoint: **TOOL-10 DONE** (MCP Chrome DevTools validé)
 
 Next checkpoint: **TOOL-4** (MCP Web Search Z.ai) — WAITING FOR USER VALIDATION
 
-**DO NOT proceed to TOOL-4 without explicit user validation of TOOL-9.**
+**DO NOT proceed to TOOL-4 without explicit user validation.**

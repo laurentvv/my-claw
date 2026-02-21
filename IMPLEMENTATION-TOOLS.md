@@ -490,20 +490,19 @@ Commit message : feat(tools): tool-10 mcp chrome devtools
 ## RÉCAPITULATIF ORDRE D'IMPLÉMENTATION
 
 ```
-TOOL-1   Fichiers Windows          ← COMMENCER ICI
-TOOL-2   OS PowerShell
-TOOL-3   Clipboard
-         → Checkpoint intermédiaire : les 3 tools locaux fonctionnent ensemble
-TOOL-4   MCP Web Search Z.ai
-TOOL-5   MCP Web Reader Z.ai
-TOOL-6   MCP Zread GitHub
-         → Checkpoint intermédiaire : MCP HTTP remote fonctionnels
-TOOL-7   MCP Vision GLM-4.6V
-TOOL-8   Screenshot Windows
-TOOL-9   Souris/Clavier
-         → Checkpoint intermédiaire : pilotage PC complet fonctionnel
-TOOL-10  MCP Chrome DevTools
-         → CHECKPOINT FINAL : tous les tools validés → passer au MODULE 4
+TOOL-1   Fichiers Windows          ✅ DONE
+TOOL-2   OS PowerShell             ✅ DONE
+TOOL-3   Clipboard                 ✅ DONE
+TOOL-7   Vision locale (Ollama)    ✅ DONE
+TOOL-8   Screenshot Windows        ✅ DONE
+TOOL-10  MCP Chrome DevTools       ✅ DONE
+TOOL-9   Souris/Clavier            🔄 EN COURS
+───────────────────────────────────
+TOOL-4   MCP Web Search Z.ai       ⏳ A FAIRE (PROCHAIN)
+TOOL-5   MCP Web Reader Z.ai       ⏳ A FAIRE
+TOOL-6   MCP Zread GitHub          ⏳ A FAIRE
+───────────────────────────────────
+→ CHECKPOINT FINAL : tous les tools validés → passer au MODULE 4
 ```
 
 ---

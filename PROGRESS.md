@@ -65,8 +65,8 @@ Objectif : rendre l'agent autonome sur la machine Windows.
 Modèle principal : glm-4.7 (Z.ai cloud) ou qwen3:8b (Ollama local).
 Règle absolue : un tool validé avant d'implémenter le suivant.
 
-**Outils locaux implémentés :** ✅ TOOL-1, ✅ TOOL-2, ✅ TOOL-3, ✅ TOOL-7, ✅ TOOL-8, ⚠️ TOOL-9 (bloqué par manque de Vision)
-**Outils MCP à implémenter :** TOOL-4, TOOL-5, TOOL-6, TOOL-10
+**Outils locaux implémentés :** ✅ TOOL-1, ✅ TOOL-2, ✅ TOOL-3, ✅ TOOL-7, ✅ TOOL-8, 🔄 TOOL-9 (en cours)
+**Outils MCP à implémenter :** TOOL-4, TOOL-5, TOOL-6, ✅ TOOL-10 (DONE)
 
 **Améliorations récentes (2026-02-20) :**
 - ✅ Fix GLM-4.7 : Nettoyage automatique des balises `</code` générées par GLM-4.7
@@ -211,7 +211,7 @@ Checkpoint :
 - ✅ Commit : feat: tool-8 — screenshot windows
 
 ### TOOL-9 — Contrôle souris et clavier
-**Statut : DONE mais BLOQUÉ par manque de Vision avancée**
+**Statut : 🔄 EN COURS (non validé)**
 
 Fichiers créés :
 - agent/tools/mouse_keyboard.py : sous-classe Tool
@@ -233,7 +233,7 @@ Checkpoint :
 - **Alternative** : Améliorer les instructions de l'agent avec des exemples concrets de séquences d'actions
 
 ### TOOL-10 — MCP Chrome DevTools (Playwright)
-**Statut : A FAIRE**
+**Statut : ✅ DONE (Testé & Validé)**
 
 Intégration :
 - StdioServerParameters : npx chrome-devtools-mcp@latest
