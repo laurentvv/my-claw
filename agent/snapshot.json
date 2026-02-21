@@ -1,0 +1,1593 @@
+uid=1_0 RootWebArea "Built-in Tools" url="https://huggingface.co/docs/smolagents/v1.24.0/en/reference/default_tools#smolagents.GoogleSearchTool"
+  uid=1_1 ignored
+    uid=2_0 ignored
+      uid=2_1 ignored
+        uid=2_2 banner
+          uid=2_3 ignored
+            uid=2_4 ignored
+              uid=2_5 link "Hugging Face's logo Hugging Face" url="https://huggingface.co/"
+                uid=2_6 image "Hugging Face's logo" url="https://huggingface.co/front/assets/huggingface_logo-noborder.svg"
+                uid=2_7 ignored
+                  uid=2_8 StaticText "Hugging Face"
+                    uid=2_9 InlineTextBox "Hugging Face"
+              uid=2_10 generic
+                uid=2_11 textbox "Search models, datasets, users..."
+                  uid=2_12 ignored
+                  uid=2_13 generic
+            uid=2_14 navigation "Main"
+              uid=2_15 list
+                uid=2_16 listitem level="1"
+                  uid=2_17 link "Models" url="https://huggingface.co/models"
+                    uid=2_18 StaticText "Models"
+                      uid=2_9 InlineTextBox "Models"
+                uid=2_19 listitem level="1"
+                  uid=2_20 link "Datasets" url="https://huggingface.co/datasets"
+                    uid=2_21 StaticText "Datasets"
+                      uid=2_9 InlineTextBox "Datasets"
+                uid=2_22 listitem level="1"
+                  uid=2_23 link "Spaces" url="https://huggingface.co/spaces"
+                    uid=2_24 StaticText "Spaces"
+                      uid=2_9 InlineTextBox "Spaces"
+                uid=2_25 listitem level="1"
+                  uid=2_26 link "Docs" url="https://huggingface.co/docs"
+                    uid=2_27 StaticText "Docs"
+                      uid=2_9 InlineTextBox "Docs"
+                uid=2_28 listitem level="1"
+                  uid=2_29 link "Pricing" url="https://huggingface.co/pricing"
+                    uid=2_30 StaticText "Pricing"
+                      uid=2_9 InlineTextBox "Pricing"
+                uid=2_31 listitem level="1"
+                  uid=2_32 generic
+                    uid=2_33 button
+                uid=2_34 listitem level="1"
+                  uid=2_35 separator orientation="horizontal"
+                uid=2_36 listitem level="1"
+                  uid=2_37 link "Log In" url="https://huggingface.co/login"
+                    uid=2_38 StaticText "Log In"
+                      uid=2_9 InlineTextBox "Log In"
+                uid=2_39 listitem level="1"
+                  uid=2_40 link "Sign Up" url="https://huggingface.co/join"
+                    uid=2_41 StaticText "Sign Up"
+                      uid=2_9 InlineTextBox "Sign Up"
+        uid=2_42 main
+          uid=2_43 generic
+            uid=2_44 generic
+              uid=2_45 ignored
+                uid=2_46 ignored
+                  uid=2_47 generic
+                    uid=2_48 ignored
+                    uid=2_49 heading "smolagents" level="1"
+                      uid=2_50 StaticText "smolagents"
+                        uid=2_9 InlineTextBox "smolagents"
+                    uid=2_51 combobox expandable haspopup="menu" value="smolagents"
+                      uid=2_52 MenuListPopup
+                        uid=2_53 option "🏡 View all docs" selectable value="🏡 View all docs"
+                        uid=2_54 option "AWS Trainium & Inferentia" selectable value="AWS Trainium & Inferentia"
+                        uid=2_55 option "Accelerate" selectable value="Accelerate"
+                        uid=2_56 option "Argilla" selectable value="Argilla"
+                        uid=2_57 option "AutoTrain" selectable value="AutoTrain"
+                        uid=2_58 option "Bitsandbytes" selectable value="Bitsandbytes"
+                        uid=2_59 option "Chat UI" selectable value="Chat UI"
+                        uid=2_60 option "Dataset viewer" selectable value="Dataset viewer"
+                        uid=2_61 option "Datasets" selectable value="Datasets"
+                        uid=2_62 option "Deploying on AWS" selectable value="Deploying on AWS"
+                        uid=2_63 option "Diffusers" selectable value="Diffusers"
+                        uid=2_64 option "Distilabel" selectable value="Distilabel"
+                        uid=2_65 option "Evaluate" selectable value="Evaluate"
+                        uid=2_66 option "Google Cloud" selectable value="Google Cloud"
+                        uid=2_67 option "Google TPUs" selectable value="Google TPUs"
+                        uid=2_68 option "Gradio" selectable value="Gradio"
+                        uid=2_69 option "Hub" selectable value="Hub"
+                        uid=2_70 option "Hub Python Library" selectable value="Hub Python Library"
+                        uid=2_71 option "Huggingface.js" selectable value="Huggingface.js"
+                        uid=2_72 option "Inference Endpoints (dedicated)" selectable value="Inference Endpoints (dedicated)"
+                        uid=2_73 option "Inference Providers" selectable value="Inference Providers"
+                        uid=2_74 option "Kernels" selectable value="Kernels"
+                        uid=2_75 option "LeRobot" selectable value="LeRobot"
+                        uid=2_76 option "Leaderboards" selectable value="Leaderboards"
+                        uid=2_77 option "Lighteval" selectable value="Lighteval"
+                        uid=2_78 option "Microsoft Azure" selectable value="Microsoft Azure"
+                        uid=2_79 option "Optimum" selectable value="Optimum"
+                        uid=2_80 option "PEFT" selectable value="PEFT"
+                        uid=2_81 option "Reachy Mini" selectable value="Reachy Mini"
+                        uid=2_82 option "Safetensors" selectable value="Safetensors"
+                        uid=2_83 option "Sentence Transformers" selectable value="Sentence Transformers"
+                        uid=2_84 option "TRL" selectable value="TRL"
+                        uid=2_85 option "Tasks" selectable value="Tasks"
+                        uid=2_86 option "Text Embeddings Inference" selectable value="Text Embeddings Inference"
+                        uid=2_87 option "Text Generation Inference" selectable value="Text Generation Inference"
+                        uid=2_88 option "Tokenizers" selectable value="Tokenizers"
+                        uid=2_89 option "Trackio" selectable value="Trackio"
+                        uid=2_90 option "Transformers" selectable value="Transformers"
+                        uid=2_91 option "Transformers.js" selectable value="Transformers.js"
+                        uid=2_92 option "smolagents" selectable selected value="smolagents"
+                        uid=2_93 option "timm" selectable value="timm"
+                  uid=2_94 button "Search documentation Ctrl+K"
+                    uid=2_95 generic
+                      uid=2_96 StaticText "Search documentation"
+                        uid=2_9 InlineTextBox "Search documentation"
+                    uid=2_97 ignored
+                      uid=2_98 StaticText "Ctrl+K"
+                        uid=2_9 InlineTextBox "Ctrl+K"
+                  uid=2_99 ignored
+                    uid=2_100 combobox expandable haspopup="menu" value="V1.24.0"
+                      uid=2_101 MenuListPopup
+                        uid=2_102 option "main" selectable value="main"
+                        uid=2_103 option "v1.24.0" selectable selected value="v1.24.0"
+                        uid=2_104 option "v1.23.0" selectable value="v1.23.0"
+                        uid=2_105 option "v1.22.0" selectable value="v1.22.0"
+                        uid=2_106 option "v1.21.2" selectable value="v1.21.2"
+                        uid=2_107 option "v1.20.0" selectable value="v1.20.0"
+                        uid=2_108 option "v1.19.0" selectable value="v1.19.0"
+                        uid=2_109 option "v1.18.0" selectable value="v1.18.0"
+                        uid=2_110 option "v1.17.0" selectable value="v1.17.0"
+                        uid=2_111 option "v1.16.1" selectable value="v1.16.1"
+                        uid=2_112 option "v1.15.0" selectable value="v1.15.0"
+                        uid=2_113 option "v1.14.0" selectable value="v1.14.0"
+                        uid=2_114 option "v1.13.0" selectable value="v1.13.0"
+                        uid=2_115 option "v1.12.0" selectable value="v1.12.0"
+                        uid=2_116 option "v1.11.0" selectable value="v1.11.0"
+                        uid=2_117 option "v1.10.0" selectable value="v1.10.0"
+                        uid=2_118 option "v1.9.2" selectable value="v1.9.2"
+                        uid=2_119 option "v1.8.1" selectable value="v1.8.1"
+                        uid=2_120 option "v1.7.0" selectable value="v1.7.0"
+                        uid=2_121 option "v1.6.0" selectable value="v1.6.0"
+                        uid=2_122 option "v1.5.1" selectable value="v1.5.1"
+                        uid=2_123 option "v1.4.1" selectable value="v1.4.1"
+                        uid=2_124 option "v1.3.0" selectable value="v1.3.0"
+                        uid=2_125 option "v1.2.2" selectable value="v1.2.2"
+                        uid=2_126 option "v1.1.0" selectable value="v1.1.0"
+                        uid=2_127 option "v0.1.3" selectable value="v0.1.3"
+                    uid=2_128 combobox expandable haspopup="menu" value="EN"
+                      uid=2_129 MenuListPopup
+                        uid=2_130 option "EN" selectable selected value="EN"
+                        uid=2_131 option "HI" selectable value="HI"
+                        uid=2_132 option "KO" selectable value="KO"
+                        uid=2_133 option "ZH" selectable value="ZH"
+                    uid=2_134 generic
+                      uid=2_135 button
+                    uid=2_136 ignored
+                      uid=2_137 link "25,549" url="https://github.com/huggingface/smolagents"
+                        uid=2_138 StaticText "25,549"
+                          uid=2_9 InlineTextBox "25,549"
+                uid=2_139 navigation
+                  uid=2_140 generic
+                    uid=2_141 ignored
+                      uid=2_142 ignored
+                        uid=2_143 StaticText "GET STARTED"
+                          uid=2_9 InlineTextBox "GET STARTED"
+                  uid=2_144 ignored
+                    uid=2_145 link "Introduction" url="https://huggingface.co/docs/smolagents/v1.24.0/en/index"
+                      uid=2_146 StaticText "Introduction"
+                        uid=2_9 InlineTextBox "Introduction"
+                    uid=2_147 link "Installation options" url="https://huggingface.co/docs/smolagents/v1.24.0/en/installation"
+                      uid=2_148 StaticText "Installation options"
+                        uid=2_9 InlineTextBox "Installation options"
+                    uid=2_149 link "Guided tour" url="https://huggingface.co/docs/smolagents/v1.24.0/en/guided_tour"
+                      uid=2_150 StaticText "Guided tour"
+                        uid=2_9 InlineTextBox "Guided tour"
+                  uid=2_151 generic
+                    uid=2_152 ignored
+                      uid=2_153 ignored
+                        uid=2_154 StaticText "TUTORIALS"
+                          uid=2_9 InlineTextBox "TUTORIALS"
+                  uid=2_155 ignored
+                    uid=2_156 link "✨ Building good agents" url="https://huggingface.co/docs/smolagents/v1.24.0/en/tutorials/building_good_agents"
+                      uid=2_157 StaticText "✨ Building good agents"
+                        uid=2_9 InlineTextBox "✨ Building good agents"
+                    uid=2_158 link "📊 Inspect your agent runs using telemetry" url="https://huggingface.co/docs/smolagents/v1.24.0/en/tutorials/inspect_runs"
+                      uid=2_159 StaticText "📊 Inspect your agent runs using telemetry"
+                        uid=2_9 InlineTextBox "📊 Inspect your agent runs "
+                        uid=2_9 InlineTextBox "using telemetry"
+                    uid=2_160 link "🛠️ Tools - in-depth guide" url="https://huggingface.co/docs/smolagents/v1.24.0/en/tutorials/tools"
+                      uid=2_161 StaticText "🛠️ Tools - in-depth guide"
+                        uid=2_9 InlineTextBox "🛠️ Tools - in-depth guide"
+                    uid=2_162 link "🛡️ Secure code execution" url="https://huggingface.co/docs/smolagents/v1.24.0/en/tutorials/secure_code_execution"
+                      uid=2_163 StaticText "🛡️ Secure code execution"
+                        uid=2_9 InlineTextBox "🛡️ Secure code execution"
+                    uid=2_164 link "📚 Manage your agent's memory" url="https://huggingface.co/docs/smolagents/v1.24.0/en/tutorials/memory"
+                      uid=2_165 StaticText "📚 Manage your agent's memory"
+                        uid=2_9 InlineTextBox "📚 Manage your agent's "
+                        uid=2_9 InlineTextBox "memory"
+                  uid=2_166 generic
+                    uid=2_167 ignored
+                      uid=2_168 ignored
+                        uid=2_169 StaticText "CONCEPTUAL GUIDES"
+                          uid=2_9 InlineTextBox "CONCEPTUAL GUIDES"
+                  uid=2_170 ignored
+                    uid=2_171 link "🤖 What are agents?" url="https://huggingface.co/docs/smolagents/v1.24.0/en/conceptual_guides/intro_agents"
+                      uid=2_172 StaticText "🤖 What are agents?"
+                        uid=2_9 InlineTextBox "🤖 What are agents?"
+                    uid=2_173 link "🤔 How do Multi-step agents work?" url="https://huggingface.co/docs/smolagents/v1.24.0/en/conceptual_guides/react"
+                      uid=2_174 StaticText "🤔 How do Multi-step agents work?"
+                        uid=2_9 InlineTextBox "🤔 How do Multi-step agents "
+                        uid=2_9 InlineTextBox "work?"
+                  uid=2_175 generic
+                    uid=2_176 ignored
+                      uid=2_177 ignored
+                        uid=2_178 StaticText "EXAMPLES"
+                          uid=2_9 InlineTextBox "EXAMPLES"
+                  uid=2_179 ignored
+                    uid=2_180 link "Self-correcting Text-to-SQL" url="https://huggingface.co/docs/smolagents/v1.24.0/en/examples/text_to_sql"
+                      uid=2_181 StaticText "Self-correcting Text-to-SQL"
+                        uid=2_9 InlineTextBox "Self-correcting Text-to-SQL"
+                    uid=2_182 link "Master your knowledge base with agentic RAG" url="https://huggingface.co/docs/smolagents/v1.24.0/en/examples/rag"
+                      uid=2_183 StaticText "Master your knowledge base with agentic RAG"
+                        uid=2_9 InlineTextBox "Master your knowledge base "
+                        uid=2_9 InlineTextBox "with agentic RAG"
+                    uid=2_184 link "Orchestrate a multi-agent system" url="https://huggingface.co/docs/smolagents/v1.24.0/en/examples/multiagents"
+                      uid=2_185 StaticText "Orchestrate a multi-agent system"
+                        uid=2_9 InlineTextBox "Orchestrate a multi-agent "
+                        uid=2_9 InlineTextBox "system"
+                    uid=2_186 link "Build a web browser agent using vision models" url="https://huggingface.co/docs/smolagents/v1.24.0/en/examples/web_browser"
+                      uid=2_187 StaticText "Build a web browser agent using vision models"
+                        uid=2_9 InlineTextBox "Build a web browser agent "
+                        uid=2_9 InlineTextBox "using vision models"
+                    uid=2_188 link "Using different models" url="https://huggingface.co/docs/smolagents/v1.24.0/en/examples/using_different_models"
+                      uid=2_189 StaticText "Using different models"
+                        uid=2_9 InlineTextBox "Using different models"
+                    uid=2_190 link "Human-in-the-Loop: Customize agent plan interactively" url="https://huggingface.co/docs/smolagents/v1.24.0/en/examples/plan_customization"
+                      uid=2_191 StaticText "Human-in-the-Loop: Customize agent plan interactively"
+                        uid=2_9 InlineTextBox "Human-in-the-Loop: Customize "
+                        uid=2_9 InlineTextBox "agent plan interactively"
+                    uid=2_192 link "Async Applications with Agents" url="https://huggingface.co/docs/smolagents/v1.24.0/en/examples/async_agent"
+                      uid=2_193 StaticText "Async Applications with Agents"
+                        uid=2_9 InlineTextBox "Async Applications with Agents"
+                  uid=2_194 generic
+                    uid=2_195 ignored
+                      uid=2_196 ignored
+                        uid=2_197 StaticText "REFERENCE"
+                          uid=2_9 InlineTextBox "REFERENCE"
+                  uid=2_198 ignored
+                    uid=2_199 link "Agent-related objects" url="https://huggingface.co/docs/smolagents/v1.24.0/en/reference/agents"
+                      uid=2_200 StaticText "Agent-related objects"
+                        uid=2_9 InlineTextBox "Agent-related objects"
+                    uid=2_201 link "Model-related objects" url="https://huggingface.co/docs/smolagents/v1.24.0/en/reference/models"
+                      uid=2_202 StaticText "Model-related objects"
+                        uid=2_9 InlineTextBox "Model-related objects"
+                    uid=2_203 generic
+                      uid=2_204 ignored
+                        uid=2_205 ignored
+                          uid=2_206 StaticText "TOOLS"
+                            uid=2_9 InlineTextBox "TOOLS"
+                    uid=2_207 ignored
+                      uid=2_208 link "Tool-related objects" url="https://huggingface.co/docs/smolagents/v1.24.0/en/reference/tools"
+                        uid=2_209 StaticText "Tool-related objects"
+                          uid=2_9 InlineTextBox "Tool-related objects"
+                      uid=2_210 link "Built-in Tools" url="https://huggingface.co/docs/smolagents/v1.24.0/en/reference/default_tools"
+                        uid=2_211 StaticText "Built-in Tools"
+                          uid=2_9 InlineTextBox "Built-in Tools"
+            uid=2_212 ignored
+              uid=2_213 ignored
+                uid=2_214 ignored
+                  uid=2_215 generic
+                    uid=2_216 generic
+                      uid=2_217 StaticText "Join the Hugging Face community"
+                        uid=2_9 InlineTextBox "Join the Hugging Face community"
+                    uid=2_218 paragraph
+                      uid=2_219 StaticText "and get access to the augmented documentation experience"
+                        uid=2_9 InlineTextBox "and get access to the augmented documentation experience"
+                    uid=2_220 ignored
+                      uid=2_221 ignored
+                        uid=2_222 ignored
+                        uid=2_223 generic
+                          uid=2_224 StaticText "Collaborate on models, datasets and Spaces"
+                            uid=2_9 InlineTextBox "Collaborate on models, datasets and Spaces"
+                      uid=2_225 ignored
+                        uid=2_226 ignored
+                        uid=2_227 generic
+                          uid=2_228 StaticText "Faster examples with accelerated inference"
+                            uid=2_9 InlineTextBox "Faster examples with accelerated inference"
+                      uid=2_229 ignored
+                        uid=2_230 ignored
+                        uid=2_231 generic
+                          uid=2_232 StaticText "Switch between documentation themes"
+                            uid=2_9 InlineTextBox "Switch between documentation themes"
+                    uid=2_233 ignored
+                      uid=2_234 link "Sign Up" url="https://huggingface.co/join"
+                        uid=2_235 button "Sign Up"
+                          uid=2_236 StaticText "Sign Up"
+                            uid=2_9 InlineTextBox "Sign Up"
+                      uid=2_237 paragraph
+                        uid=2_238 StaticText "to get started"
+                          uid=2_9 InlineTextBox "to get started"
+                uid=2_239 generic
+                  uid=2_240 ignored
+                  uid=2_241 generic
+                    uid=2_242 ignored
+                      uid=2_243 button "Copy page" live="polite" relevant="additions text"
+                        uid=2_244 ignored
+                        uid=2_245 ignored
+                          uid=2_246 StaticText "Copy page"
+                            uid=2_9 InlineTextBox "Copy page"
+                      uid=2_247 button "Open copy menu" expandable haspopup="menu"
+                        uid=2_248 image
+                  uid=2_249 heading "Built-in Tools" level="1"
+                    uid=2_250 link url="https://huggingface.co/docs/smolagents/v1.24.0/en/reference/default_tools#built-in-tools"
+                    uid=2_251 StaticText "Built-in Tools"
+                      uid=2_9 InlineTextBox "Built-in Tools"
+                  uid=2_252 paragraph
+                    uid=2_253 StaticText "Ready-to-use tool implementations provided by the "
+                      uid=2_9 InlineTextBox "Ready-to-use tool implementations provided by the "
+                    uid=2_254 code
+                      uid=2_255 ignored
+                      uid=2_256 StaticText "smolagents"
+                        uid=2_9 InlineTextBox "smolagents"
+                      uid=2_257 ignored
+                    uid=2_258 StaticText " library."
+                      uid=2_9 InlineTextBox " library."
+                  uid=2_259 paragraph
+                    uid=2_260 StaticText "These built-in tools are concrete implementations of the "
+                      uid=2_9 InlineTextBox "These built-in tools are concrete implementations of the "
+                    uid=2_261 link "Tool" url="https://huggingface.co/docs/smolagents/v1.24.0/en/reference/tools#smolagents.Tool"
+                      uid=2_262 StaticText "Tool"
+                        uid=2_9 InlineTextBox "Tool"
+                    uid=2_263 StaticText " base class, each designed for specific tasks such as web searching, Python code execution, webpage retrieval, and user interaction. You can use these tools directly in your agents without having to implement the underlying functionality yourself. Each tool handles a particular capability and follows a consistent interface, making it easy to compose them into powerful agent workflows."
+                      uid=2_9 InlineTextBox " base class, each designed for specific tasks such as web "
+                      uid=2_9 InlineTextBox "searching, Python code execution, webpage retrieval, and user interaction. You can use these tools directly in your agents "
+                      uid=2_9 InlineTextBox "without having to implement the underlying functionality yourself. Each tool handles a particular capability and follows a "
+                      uid=2_9 InlineTextBox "consistent interface, making it easy to compose them into powerful agent workflows."
+                  uid=2_264 paragraph
+                    uid=2_265 StaticText "The built-in tools can be categorized by their primary functions:"
+                      uid=2_9 InlineTextBox "The built-in tools can be categorized by their primary functions:"
+                  uid=2_266 list
+                    uid=2_267 listitem level="1"
+                      uid=2_268 ListMarker "• "
+                        uid=2_9 ignored
+                      uid=2_269 strong
+                        uid=2_270 StaticText "Information Retrieval"
+                          uid=2_9 InlineTextBox "Information Retrieval"
+                      uid=2_271 StaticText ": Search and retrieve information from the web and specific knowledge sources."
+                        uid=2_9 InlineTextBox ": Search and retrieve information from the web and specific knowledge sources."
+                      uid=2_272 list
+                        uid=2_273 listitem level="2"
+                          uid=2_274 ListMarker "• "
+                            uid=2_9 ignored
+                          uid=2_275 link "ApiWebSearchTool" url="https://huggingface.co/docs/smolagents/v1.24.0/en/reference/default_tools#smolagents.ApiWebSearchTool"
+                            uid=2_276 StaticText "ApiWebSearchTool"
+                              uid=2_9 InlineTextBox "ApiWebSearchTool"
+                        uid=2_277 listitem level="2"
+                          uid=2_278 ListMarker "• "
+                            uid=2_9 ignored
+                          uid=2_279 link "DuckDuckGoSearchTool" url="https://huggingface.co/docs/smolagents/v1.24.0/en/reference/default_tools#smolagents.DuckDuckGoSearchTool"
+                            uid=2_280 StaticText "DuckDuckGoSearchTool"
+                              uid=2_9 InlineTextBox "DuckDuckGoSearchTool"
+                        uid=2_281 listitem level="2"
+                          uid=2_282 ListMarker "• "
+                            uid=2_9 ignored
+                          uid=2_283 link "GoogleSearchTool" url="https://huggingface.co/docs/smolagents/v1.24.0/en/reference/default_tools#smolagents.GoogleSearchTool"
+                            uid=2_284 StaticText "GoogleSearchTool"
+                              uid=2_9 InlineTextBox "GoogleSearchTool"
+                        uid=2_285 listitem level="2"
+                          uid=2_286 ListMarker "• "
+                            uid=2_9 ignored
+                          uid=2_287 link "WebSearchTool" url="https://huggingface.co/docs/smolagents/v1.24.0/en/reference/default_tools#smolagents.WebSearchTool"
+                            uid=2_288 StaticText "WebSearchTool"
+                              uid=2_9 InlineTextBox "WebSearchTool"
+                        uid=2_289 listitem level="2"
+                          uid=2_290 ListMarker "• "
+                            uid=2_9 ignored
+                          uid=2_291 link "WikipediaSearchTool" url="https://huggingface.co/docs/smolagents/v1.24.0/en/reference/default_tools#smolagents.WikipediaSearchTool"
+                            uid=2_292 StaticText "WikipediaSearchTool"
+                              uid=2_9 InlineTextBox "WikipediaSearchTool"
+                    uid=2_293 listitem level="1"
+                      uid=2_294 ListMarker "• "
+                        uid=2_9 ignored
+                      uid=2_295 strong
+                        uid=2_296 StaticText "Web Interaction"
+                          uid=2_9 InlineTextBox "Web Interaction"
+                      uid=2_297 StaticText ": Fetch and process content from specific web pages."
+                        uid=2_9 InlineTextBox ": Fetch and process content from specific web pages."
+                      uid=2_298 list
+                        uid=2_299 listitem level="2"
+                          uid=2_300 ListMarker "• "
+                            uid=2_9 ignored
+                          uid=2_301 link "VisitWebpageTool" url="https://huggingface.co/docs/smolagents/v1.24.0/en/reference/default_tools#smolagents.VisitWebpageTool"
+                            uid=2_302 StaticText "VisitWebpageTool"
+                              uid=2_9 InlineTextBox "VisitWebpageTool"
+                    uid=2_303 listitem level="1"
+                      uid=2_304 ListMarker "• "
+                        uid=2_9 ignored
+                      uid=2_305 strong
+                        uid=2_306 StaticText "Code Execution"
+                          uid=2_9 InlineTextBox "Code Execution"
+                      uid=2_307 StaticText ": Dynamic execution of Python code for computational tasks."
+                        uid=2_9 InlineTextBox ": Dynamic execution of Python code for computational tasks."
+                      uid=2_308 list
+                        uid=2_309 listitem level="2"
+                          uid=2_310 ListMarker "• "
+                            uid=2_9 ignored
+                          uid=2_311 link "PythonInterpreterTool" url="https://huggingface.co/docs/smolagents/v1.24.0/en/reference/default_tools#smolagents.PythonInterpreterTool"
+                            uid=2_312 StaticText "PythonInterpreterTool"
+                              uid=2_9 InlineTextBox "PythonInterpreterTool"
+                    uid=2_313 listitem level="1"
+                      uid=2_314 ListMarker "• "
+                        uid=2_9 ignored
+                      uid=2_315 strong
+                        uid=2_316 StaticText "User Interaction"
+                          uid=2_9 InlineTextBox "User Interaction"
+                      uid=2_317 StaticText ": Enable Human-in-the-Loop collaboration between agents and users."
+                        uid=2_9 InlineTextBox ": Enable Human-in-the-Loop collaboration between agents and users."
+                      uid=2_318 list
+                        uid=2_319 listitem level="2"
+                          uid=2_320 ListMarker "• "
+                            uid=2_9 ignored
+                          uid=2_321 link "UserInputTool" url="https://huggingface.co/docs/smolagents/v1.24.0/en/reference/default_tools#smolagents.UserInputTool"
+                            uid=2_322 StaticText "UserInputTool"
+                              uid=2_9 InlineTextBox "UserInputTool"
+                          uid=2_323 StaticText ": Collect input from users."
+                            uid=2_9 InlineTextBox ": Collect input from users."
+                    uid=2_324 listitem level="1"
+                      uid=2_325 ListMarker "• "
+                        uid=2_9 ignored
+                      uid=2_326 strong
+                        uid=2_327 StaticText "Speech Processing"
+                          uid=2_9 InlineTextBox "Speech Processing"
+                      uid=2_328 StaticText ": Convert audio to textual data."
+                        uid=2_9 InlineTextBox ": Convert audio to textual data."
+                      uid=2_329 list
+                        uid=2_330 listitem level="2"
+                          uid=2_331 ListMarker "• "
+                            uid=2_9 ignored
+                          uid=2_332 link "SpeechToTextTool" url="https://huggingface.co/docs/smolagents/v1.24.0/en/reference/default_tools#smolagents.SpeechToTextTool"
+                            uid=2_333 StaticText "SpeechToTextTool"
+                              uid=2_9 InlineTextBox "SpeechToTextTool"
+                    uid=2_334 listitem level="1"
+                      uid=2_335 ListMarker "• "
+                        uid=2_9 ignored
+                      uid=2_336 strong
+                        uid=2_337 StaticText "Workflow Control"
+                          uid=2_9 InlineTextBox "Workflow Control"
+                      uid=2_338 StaticText ": Manage and direct the flow of agent operations."
+                        uid=2_9 InlineTextBox ": Manage and direct the flow of agent operations."
+                      uid=2_339 list
+                        uid=2_340 listitem level="2"
+                          uid=2_341 ListMarker "• "
+                            uid=2_9 ignored
+                          uid=2_342 link "FinalAnswerTool" url="https://huggingface.co/docs/smolagents/v1.24.0/en/reference/default_tools#smolagents.FinalAnswerTool"
+                            uid=2_343 StaticText "FinalAnswerTool"
+                              uid=2_9 InlineTextBox "FinalAnswerTool"
+                          uid=2_344 StaticText ": Conclude agent workflow with final response."
+                            uid=2_9 InlineTextBox ": Conclude agent workflow with final response."
+                  uid=2_345 heading "ApiWebSearchTool" level="2"
+                    uid=2_346 link url="https://huggingface.co/docs/smolagents/v1.24.0/en/reference/default_tools#smolagents.ApiWebSearchTool"
+                    uid=2_347 StaticText "ApiWebSearchTool"
+                      uid=2_9 InlineTextBox "ApiWebSearchTool"
+                  uid=2_348 ignored
+                    uid=2_349 ignored
+                      uid=2_350 generic
+                        uid=2_351 heading "class smolagents.ApiWebSearchTool" level="3"
+                          uid=2_352 StaticText "class"
+                            uid=2_9 InlineTextBox "class"
+                          uid=2_353 StaticText " "
+                            uid=2_9 InlineTextBox " "
+                          uid=2_354 StaticText "smolagents."
+                            uid=2_9 InlineTextBox "smolagents."
+                          uid=2_355 StaticText "ApiWebSearchTool"
+                            uid=2_9 InlineTextBox "ApiWebSearchTool"
+                        uid=2_356 link "< source >" url="https://github.com/huggingface/smolagents/blob/v1.24.0/src/smolagents/default_tools.py#L249"
+                          uid=2_357 ignored
+                            uid=2_358 StaticText "<"
+                              uid=2_9 InlineTextBox "<"
+                          uid=2_359 ignored
+                            uid=2_360 StaticText "source"
+                              uid=2_9 InlineTextBox "source"
+                          uid=2_361 ignored
+                            uid=2_362 StaticText ">"
+                              uid=2_9 InlineTextBox ">"
+                      uid=2_363 paragraph
+                        uid=2_364 StaticText "("
+                          uid=2_9 InlineTextBox "("
+                        uid=2_365 StaticText " "
+                          uid=2_9 InlineTextBox " "
+                        uid=2_366 generic
+                          uid=2_367 StaticText "endpoint"
+                            uid=2_9 InlineTextBox "endpoint"
+                          uid=2_368 StaticText ": str = ''"
+                            uid=2_9 InlineTextBox ": str = ''"
+                        uid=2_369 generic
+                          uid=2_370 ignored
+                            uid=2_9 StaticText ", "
+                              uid=2_9 InlineTextBox ", "
+                          uid=2_371 StaticText "api_key"
+                            uid=2_9 InlineTextBox "api_key"
+                          uid=2_372 StaticText ": str = ''"
+                            uid=2_9 InlineTextBox ": str = ''"
+                        uid=2_373 generic
+                          uid=2_374 ignored
+                            uid=2_9 StaticText ", "
+                              uid=2_9 InlineTextBox ", "
+                          uid=2_375 StaticText "api_key_name"
+                            uid=2_9 InlineTextBox "api_key_name"
+                          uid=2_376 StaticText ": str = ''"
+                            uid=2_9 InlineTextBox ": str = ''"
+                        uid=2_377 generic
+                          uid=2_378 ignored
+                            uid=2_9 StaticText ", "
+                              uid=2_9 InlineTextBox ", "
+                          uid=2_379 StaticText "headers"
+                            uid=2_9 InlineTextBox "headers"
+                          uid=2_380 StaticText ": dict = None"
+                            uid=2_9 InlineTextBox ": dict = None"
+                        uid=2_381 generic
+                          uid=2_382 ignored
+                            uid=2_9 StaticText ", "
+                              uid=2_9 InlineTextBox ", "
+                          uid=2_383 StaticText "params"
+                            uid=2_9 InlineTextBox "params"
+                          uid=2_384 StaticText ": dict = None"
+                            uid=2_9 InlineTextBox ": dict = "
+                            uid=2_9 InlineTextBox "None"
+                        uid=2_385 generic
+                          uid=2_386 ignored
+                            uid=2_9 StaticText ", "
+                              uid=2_9 InlineTextBox ", "
+                          uid=2_387 StaticText "rate_limit"
+                            uid=2_9 InlineTextBox "rate_limit"
+                          uid=2_388 StaticText ": float | None = 1.0"
+                            uid=2_9 InlineTextBox ": float | None = 1.0"
+                        uid=2_389 StaticText ")"
+                          uid=2_9 InlineTextBox ")"
+                      uid=2_390 generic
+                        uid=2_391 ignored
+                          uid=2_392 StaticText "Parameters"
+                            uid=2_9 InlineTextBox "Parameters"
+                          uid=2_393 ignored
+                        uid=2_394 list
+                          uid=2_395 listitem level="1"
+                            uid=2_396 generic
+                              uid=2_9 StaticText "•"
+                                uid=2_9 InlineTextBox "•"
+                            uid=2_397 ignored
+                              uid=2_398 link url="https://huggingface.co/docs/smolagents/v1.24.0/en/reference/default_tools#smolagents.ApiWebSearchTool.endpoint"
+                              uid=2_399 ignored
+                                uid=2_400 strong
+                                  uid=2_401 StaticText "endpoint"
+                                    uid=2_9 InlineTextBox "endpoint"
+                                uid=2_402 StaticText " ("
+                                  uid=2_9 InlineTextBox " ("
+                                uid=2_403 code
+                                  uid=2_404 ignored
+                                  uid=2_405 StaticText "str"
+                                    uid=2_9 InlineTextBox "str"
+                                  uid=2_406 ignored
+                                uid=2_407 StaticText ") — API endpoint URL. Defaults to Brave Search API."
+                                  uid=2_9 InlineTextBox ") — API endpoint URL. Defaults to Brave Search API."
+                          uid=2_408 listitem level="1"
+                            uid=2_409 generic
+                              uid=2_9 StaticText "•"
+                                uid=2_9 InlineTextBox "•"
+                            uid=2_410 ignored
+                              uid=2_411 link url="https://huggingface.co/docs/smolagents/v1.24.0/en/reference/default_tools#smolagents.ApiWebSearchTool.api_key"
+                              uid=2_412 ignored
+                                uid=2_413 strong
+                                  uid=2_414 StaticText "api_key"
+                                    uid=2_9 InlineTextBox "api_key"
+                                uid=2_415 StaticText " ("
+                                  uid=2_9 InlineTextBox " ("
+                                uid=2_416 code
+                                  uid=2_417 ignored
+                                  uid=2_418 StaticText "str"
+                                    uid=2_9 InlineTextBox "str"
+                                  uid=2_419 ignored
+                                uid=2_420 StaticText ") — API key for authentication."
+                                  uid=2_9 InlineTextBox ") — API key for authentication."
+                          uid=2_421 listitem level="1"
+                            uid=2_422 generic
+                              uid=2_9 StaticText "•"
+                                uid=2_9 InlineTextBox "•"
+                            uid=2_423 ignored
+                              uid=2_424 link url="https://huggingface.co/docs/smolagents/v1.24.0/en/reference/default_tools#smolagents.ApiWebSearchTool.api_key_name"
+                              uid=2_425 ignored
+                                uid=2_426 strong
+                                  uid=2_427 StaticText "api_key_name"
+                                    uid=2_9 InlineTextBox "api_key_name"
+                                uid=2_428 StaticText " ("
+                                  uid=2_9 InlineTextBox " ("
+                                uid=2_429 code
+                                  uid=2_430 ignored
+                                  uid=2_431 StaticText "str"
+                                    uid=2_9 InlineTextBox "str"
+                                  uid=2_432 ignored
+                                uid=2_433 StaticText ") — Environment variable name containing the API key. Defaults to “BRAVE_API_KEY”."
+                                  uid=2_9 InlineTextBox ") — Environment variable name containing the API key. Defaults to “BRAVE_API_KEY”."
+                          uid=2_434 listitem level="1"
+                            uid=2_435 generic
+                              uid=2_9 StaticText "•"
+                                uid=2_9 InlineTextBox "•"
+                            uid=2_436 ignored
+                              uid=2_437 link url="https://huggingface.co/docs/smolagents/v1.24.0/en/reference/default_tools#smolagents.ApiWebSearchTool.headers"
+                              uid=2_438 ignored
+                                uid=2_439 strong
+                                  uid=2_440 StaticText "headers"
+                                    uid=2_9 InlineTextBox "headers"
+                                uid=2_441 StaticText " ("
+                                  uid=2_9 InlineTextBox " ("
+                                uid=2_442 code
+                                  uid=2_443 ignored
+                                  uid=2_444 StaticText "dict"
+                                    uid=2_9 InlineTextBox "dict"
+                                  uid=2_445 ignored
+                                uid=2_446 StaticText ", "
+                                  uid=2_9 InlineTextBox ", "
+                                uid=2_447 emphasis
+                                  uid=2_448 StaticText "optional"
+                                    uid=2_9 InlineTextBox "optional"
+                                uid=2_449 StaticText ") — Headers for API requests."
+                                  uid=2_9 InlineTextBox ") — Headers for API requests."
+                          uid=2_450 listitem level="1"
+                            uid=2_451 generic
+                              uid=2_9 StaticText "•"
+                                uid=2_9 InlineTextBox "•"
+                            uid=2_452 ignored
+                              uid=2_453 link url="https://huggingface.co/docs/smolagents/v1.24.0/en/reference/default_tools#smolagents.ApiWebSearchTool.params"
+                              uid=2_454 ignored
+                                uid=2_455 strong
+                                  uid=2_456 StaticText "params"
+                                    uid=2_9 InlineTextBox "params"
+                                uid=2_457 StaticText " ("
+                                  uid=2_9 InlineTextBox " ("
+                                uid=2_458 code
+                                  uid=2_459 ignored
+                                  uid=2_460 StaticText "dict"
+                                    uid=2_9 InlineTextBox "dict"
+                                  uid=2_461 ignored
+                                uid=2_462 StaticText ", "
+                                  uid=2_9 InlineTextBox ", "
+                                uid=2_463 emphasis
+                                  uid=2_464 StaticText "optional"
+                                    uid=2_9 InlineTextBox "optional"
+                                uid=2_465 StaticText ") — Parameters for API requests."
+                                  uid=2_9 InlineTextBox ") — Parameters for API requests."
+                          uid=2_466 listitem level="1"
+                            uid=2_467 generic
+                              uid=2_9 StaticText "•"
+                                uid=2_9 InlineTextBox "•"
+                            uid=2_468 ignored
+                              uid=2_469 link url="https://huggingface.co/docs/smolagents/v1.24.0/en/reference/default_tools#smolagents.ApiWebSearchTool.rate_limit"
+                              uid=2_470 ignored
+                                uid=2_471 strong
+                                  uid=2_472 StaticText "rate_limit"
+                                    uid=2_9 InlineTextBox "rate_limit"
+                                uid=2_473 StaticText " ("
+                                  uid=2_9 InlineTextBox " ("
+                                uid=2_474 code
+                                  uid=2_475 ignored
+                                  uid=2_476 StaticText "float"
+                                    uid=2_9 InlineTextBox "float"
+                                  uid=2_477 ignored
+                                uid=2_478 StaticText ", default "
+                                  uid=2_9 InlineTextBox ", default "
+                                uid=2_479 code
+                                  uid=2_480 ignored
+                                  uid=2_481 StaticText "1.0"
+                                    uid=2_9 InlineTextBox "1.0"
+                                  uid=2_482 ignored
+                                uid=2_483 StaticText ") — Maximum queries per second. Set to "
+                                  uid=2_9 InlineTextBox ") — Maximum queries per second. Set to "
+                                uid=2_484 code
+                                  uid=2_485 ignored
+                                  uid=2_486 StaticText "None"
+                                    uid=2_9 InlineTextBox "None"
+                                  uid=2_487 ignored
+                                uid=2_488 StaticText " to disable rate limiting."
+                                  uid=2_9 InlineTextBox " to disable rate limiting."
+                    uid=2_489 paragraph
+                      uid=2_490 StaticText "Web search tool that performs API-based searches. By default, it uses the Brave Search API."
+                        uid=2_9 InlineTextBox "Web search tool that performs API-based searches. By default, it uses the Brave Search API."
+                    uid=2_491 paragraph
+                      uid=2_492 StaticText "This tool implements a rate limiting mechanism to ensure compliance with API usage policies. By default, it limits requests to 1 query per second."
+                        uid=2_9 InlineTextBox "This tool implements a rate limiting mechanism to ensure compliance with API usage policies. By default, it limits requests "
+                        uid=2_9 InlineTextBox "to 1 query per second."
+                    uid=2_493 generic
+                      uid=2_494 link url="https://huggingface.co/docs/smolagents/v1.24.0/en/reference/default_tools#smolagents.ApiWebSearchTool.example"
+                      uid=2_495 paragraph
+                        uid=2_496 StaticText "Examples:"
+                          uid=2_9 InlineTextBox "Examples:"
+                      uid=2_497 generic
+                        uid=2_498 generic
+                          uid=2_499 button "Copied" description="code excerpt"
+                            uid=2_500 generic
+                              uid=2_501 generic
+                              uid=2_502 StaticText "Copied"
+                                uid=2_9 InlineTextBox "Copied"
+                        uid=2_503 generic
+                          uid=2_504 StaticText ">>> "
+                            uid=2_9 InlineTextBox ">>> "
+                          uid=2_505 StaticText "from"
+                            uid=2_9 InlineTextBox "from"
+                          uid=2_506 StaticText " smolagents "
+                            uid=2_9 InlineTextBox " smolagents "
+                          uid=2_507 StaticText "import"
+                            uid=2_9 InlineTextBox "import"
+                          uid=2_508 StaticText " ApiWebSearchTool
+"
+                            uid=2_9 InlineTextBox " ApiWebSearchTool"
+                            uid=2_9 InlineTextBox "
+"
+                          uid=2_509 StaticText ">>> "
+                            uid=2_9 InlineTextBox ">>> "
+                          uid=2_510 StaticText "web_search_tool = ApiWebSearchTool(rate_limit="
+                            uid=2_9 InlineTextBox "web_search_tool = ApiWebSearchTool(rate_limit="
+                          uid=2_511 StaticText "50.0"
+                            uid=2_9 InlineTextBox "50.0"
+                          uid=2_512 StaticText ")
+"
+                            uid=2_9 InlineTextBox ")"
+                            uid=2_9 InlineTextBox "
+"
+                          uid=2_513 StaticText ">>> "
+                            uid=2_9 InlineTextBox ">>> "
+                          uid=2_514 StaticText "results = web_search_tool("
+                            uid=2_9 InlineTextBox "results = web_search_tool("
+                          uid=2_515 StaticText ""Hugging Face""
+                            uid=2_9 InlineTextBox ""Hugging Face""
+                          uid=2_516 StaticText ")
+"
+                            uid=2_9 InlineTextBox ")"
+                            uid=2_9 InlineTextBox "
+"
+                          uid=2_517 StaticText ">>> "
+                            uid=2_9 InlineTextBox ">>> "
+                          uid=2_518 StaticText "print"
+                            uid=2_9 InlineTextBox "print"
+                          uid=2_519 StaticText "(results)"
+                            uid=2_9 InlineTextBox "(results)"
+                  uid=2_520 heading "DuckDuckGoSearchTool" level="2"
+                    uid=2_521 link url="https://huggingface.co/docs/smolagents/v1.24.0/en/reference/default_tools#smolagents.DuckDuckGoSearchTool"
+                    uid=2_522 StaticText "DuckDuckGoSearchTool"
+                      uid=2_9 InlineTextBox "DuckDuckGoSearchTool"
+                  uid=2_523 ignored
+                    uid=2_524 ignored
+                      uid=2_525 generic
+                        uid=2_526 heading "class smolagents.DuckDuckGoSearchTool" level="3"
+                          uid=2_527 StaticText "class"
+                            uid=2_9 InlineTextBox "class"
+                          uid=2_528 StaticText " "
+                            uid=2_9 InlineTextBox " "
+                          uid=2_529 StaticText "smolagents."
+                            uid=2_9 InlineTextBox "smolagents."
+                          uid=2_530 StaticText "DuckDuckGoSearchTool"
+                            uid=2_9 InlineTextBox "DuckDuckGoSearchTool"
+                        uid=2_531 link "< source >" url="https://github.com/huggingface/smolagents/blob/v1.24.0/src/smolagents/default_tools.py#L104"
+                          uid=2_532 ignored
+                            uid=2_533 StaticText "<"
+                              uid=2_9 InlineTextBox "<"
+                          uid=2_534 ignored
+                            uid=2_535 StaticText "source"
+                              uid=2_9 InlineTextBox "source"
+                          uid=2_536 ignored
+                            uid=2_537 StaticText ">"
+                              uid=2_9 InlineTextBox ">"
+                      uid=2_538 paragraph
+                        uid=2_539 StaticText "("
+                          uid=2_9 InlineTextBox "("
+                        uid=2_540 StaticText " "
+                          uid=2_9 InlineTextBox " "
+                        uid=2_541 generic
+                          uid=2_542 StaticText "max_results"
+                            uid=2_9 InlineTextBox "max_results"
+                          uid=2_543 StaticText ": int = 10"
+                            uid=2_9 InlineTextBox ": int = 10"
+                        uid=2_544 generic
+                          uid=2_545 ignored
+                            uid=2_9 StaticText ", "
+                              uid=2_9 InlineTextBox ", "
+                          uid=2_546 StaticText "rate_limit"
+                            uid=2_9 InlineTextBox "rate_limit"
+                          uid=2_547 StaticText ": float | None = 1.0"
+                            uid=2_9 InlineTextBox ": float | None = 1.0"
+                        uid=2_548 generic
+                          uid=2_549 ignored
+                            uid=2_9 StaticText ", "
+                              uid=2_9 InlineTextBox ", "
+                          uid=2_550 StaticText "**kwargs"
+                            uid=2_9 InlineTextBox "**kwargs"
+                        uid=2_551 StaticText ")"
+                          uid=2_9 InlineTextBox ")"
+                      uid=2_552 generic
+                        uid=2_553 ignored
+                          uid=2_554 StaticText "Parameters"
+                            uid=2_9 InlineTextBox "Parameters"
+                          uid=2_555 ignored
+                        uid=2_556 list
+                          uid=2_557 listitem level="1"
+                            uid=2_558 generic
+                              uid=2_9 StaticText "•"
+                                uid=2_9 InlineTextBox "•"
+                            uid=2_559 ignored
+                              uid=2_560 link url="https://huggingface.co/docs/smolagents/v1.24.0/en/reference/default_tools#smolagents.DuckDuckGoSearchTool.max_results"
+                              uid=2_561 ignored
+                                uid=2_562 strong
+                                  uid=2_563 StaticText "max_results"
+                                    uid=2_9 InlineTextBox "max_results"
+                                uid=2_564 StaticText " ("
+                                  uid=2_9 InlineTextBox " ("
+                                uid=2_565 code
+                                  uid=2_566 ignored
+                                  uid=2_567 StaticText "int"
+                                    uid=2_9 InlineTextBox "int"
+                                  uid=2_568 ignored
+                                uid=2_569 StaticText ", default "
+                                  uid=2_9 InlineTextBox ", default "
+                                uid=2_570 code
+                                  uid=2_571 ignored
+                                  uid=2_572 StaticText "10"
+                                    uid=2_9 InlineTextBox "10"
+                                  uid=2_573 ignored
+                                uid=2_574 StaticText ") — Maximum number of search results to return."
+                                  uid=2_9 InlineTextBox ") — Maximum number of search results to return."
+                          uid=2_575 listitem level="1"
+                            uid=2_576 generic
+                              uid=2_9 StaticText "•"
+                                uid=2_9 InlineTextBox "•"
+                            uid=2_577 ignored
+                              uid=2_578 link url="https://huggingface.co/docs/smolagents/v1.24.0/en/reference/default_tools#smolagents.DuckDuckGoSearchTool.rate_limit"
+                              uid=2_579 ignored
+                                uid=2_580 strong
+                                  uid=2_581 StaticText "rate_limit"
+                                    uid=2_9 InlineTextBox "rate_limit"
+                                uid=2_582 StaticText " ("
+                                  uid=2_9 InlineTextBox " ("
+                                uid=2_583 code
+                                  uid=2_584 ignored
+                                  uid=2_585 StaticText "float"
+                                    uid=2_9 InlineTextBox "float"
+                                  uid=2_586 ignored
+                                uid=2_587 StaticText ", default "
+                                  uid=2_9 InlineTextBox ", default "
+                                uid=2_588 code
+                                  uid=2_589 ignored
+                                  uid=2_590 StaticText "1.0"
+                                    uid=2_9 InlineTextBox "1.0"
+                                  uid=2_591 ignored
+                                uid=2_592 StaticText ") — Maximum queries per second. Set to "
+                                  uid=2_9 InlineTextBox ") — Maximum queries per second. Set to "
+                                uid=2_593 code
+                                  uid=2_594 ignored
+                                  uid=2_595 StaticText "None"
+                                    uid=2_9 InlineTextBox "None"
+                                  uid=2_596 ignored
+                                uid=2_597 StaticText " to disable rate limiting."
+                                  uid=2_9 InlineTextBox " to disable rate limiting."
+                          uid=2_598 listitem level="1"
+                            uid=2_599 generic
+                              uid=2_9 StaticText "•"
+                                uid=2_9 InlineTextBox "•"
+                            uid=2_600 ignored
+                              uid=2_601 link url="https://huggingface.co/docs/smolagents/v1.24.0/en/reference/default_tools#smolagents.DuckDuckGoSearchTool.*kwargs"
+                              uid=2_602 ignored
+                                uid=2_603 StaticText "*"
+                                  uid=2_9 InlineTextBox "*"
+                                uid=2_604 strong
+                                  uid=2_605 StaticText "*kwargs"
+                                    uid=2_9 InlineTextBox "*kwargs"
+                                uid=2_606 StaticText " — Additional keyword arguments for the "
+                                  uid=2_9 InlineTextBox " — Additional keyword arguments for the "
+                                uid=2_607 code
+                                  uid=2_608 ignored
+                                  uid=2_609 StaticText "DDGS"
+                                    uid=2_9 InlineTextBox "DDGS"
+                                  uid=2_610 ignored
+                                uid=2_611 StaticText " client."
+                                  uid=2_9 InlineTextBox " client."
+                    uid=2_612 paragraph
+                      uid=2_613 StaticText "Web search tool that performs searches using the DuckDuckGo search engine."
+                        uid=2_9 InlineTextBox "Web search tool that performs searches using the DuckDuckGo search engine."
+                    uid=2_614 generic
+                      uid=2_615 link url="https://huggingface.co/docs/smolagents/v1.24.0/en/reference/default_tools#smolagents.DuckDuckGoSearchTool.example"
+                      uid=2_616 paragraph
+                        uid=2_617 StaticText "Examples:"
+                          uid=2_9 InlineTextBox "Examples:"
+                      uid=2_618 generic
+                        uid=2_619 generic
+                          uid=2_620 button "Copied" description="code excerpt"
+                            uid=2_621 generic
+                              uid=2_622 generic
+                              uid=2_623 StaticText "Copied"
+                                uid=2_9 InlineTextBox "Copied"
+                        uid=2_624 generic
+                          uid=2_625 StaticText ">>> "
+                            uid=2_9 InlineTextBox ">>> "
+                          uid=2_626 StaticText "from"
+                            uid=2_9 InlineTextBox "from"
+                          uid=2_627 StaticText " smolagents "
+                            uid=2_9 InlineTextBox " smolagents "
+                          uid=2_628 StaticText "import"
+                            uid=2_9 InlineTextBox "import"
+                          uid=2_629 StaticText " DuckDuckGoSearchTool
+"
+                            uid=2_9 InlineTextBox " DuckDuckGoSearchTool"
+                            uid=2_9 InlineTextBox "
+"
+                          uid=2_630 StaticText ">>> "
+                            uid=2_9 InlineTextBox ">>> "
+                          uid=2_631 StaticText "web_search_tool = DuckDuckGoSearchTool(max_results="
+                            uid=2_9 InlineTextBox "web_search_tool = DuckDuckGoSearchTool(max_results="
+                          uid=2_632 StaticText "5"
+                            uid=2_9 InlineTextBox "5"
+                          uid=2_633 StaticText ", rate_limit="
+                            uid=2_9 InlineTextBox ", rate_limit="
+                          uid=2_634 StaticText "2.0"
+                            uid=2_9 InlineTextBox "2.0"
+                          uid=2_635 StaticText ")
+"
+                            uid=2_9 InlineTextBox ")"
+                            uid=2_9 InlineTextBox "
+"
+                          uid=2_636 StaticText ">>> "
+                            uid=2_9 InlineTextBox ">>> "
+                          uid=2_637 StaticText "results = web_search_tool("
+                            uid=2_9 InlineTextBox "results = web_search_tool("
+                          uid=2_638 StaticText ""Hugging Face""
+                            uid=2_9 InlineTextBox ""Hugging Face""
+                          uid=2_639 StaticText ")
+"
+                            uid=2_9 InlineTextBox ")"
+                            uid=2_9 InlineTextBox "
+"
+                          uid=2_640 StaticText ">>> "
+                            uid=2_9 InlineTextBox ">>> "
+                          uid=2_641 StaticText "print"
+                            uid=2_9 InlineTextBox "print"
+                          uid=2_642 StaticText "(results)"
+                            uid=2_9 InlineTextBox "(results)"
+                  uid=2_643 heading "FinalAnswerTool" level="2"
+                    uid=2_644 link url="https://huggingface.co/docs/smolagents/v1.24.0/en/reference/default_tools#smolagents.FinalAnswerTool"
+                    uid=2_645 StaticText "FinalAnswerTool"
+                      uid=2_9 InlineTextBox "FinalAnswerTool"
+                  uid=2_646 ignored
+                    uid=2_647 ignored
+                      uid=2_648 generic
+                        uid=2_649 heading "class smolagents.FinalAnswerTool" level="3"
+                          uid=2_650 StaticText "class"
+                            uid=2_9 InlineTextBox "class"
+                          uid=2_651 StaticText " "
+                            uid=2_9 InlineTextBox " "
+                          uid=2_652 StaticText "smolagents."
+                            uid=2_9 InlineTextBox "smolagents."
+                          uid=2_653 StaticText "FinalAnswerTool"
+                            uid=2_9 InlineTextBox "FinalAnswerTool"
+                        uid=2_654 link "< source >" url="https://github.com/huggingface/smolagents/blob/v1.24.0/src/smolagents/default_tools.py#L83"
+                          uid=2_655 ignored
+                            uid=2_656 StaticText "<"
+                              uid=2_9 InlineTextBox "<"
+                          uid=2_657 ignored
+                            uid=2_658 StaticText "source"
+                              uid=2_9 InlineTextBox "source"
+                          uid=2_659 ignored
+                            uid=2_660 StaticText ">"
+                              uid=2_9 InlineTextBox ">"
+                      uid=2_661 paragraph
+                        uid=2_662 StaticText "("
+                          uid=2_9 InlineTextBox "("
+                        uid=2_663 StaticText " "
+                          uid=2_9 InlineTextBox " "
+                        uid=2_664 generic
+                          uid=2_665 StaticText "*args"
+                            uid=2_9 InlineTextBox "*args"
+                        uid=2_666 generic
+                          uid=2_667 ignored
+                            uid=2_9 StaticText ", "
+                              uid=2_9 InlineTextBox ", "
+                          uid=2_668 StaticText "**kwargs"
+                            uid=2_9 InlineTextBox "**kwargs"
+                        uid=2_669 StaticText ")"
+                          uid=2_9 InlineTextBox ")"
+                      uid=2_670 generic
+                  uid=2_671 heading "GoogleSearchTool" level="2"
+                    uid=2_672 link focusable focused url="https://huggingface.co/docs/smolagents/v1.24.0/en/reference/default_tools#smolagents.GoogleSearchTool"
+                    uid=2_673 StaticText "GoogleSearchTool"
+                      uid=2_9 InlineTextBox "GoogleSearchTool"
+                  uid=2_674 ignored
+                    uid=2_675 ignored
+                      uid=2_676 generic
+                        uid=2_677 heading "class smolagents.GoogleSearchTool" level="3"
+                          uid=2_678 StaticText "class"
+                            uid=2_9 InlineTextBox "class"
+                          uid=2_679 StaticText " "
+                            uid=2_9 InlineTextBox " "
+                          uid=2_680 StaticText "smolagents."
+                            uid=2_9 InlineTextBox "smolagents."
+                          uid=2_681 StaticText "GoogleSearchTool"
+                            uid=2_9 InlineTextBox "GoogleSearchTool"
+                        uid=2_682 link "< source >" url="https://github.com/huggingface/smolagents/blob/v1.24.0/src/smolagents/default_tools.py#L162"
+                          uid=2_683 ignored
+                            uid=2_684 StaticText "<"
+                              uid=2_9 InlineTextBox "<"
+                          uid=2_685 ignored
+                            uid=2_686 StaticText "source"
+                              uid=2_9 InlineTextBox "source"
+                          uid=2_687 ignored
+                            uid=2_688 StaticText ">"
+                              uid=2_9 InlineTextBox ">"
+                      uid=2_689 paragraph
+                        uid=2_690 StaticText "("
+                          uid=2_9 InlineTextBox "("
+                        uid=2_691 StaticText " "
+                          uid=2_9 InlineTextBox " "
+                        uid=2_692 generic
+                          uid=2_693 StaticText "provider"
+                            uid=2_9 InlineTextBox "provider"
+                          uid=2_694 StaticText ": str = 'serpapi'"
+                            uid=2_9 InlineTextBox ": str = 'serpapi'"
+                        uid=2_695 StaticText ")"
+                          uid=2_9 InlineTextBox ")"
+                      uid=2_696 generic
+                  uid=2_697 heading "PythonInterpreterTool" level="2"
+                    uid=2_698 link url="https://huggingface.co/docs/smolagents/v1.24.0/en/reference/default_tools#smolagents.PythonInterpreterTool"
+                    uid=2_699 StaticText "PythonInterpreterTool"
+                      uid=2_9 InlineTextBox "PythonInterpreterTool"
+                  uid=2_700 ignored
+                    uid=2_701 ignored
+                      uid=2_702 generic
+                        uid=2_703 heading "class smolagents.PythonInterpreterTool" level="3"
+                          uid=2_704 StaticText "class"
+                            uid=2_9 InlineTextBox "class"
+                          uid=2_705 StaticText " "
+                            uid=2_9 InlineTextBox " "
+                          uid=2_706 StaticText "smolagents."
+                            uid=2_9 InlineTextBox "smolagents."
+                          uid=2_707 StaticText "PythonInterpreterTool"
+                            uid=2_9 InlineTextBox "PythonInterpreterTool"
+                        uid=2_708 link "< source >" url="https://github.com/huggingface/smolagents/blob/v1.24.0/src/smolagents/default_tools.py#L39"
+                          uid=2_709 ignored
+                            uid=2_710 StaticText "<"
+                              uid=2_9 InlineTextBox "<"
+                          uid=2_711 ignored
+                            uid=2_712 StaticText "source"
+                              uid=2_9 InlineTextBox "source"
+                          uid=2_713 ignored
+                            uid=2_714 StaticText ">"
+                              uid=2_9 InlineTextBox ">"
+                      uid=2_715 paragraph
+                        uid=2_716 StaticText "("
+                          uid=2_9 InlineTextBox "("
+                        uid=2_717 StaticText " "
+                          uid=2_9 InlineTextBox " "
+                        uid=2_718 generic
+                          uid=2_719 StaticText "*args"
+                            uid=2_9 InlineTextBox "*args"
+                        uid=2_720 generic
+                          uid=2_721 ignored
+                            uid=2_9 StaticText ", "
+                              uid=2_9 InlineTextBox ", "
+                          uid=2_722 StaticText "authorized_imports"
+                            uid=2_9 InlineTextBox "authorized_imports"
+                          uid=2_723 StaticText " = None"
+                            uid=2_9 InlineTextBox " = None"
+                        uid=2_724 generic
+                          uid=2_725 ignored
+                            uid=2_9 StaticText ", "
+                              uid=2_9 InlineTextBox ", "
+                          uid=2_726 StaticText "timeout_seconds"
+                            uid=2_9 InlineTextBox "timeout_seconds"
+                          uid=2_727 StaticText " = 30"
+                            uid=2_9 InlineTextBox " = 30"
+                        uid=2_728 generic
+                          uid=2_729 ignored
+                            uid=2_9 StaticText ", "
+                              uid=2_9 InlineTextBox ", "
+                          uid=2_730 StaticText "**kwargs"
+                            uid=2_9 InlineTextBox "**kwargs"
+                        uid=2_731 StaticText ")"
+                          uid=2_9 InlineTextBox ")"
+                      uid=2_732 generic
+                  uid=2_733 heading "SpeechToTextTool" level="2"
+                    uid=2_734 link url="https://huggingface.co/docs/smolagents/v1.24.0/en/reference/default_tools#smolagents.SpeechToTextTool"
+                    uid=2_735 StaticText "SpeechToTextTool"
+                      uid=2_9 InlineTextBox "SpeechToTextTool"
+                  uid=2_736 ignored
+                    uid=2_737 ignored
+                      uid=2_738 generic
+                        uid=2_739 heading "class smolagents.SpeechToTextTool" level="3"
+                          uid=2_740 StaticText "class"
+                            uid=2_9 InlineTextBox "class"
+                          uid=2_741 StaticText " "
+                            uid=2_9 InlineTextBox " "
+                          uid=2_742 StaticText "smolagents."
+                            uid=2_9 InlineTextBox "smolagents."
+                          uid=2_743 StaticText "SpeechToTextTool"
+                            uid=2_9 InlineTextBox "SpeechToTextTool"
+                        uid=2_744 link "< source >" url="https://github.com/huggingface/smolagents/blob/v1.24.0/src/smolagents/default_tools.py#L609"
+                          uid=2_745 ignored
+                            uid=2_746 StaticText "<"
+                              uid=2_9 InlineTextBox "<"
+                          uid=2_747 ignored
+                            uid=2_748 StaticText "source"
+                              uid=2_9 InlineTextBox "source"
+                          uid=2_749 ignored
+                            uid=2_750 StaticText ">"
+                              uid=2_9 InlineTextBox ">"
+                      uid=2_751 paragraph
+                        uid=2_752 StaticText "("
+                          uid=2_9 InlineTextBox "("
+                        uid=2_753 StaticText " "
+                          uid=2_9 InlineTextBox " "
+                        uid=2_754 generic
+                          uid=2_755 StaticText "*args"
+                            uid=2_9 InlineTextBox "*args"
+                        uid=2_756 generic
+                          uid=2_757 ignored
+                            uid=2_9 StaticText ", "
+                              uid=2_9 InlineTextBox ", "
+                          uid=2_758 StaticText "**kwargs"
+                            uid=2_9 InlineTextBox "**kwargs"
+                        uid=2_759 StaticText ")"
+                          uid=2_9 InlineTextBox ")"
+                      uid=2_760 generic
+                  uid=2_761 heading "UserInputTool" level="2"
+                    uid=2_762 link url="https://huggingface.co/docs/smolagents/v1.24.0/en/reference/default_tools#smolagents.UserInputTool"
+                    uid=2_763 StaticText "UserInputTool"
+                      uid=2_9 InlineTextBox "UserInputTool"
+                  uid=2_764 ignored
+                    uid=2_765 ignored
+                      uid=2_766 generic
+                        uid=2_767 heading "class smolagents.UserInputTool" level="3"
+                          uid=2_768 StaticText "class"
+                            uid=2_9 InlineTextBox "class"
+                          uid=2_769 StaticText " "
+                            uid=2_9 InlineTextBox " "
+                          uid=2_770 StaticText "smolagents."
+                            uid=2_9 InlineTextBox "smolagents."
+                          uid=2_771 StaticText "UserInputTool"
+                            uid=2_9 InlineTextBox "UserInputTool"
+                        uid=2_772 link "< source >" url="https://github.com/huggingface/smolagents/blob/v1.24.0/src/smolagents/default_tools.py#L93"
+                          uid=2_773 ignored
+                            uid=2_774 StaticText "<"
+                              uid=2_9 InlineTextBox "<"
+                          uid=2_775 ignored
+                            uid=2_776 StaticText "source"
+                              uid=2_9 InlineTextBox "source"
+                          uid=2_777 ignored
+                            uid=2_778 StaticText ">"
+                              uid=2_9 InlineTextBox ">"
+                      uid=2_779 paragraph
+                        uid=2_780 StaticText "("
+                          uid=2_9 InlineTextBox "("
+                        uid=2_781 StaticText " "
+                          uid=2_9 InlineTextBox " "
+                        uid=2_782 generic
+                          uid=2_783 StaticText "*args"
+                            uid=2_9 InlineTextBox "*args"
+                        uid=2_784 generic
+                          uid=2_785 ignored
+                            uid=2_9 StaticText ", "
+                              uid=2_9 InlineTextBox ", "
+                          uid=2_786 StaticText "**kwargs"
+                            uid=2_9 InlineTextBox "**kwargs"
+                        uid=2_787 StaticText ")"
+                          uid=2_9 InlineTextBox ")"
+                      uid=2_788 generic
+                  uid=2_789 heading "VisitWebpageTool" level="2"
+                    uid=2_790 link url="https://huggingface.co/docs/smolagents/v1.24.0/en/reference/default_tools#smolagents.VisitWebpageTool"
+                    uid=2_791 StaticText "VisitWebpageTool"
+                      uid=2_9 InlineTextBox "VisitWebpageTool"
+                  uid=2_792 ignored
+                    uid=2_793 ignored
+                      uid=2_794 generic
+                        uid=2_795 heading "class smolagents.VisitWebpageTool" level="3"
+                          uid=2_796 StaticText "class"
+                            uid=2_9 InlineTextBox "class"
+                          uid=2_797 StaticText " "
+                            uid=2_9 InlineTextBox " "
+                          uid=2_798 StaticText "smolagents."
+                            uid=2_9 InlineTextBox "smolagents."
+                          uid=2_799 StaticText "VisitWebpageTool"
+                            uid=2_9 InlineTextBox "VisitWebpageTool"
+                        uid=2_800 link "< source >" url="https://github.com/huggingface/smolagents/blob/v1.24.0/src/smolagents/default_tools.py#L454"
+                          uid=2_801 ignored
+                            uid=2_802 StaticText "<"
+                              uid=2_9 InlineTextBox "<"
+                          uid=2_803 ignored
+                            uid=2_804 StaticText "source"
+                              uid=2_9 InlineTextBox "source"
+                          uid=2_805 ignored
+                            uid=2_806 StaticText ">"
+                              uid=2_9 InlineTextBox ">"
+                      uid=2_807 paragraph
+                        uid=2_808 StaticText "("
+                          uid=2_9 InlineTextBox "("
+                        uid=2_809 StaticText " "
+                          uid=2_9 InlineTextBox " "
+                        uid=2_810 generic
+                          uid=2_811 StaticText "max_output_length"
+                            uid=2_9 InlineTextBox "max_output_length"
+                          uid=2_812 StaticText ": int = 40000"
+                            uid=2_9 InlineTextBox ": int = 40000"
+                        uid=2_813 StaticText ")"
+                          uid=2_9 InlineTextBox ")"
+                      uid=2_814 generic
+                  uid=2_815 heading "WebSearchTool" level="2"
+                    uid=2_816 link url="https://huggingface.co/docs/smolagents/v1.24.0/en/reference/default_tools#smolagents.WebSearchTool"
+                    uid=2_817 StaticText "WebSearchTool"
+                      uid=2_9 InlineTextBox "WebSearchTool"
+                  uid=2_818 ignored
+                    uid=2_819 ignored
+                      uid=2_820 generic
+                        uid=2_821 heading "class smolagents.WebSearchTool" level="3"
+                          uid=2_822 StaticText "class"
+                            uid=2_9 InlineTextBox "class"
+                          uid=2_823 StaticText " "
+                            uid=2_9 InlineTextBox " "
+                          uid=2_824 StaticText "smolagents."
+                            uid=2_9 InlineTextBox "smolagents."
+                          uid=2_825 StaticText "WebSearchTool"
+                            uid=2_9 InlineTextBox "WebSearchTool"
+                        uid=2_826 link "< source >" url="https://github.com/huggingface/smolagents/blob/v1.24.0/src/smolagents/default_tools.py#L342"
+                          uid=2_827 ignored
+                            uid=2_828 StaticText "<"
+                              uid=2_9 InlineTextBox "<"
+                          uid=2_829 ignored
+                            uid=2_830 StaticText "source"
+                              uid=2_9 InlineTextBox "source"
+                          uid=2_831 ignored
+                            uid=2_832 StaticText ">"
+                              uid=2_9 InlineTextBox ">"
+                      uid=2_833 paragraph
+                        uid=2_834 StaticText "("
+                          uid=2_9 InlineTextBox "("
+                        uid=2_835 StaticText " "
+                          uid=2_9 InlineTextBox " "
+                        uid=2_836 generic
+                          uid=2_837 StaticText "max_results"
+                            uid=2_9 InlineTextBox "max_results"
+                          uid=2_838 StaticText ": int = 10"
+                            uid=2_9 InlineTextBox ": int = 10"
+                        uid=2_839 generic
+                          uid=2_840 ignored
+                            uid=2_9 StaticText ", "
+                              uid=2_9 InlineTextBox ", "
+                          uid=2_841 StaticText "engine"
+                            uid=2_9 InlineTextBox "engine"
+                          uid=2_842 StaticText ": str = 'duckduckgo'"
+                            uid=2_9 InlineTextBox ": str = 'duckduckgo'"
+                        uid=2_843 StaticText ")"
+                          uid=2_9 InlineTextBox ")"
+                      uid=2_844 generic
+                  uid=2_845 heading "WikipediaSearchTool" level="2"
+                    uid=2_846 link url="https://huggingface.co/docs/smolagents/v1.24.0/en/reference/default_tools#smolagents.WikipediaSearchTool"
+                    uid=2_847 StaticText "WikipediaSearchTool"
+                      uid=2_9 InlineTextBox "WikipediaSearchTool"
+                  uid=2_848 ignored
+                    uid=2_849 ignored
+                      uid=2_850 generic
+                        uid=2_851 heading "class smolagents.WikipediaSearchTool" level="3"
+                          uid=2_852 StaticText "class"
+                            uid=2_9 InlineTextBox "class"
+                          uid=2_853 StaticText " "
+                            uid=2_9 InlineTextBox " "
+                          uid=2_854 StaticText "smolagents."
+                            uid=2_9 InlineTextBox "smolagents."
+                          uid=2_855 StaticText "WikipediaSearchTool"
+                            uid=2_9 InlineTextBox "WikipediaSearchTool"
+                        uid=2_856 link "< source >" url="https://github.com/huggingface/smolagents/blob/v1.24.0/src/smolagents/default_tools.py#L510"
+                          uid=2_857 ignored
+                            uid=2_858 StaticText "<"
+                              uid=2_9 InlineTextBox "<"
+                          uid=2_859 ignored
+                            uid=2_860 StaticText "source"
+                              uid=2_9 InlineTextBox "source"
+                          uid=2_861 ignored
+                            uid=2_862 StaticText ">"
+                              uid=2_9 InlineTextBox ">"
+                      uid=2_863 paragraph
+                        uid=2_864 StaticText "("
+                          uid=2_9 InlineTextBox "("
+                        uid=2_865 StaticText " "
+                          uid=2_9 InlineTextBox " "
+                        uid=2_866 generic
+                          uid=2_867 StaticText "user_agent"
+                            uid=2_9 InlineTextBox "user_agent"
+                          uid=2_868 StaticText ": str = 'Smolagents (myemail@example.com)'"
+                            uid=2_9 InlineTextBox ": str = 'Smolagents (myemail@example.com)'"
+                        uid=2_869 generic
+                          uid=2_870 ignored
+                            uid=2_9 StaticText ", "
+                              uid=2_9 InlineTextBox ", "
+                          uid=2_871 StaticText "language"
+                            uid=2_9 InlineTextBox "language"
+                          uid=2_872 StaticText ": str = 'en'"
+                            uid=2_9 InlineTextBox ": str = 'en'"
+                        uid=2_873 generic
+                          uid=2_874 ignored
+                            uid=2_9 StaticText ", "
+                              uid=2_9 InlineTextBox ", "
+                          uid=2_875 StaticText "content_type"
+                            uid=2_9 InlineTextBox "content_type"
+                          uid=2_876 StaticText ": str = 'text'"
+                            uid=2_9 InlineTextBox ": str = "
+                            uid=2_9 InlineTextBox "'text'"
+                        uid=2_877 generic
+                          uid=2_878 ignored
+                            uid=2_9 StaticText ", "
+                              uid=2_9 InlineTextBox ", "
+                          uid=2_879 StaticText "extract_format"
+                            uid=2_9 InlineTextBox "extract_format"
+                          uid=2_880 StaticText ": str = 'WIKI'"
+                            uid=2_9 InlineTextBox ": str = 'WIKI'"
+                        uid=2_881 StaticText ")"
+                          uid=2_9 InlineTextBox ")"
+                      uid=2_882 generic
+                        uid=2_883 ignored
+                          uid=2_884 StaticText "Parameters"
+                            uid=2_9 InlineTextBox "Parameters"
+                          uid=2_885 ignored
+                        uid=2_886 list
+                          uid=2_887 listitem level="1"
+                            uid=2_888 generic
+                              uid=2_9 StaticText "•"
+                                uid=2_9 InlineTextBox "•"
+                            uid=2_889 ignored
+                              uid=2_890 link url="https://huggingface.co/docs/smolagents/v1.24.0/en/reference/default_tools#smolagents.WikipediaSearchTool.user_agent"
+                              uid=2_891 ignored
+                                uid=2_892 strong
+                                  uid=2_893 StaticText "user_agent"
+                                    uid=2_9 InlineTextBox "user_agent"
+                                uid=2_894 StaticText " ("
+                                  uid=2_9 InlineTextBox " ("
+                                uid=2_895 code
+                                  uid=2_896 ignored
+                                  uid=2_897 StaticText "str"
+                                    uid=2_9 InlineTextBox "str"
+                                  uid=2_898 ignored
+                                uid=2_899 StaticText ") — Custom user-agent string to identify the project. This is required as per Wikipedia API policies. See: "
+                                  uid=2_9 InlineTextBox ") — Custom user-agent string to identify the project. This is required as per Wikipedia API policies. See: "
+                                uid=2_900 link "https://foundation.wikimedia.org/wiki/Policy:Wikimedia_Foundation_User-Agent_Policy" url="https://foundation.wikimedia.org/wiki/Policy:Wikimedia_Foundation_User-Agent_Policy"
+                                  uid=2_901 StaticText "https://foundation.wikimedia.org/wiki/Policy:Wikimedia_Foundation_User-Agent_Policy"
+                                    uid=2_9 InlineTextBox "https://foundation.wikimedia.org/wiki/Policy:Wikimedia_Foundation_User-Agent_Policy"
+                          uid=2_902 listitem level="1"
+                            uid=2_903 generic
+                              uid=2_9 StaticText "•"
+                                uid=2_9 InlineTextBox "•"
+                            uid=2_904 ignored
+                              uid=2_905 link url="https://huggingface.co/docs/smolagents/v1.24.0/en/reference/default_tools#smolagents.WikipediaSearchTool.language"
+                              uid=2_906 ignored
+                                uid=2_907 strong
+                                  uid=2_908 StaticText "language"
+                                    uid=2_9 InlineTextBox "language"
+                                uid=2_909 StaticText " ("
+                                  uid=2_9 InlineTextBox " ("
+                                uid=2_910 code
+                                  uid=2_911 ignored
+                                  uid=2_912 StaticText "str"
+                                    uid=2_9 InlineTextBox "str"
+                                  uid=2_913 ignored
+                                uid=2_914 StaticText ", default "
+                                  uid=2_9 InlineTextBox ", default "
+                                uid=2_915 code
+                                  uid=2_916 ignored
+                                  uid=2_917 StaticText ""en""
+                                    uid=2_9 InlineTextBox ""en""
+                                  uid=2_918 ignored
+                                uid=2_919 StaticText ") — Language in which to retrieve Wikipedia article. See: "
+                                  uid=2_9 InlineTextBox ") — Language in which to retrieve Wikipedia article. See: "
+                                uid=2_920 link "http://meta.wikimedia.org/wiki/List_of_Wikipedias" url="http://meta.wikimedia.org/wiki/List_of_Wikipedias"
+                                  uid=2_921 StaticText "http://meta.wikimedia.org/wiki/List_of_Wikipedias"
+                                    uid=2_9 InlineTextBox "http://meta.wikimedia.org/wiki/List_of_Wikipedias"
+                          uid=2_922 listitem level="1"
+                            uid=2_923 generic
+                              uid=2_9 StaticText "•"
+                                uid=2_9 InlineTextBox "•"
+                            uid=2_924 ignored
+                              uid=2_925 link url="https://huggingface.co/docs/smolagents/v1.24.0/en/reference/default_tools#smolagents.WikipediaSearchTool.content_type"
+                              uid=2_926 ignored
+                                uid=2_927 strong
+                                  uid=2_928 StaticText "content_type"
+                                    uid=2_9 InlineTextBox "content_type"
+                                uid=2_929 StaticText " ("
+                                  uid=2_9 InlineTextBox " ("
+                                uid=2_930 code
+                                  uid=2_931 ignored
+                                  uid=2_932 StaticText "Literal["summary", "text"]"
+                                    uid=2_9 InlineTextBox "Literal["summary", "text"]"
+                                  uid=2_933 ignored
+                                uid=2_934 StaticText ", default "
+                                  uid=2_9 InlineTextBox ", default "
+                                uid=2_935 code
+                                  uid=2_936 ignored
+                                  uid=2_937 StaticText ""text""
+                                    uid=2_9 InlineTextBox ""text""
+                                  uid=2_938 ignored
+                                uid=2_939 StaticText ") — Type of content to fetch. Can be “summary” for a short summary or “text” for the full article."
+                                  uid=2_9 InlineTextBox ") — Type of content to fetch. Can be “summary” for a short "
+                                  uid=2_9 InlineTextBox "summary or “text” for the full article."
+                          uid=2_940 listitem level="1"
+                            uid=2_941 generic
+                              uid=2_9 StaticText "•"
+                                uid=2_9 InlineTextBox "•"
+                            uid=2_942 ignored
+                              uid=2_943 link url="https://huggingface.co/docs/smolagents/v1.24.0/en/reference/default_tools#smolagents.WikipediaSearchTool.extract_format"
+                              uid=2_944 ignored
+                                uid=2_945 strong
+                                  uid=2_946 StaticText "extract_format"
+                                    uid=2_9 InlineTextBox "extract_format"
+                                uid=2_947 StaticText " ("
+                                  uid=2_9 InlineTextBox " ("
+                                uid=2_948 code
+                                  uid=2_949 ignored
+                                  uid=2_950 StaticText "Literal["HTML", "WIKI"]"
+                                    uid=2_9 InlineTextBox "Literal["HTML", "WIKI"]"
+                                  uid=2_951 ignored
+                                uid=2_952 StaticText ", default "
+                                  uid=2_9 InlineTextBox ", default "
+                                uid=2_953 code
+                                  uid=2_954 ignored
+                                  uid=2_955 StaticText ""WIKI""
+                                    uid=2_9 InlineTextBox ""WIKI""
+                                  uid=2_956 ignored
+                                uid=2_957 StaticText ") — Extraction format of the output. Can be "
+                                  uid=2_9 InlineTextBox ") — Extraction format of the output. Can be "
+                                uid=2_958 code
+                                  uid=2_959 ignored
+                                  uid=2_960 StaticText ""WIKI""
+                                    uid=2_9 InlineTextBox ""WIKI""
+                                  uid=2_961 ignored
+                                uid=2_962 StaticText " or "
+                                  uid=2_9 InlineTextBox " or "
+                                uid=2_963 code
+                                  uid=2_964 ignored
+                                  uid=2_965 StaticText ""HTML""
+                                    uid=2_9 InlineTextBox ""HTML""
+                                  uid=2_966 ignored
+                                uid=2_967 StaticText "."
+                                  uid=2_9 InlineTextBox "."
+                    uid=2_968 paragraph
+                      uid=2_969 StaticText "Search Wikipedia and return the summary or full text of the requested article, along with the page URL."
+                        uid=2_9 InlineTextBox "Search Wikipedia and return the summary or full text of the requested article, along with the page URL."
+                    uid=2_970 generic
+                      uid=2_971 link url="https://huggingface.co/docs/smolagents/v1.24.0/en/reference/default_tools#smolagents.WikipediaSearchTool.example"
+                      uid=2_972 paragraph
+                        uid=2_973 StaticText "Example:"
+                          uid=2_9 InlineTextBox "Example:"
+                      uid=2_974 generic
+                        uid=2_975 generic
+                          uid=2_976 button "Copied" description="code excerpt"
+                            uid=2_977 generic
+                              uid=2_978 generic
+                              uid=2_979 StaticText "Copied"
+                                uid=2_9 InlineTextBox "Copied"
+                        uid=2_980 generic
+                          uid=2_981 StaticText ">>> "
+                            uid=2_9 InlineTextBox ">>> "
+                          uid=2_982 StaticText "from"
+                            uid=2_9 InlineTextBox "from"
+                          uid=2_983 StaticText " smolagents "
+                            uid=2_9 InlineTextBox " smolagents "
+                          uid=2_984 StaticText "import"
+                            uid=2_9 InlineTextBox "import"
+                          uid=2_985 StaticText " CodeAgent, InferenceClientModel, WikipediaSearchTool
+"
+                            uid=2_9 InlineTextBox " CodeAgent, InferenceClientModel, WikipediaSearchTool"
+                            uid=2_9 InlineTextBox "
+"
+                          uid=2_986 StaticText ">>> "
+                            uid=2_9 InlineTextBox ">>> "
+                          uid=2_987 StaticText "agent = CodeAgent(
+"
+                            uid=2_9 InlineTextBox "agent = CodeAgent("
+                            uid=2_9 InlineTextBox "
+"
+                          uid=2_988 StaticText ">>> "
+                            uid=2_9 InlineTextBox ">>> "
+                          uid=2_989 StaticText "    tools=[
+"
+                            uid=2_9 InlineTextBox "    tools=["
+                            uid=2_9 InlineTextBox "
+"
+                          uid=2_990 StaticText ">>> "
+                            uid=2_9 InlineTextBox ">>> "
+                          uid=2_991 StaticText "           WikipediaSearchTool(
+"
+                            uid=2_9 InlineTextBox "           WikipediaSearchTool("
+                            uid=2_9 InlineTextBox "
+"
+                          uid=2_992 StaticText ">>> "
+                            uid=2_9 InlineTextBox ">>> "
+                          uid=2_993 StaticText "               user_agent="
+                            uid=2_9 InlineTextBox "               user_agent="
+                          uid=2_994 StaticText ""MyResearchBot (myemail@example.com)""
+                            uid=2_9 InlineTextBox ""MyResearchBot (myemail@example.com)""
+                          uid=2_995 StaticText ",
+"
+                            uid=2_9 InlineTextBox ","
+                            uid=2_9 InlineTextBox "
+"
+                          uid=2_996 StaticText ">>> "
+                            uid=2_9 InlineTextBox ">>> "
+                          uid=2_997 StaticText "               language="
+                            uid=2_9 InlineTextBox "               language="
+                          uid=2_998 StaticText ""en""
+                            uid=2_9 InlineTextBox ""en""
+                          uid=2_999 StaticText ",
+"
+                            uid=2_9 InlineTextBox ","
+                            uid=2_9 InlineTextBox "
+"
+                          uid=2_1000 StaticText ">>> "
+                            uid=2_9 InlineTextBox ">>> "
+                          uid=2_1001 StaticText "               content_type="
+                            uid=2_9 InlineTextBox "               content_type="
+                          uid=2_1002 StaticText ""summary""
+                            uid=2_9 InlineTextBox ""summary""
+                          uid=2_1003 StaticText ",  "
+                            uid=2_9 InlineTextBox ",  "
+                          uid=2_1004 StaticText "# or "text""
+                            uid=2_9 InlineTextBox "# or "text""
+                          uid=2_1005 StaticText "
+"
+                            uid=2_9 InlineTextBox "
+"
+                          uid=2_1006 StaticText ">>> "
+                            uid=2_9 InlineTextBox ">>> "
+                          uid=2_1007 StaticText "               extract_format="
+                            uid=2_9 InlineTextBox "               extract_format="
+                          uid=2_1008 StaticText ""WIKI""
+                            uid=2_9 InlineTextBox ""WIKI""
+                          uid=2_1009 StaticText ",
+"
+                            uid=2_9 InlineTextBox ","
+                            uid=2_9 InlineTextBox "
+"
+                          uid=2_1010 StaticText ">>> "
+                            uid=2_9 InlineTextBox ">>> "
+                          uid=2_1011 StaticText "           )
+"
+                            uid=2_9 InlineTextBox "           )"
+                            uid=2_9 InlineTextBox "
+"
+                          uid=2_1012 StaticText ">>> "
+                            uid=2_9 InlineTextBox ">>> "
+                          uid=2_1013 StaticText "       ],
+"
+                            uid=2_9 InlineTextBox "       ],"
+                            uid=2_9 InlineTextBox "
+"
+                          uid=2_1014 StaticText ">>> "
+                            uid=2_9 InlineTextBox ">>> "
+                          uid=2_1015 StaticText "    model=InferenceClientModel(),
+"
+                            uid=2_9 InlineTextBox "    model=InferenceClientModel(),"
+                            uid=2_9 InlineTextBox "
+"
+                          uid=2_1016 StaticText ">>> "
+                            uid=2_9 InlineTextBox ">>> "
+                          uid=2_1017 StaticText ")
+"
+                            uid=2_9 InlineTextBox ")"
+                            uid=2_9 InlineTextBox "
+"
+                          uid=2_1018 StaticText ">>> "
+                            uid=2_9 InlineTextBox ">>> "
+                          uid=2_1019 StaticText "agent.run("
+                            uid=2_9 InlineTextBox "agent.run("
+                          uid=2_1020 StaticText ""Python_(programming_language)""
+                            uid=2_9 InlineTextBox ""Python_(programming_language)""
+                          uid=2_1021 StaticText ")"
+                            uid=2_9 InlineTextBox ")"
+                  uid=2_1022 link "Update on GitHub" url="https://github.com/huggingface/smolagents/blob/main/docs/source/en/reference/default_tools.md"
+                    uid=2_1023 ignored
+                      uid=2_1024 StaticText "Update"
+                        uid=2_9 InlineTextBox "Update"
+                      uid=2_1025 StaticText " on GitHub"
+                        uid=2_9 InlineTextBox " on GitHub"
+                  uid=2_1026 ignored
+                  uid=2_1027 generic atomic live="assertive" relevant="additions text"
+                uid=2_1028 ignored
+                uid=2_1029 ignored
+                  uid=2_1030 link "← Tool-related objects" url="https://huggingface.co/docs/smolagents/v1.24.0/en/reference/tools"
+                    uid=2_1031 ignored
+                      uid=2_1032 StaticText "←"
+                        uid=2_9 InlineTextBox "←"
+                    uid=2_1033 StaticText "Tool-related objects"
+                      uid=2_9 InlineTextBox "Tool-related objects"
+            uid=2_1034 generic
+          uid=2_1035 generic
+      uid=2_1036 generic
+        uid=2_1037 generic
+          uid=2_1038 generic
+            uid=2_1039 image
+            uid=2_1040 textbox "Ask HuggingChat" required
+              uid=2_1041 ignored
+              uid=2_1042 generic
+            uid=2_1043 button "Send message"

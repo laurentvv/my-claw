@@ -20,6 +20,7 @@ class ScreenshotTool(Tool):
     """Prend un screenshot de l'écran entier ou d'une région spécifique."""
 
     name = "screenshot"
+    structured_output = False
     description = "Prend un screenshot de l'écran entier ou d'une région spécifique. Retourne le chemin absolu du fichier PNG sauvegardé."
     inputs = {
         "region": {

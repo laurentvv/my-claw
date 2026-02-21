@@ -1,6 +1,6 @@
 # PROGRESS.md — État d'avancement my-claw
 
-Dernière mise à jour : 2026-02-20
+Dernière mise à jour : 2026-02-22
 Repo : https://github.com/laurentvv/my-claw
 
 ---
@@ -204,26 +204,48 @@ Checkpoint :
 - ✅ Commit : feat: tool-8 — screenshot windows
 
 ### TOOL-9 — Contrôle souris et clavier
-**Statut : 🔄 EN COURS (non validé)**
+**Statut : 🔄 EN COURS (partiellement validé)**
 
 Fichiers créés :
 - agent/tools/mouse_keyboard.py : sous-classe Tool
-- Opérations : click, double_click, move, type, hotkey, drag
+- Opérations : click, double_click, move, type, hotkey, drag, scroll
 - pyautogui déjà installé avec TOOL-8
 - Logs de debug ajoutés pour diagnostiquer les problèmes
 
 Checkpoint :
-- ❌ "Ouvre le menu Démarrer" → hotkey Win → LLM clique sur (0,0) au lieu d'utiliser hotkey
-- ❌ "Tape notepad et appuie sur Entrée" → LLM ne sait pas comment séquencer les actions
-- ⚠️ Screenshot pour vérifier que Notepad s'est ouvert → qwen3-vl:2b peut décrire mais pas coordonner
+- ✅ "Ouvre Notepad via le menu Démarrer et tape 'Test migration multi-agent OK'" → **SUCCÈS** (2026-02-22)
+  - Utilise correctement `hotkey("win")` pour ouvrir le menu Démarrer
+  - Tape "notepad" et appuie sur Entrée
+  - Tape le texte demandé
+  - Prend des screenshots pour vérification
+- ❌ Anciens tests (2026-02-20) : LLM cliquait sur (0,0) au lieu d'utiliser hotkey
 - ✅ Commit : feat: tool-9 — mouse keyboard control
 
-**Problème identifié (2026-02-20)** :
-- L'agent LLM ne sait pas comment utiliser correctement mouse_keyboard
-- Il invente des coordonnées incorrectes au lieu d'utiliser les bonnes opérations (hotkey)
-- TOOL-7 (qwen3-vl:2b) peut analyser des images mais ne suffit pas pour le pilotage PC autonome
-- **Solution requise** : Modèle orchestrateur plus puissant (glm-4.7) + Vision (qwen3-vl:2b ou GLM-4.6V via Z.ai MCP)
-- **Alternative** : Améliorer les instructions de l'agent avec des exemples concrets de séquences d'actions
+**Validation partielle (2026-02-22)** :
+- ✅ Architecture multi-agent avec `pc_control_agent` fonctionne correctement
+- ✅ Modèle GLM-4.7 (reason) orchestre correctement les actions
+- ✅ Séquencement des opérations : hotkey → type → hotkey → screenshot → type
+- ✅ L'agent comprend l'ordre des opérations et gère les délais
+
+**Problème résolu (2026-02-20 → 2026-02-22)** :
+- ✅ L'agent LLM sait maintenant comment utiliser correctement mouse_keyboard
+- ✅ Il utilise les bonnes opérations (hotkey) au lieu d'inventer des coordonnées
+- ✅ La combinaison glm-4.7 + qwen3-vl:2b + mouse_keyboard fonctionne
+
+**Tests supplémentaires requis** :
+- Plan de tests complet créé : `plans/validation-tool9-mouse-keyboard.md`
+- 21 tests organisés en 8 catégories (hotkey, navigation, copie-coller, scroll, drag-drop, clic droit, séquences complexes, robustesse)
+- Tests à effectuer pour validation complète :
+  - Raccourcis clavier (4 tests)
+  - Navigation et clics (3 tests)
+  - Sélection, copie et collage (2 tests)
+  - Scroll (2 tests)
+  - Drag-and-drop (2 tests)
+  - Séquences complexes (4 tests)
+  - Tests de robustesse (3 tests)
+
+**Prochaine étape** :
+Exécuter les tests du plan `plans/validation-tool9-mouse-keyboard.md` pour valider complètement TOOL-9
 
 ### TOOL-10 — MCP Chrome DevTools (Puppeteer)
 **Statut : ✅ DONE (Testé & Validé)**
@@ -302,6 +324,38 @@ Checkpoint :
 
 ---
 
+## ARCHITECTURE MULTI-AGENT — DONE
+
+Migration vers architecture Manager + 3 sous-agents spécialisés (2026-02-21)
+
+Manager (glm-4.7 / qwen3:8b) → tools directs : file_system, os_exec, clipboard
+├── pc_control_agent (qwen3-vl:2b) → screenshot, analyze_image, ui_grounding, mouse_keyboard
+├── browser_agent (qwen3:8b) → 26 tools Chrome DevTools MCP
+└── web_agent (qwen3:8b) → webSearchPrime, webReader, zread (activer avec ZAI_API_KEY)
+
+## TOOL-11 — QwenGroundingTool (anciennement UITarsGroundingTool)
+**Statut : DONE**
+
+Fichiers créés :
+- agent/tools/grounding.py : sous-classe Tool, grounding GUI avec qwen3-vl
+- Modèle : qwen3-vl:2b (détecté automatiquement)
+- Retourne coordonnées pixel absolues depuis description textuelle + screenshot
+
+Modifications :
+- Renommage : ui_tars_grounding.py → grounding.py
+- Classe : UITarsGroundingTool → QwenGroundingTool
+- Modèle : UI-TARS-2B-SFT → qwen3-vl:2b
+- Prompt système spécialisé pour grounding déterministe (temperature: 0.0)
+- Détection automatique du modèle qwen3-vl disponible (2b, 4b, 8b)
+
+Checkpoint :
+- ✅ Installer qwen3-vl:2b : `ollama pull qwen3-vl:2b`
+- ✅ Test grounding : "Trouve le bouton Démarrer dans ce screenshot"
+- ✅ Vérification coordonnées : Retourne [x, y] relatifs → conversion en absolus
+- ✅ Commit : feat: tool-11 — qwen3-vl grounding tool
+
+---
+
 ## STRUCTURE REPO (état actuel)
 
 ```
@@ -323,18 +377,24 @@ my-claw/
 │   └── validation-module3.md
 ├── agent/
 │   ├── pyproject.toml + uv.lock
-│   ├── main.py                    DONE module 1 + GLM-4.7 fix + timeouts + skills loader
-│   ├── gradio_app.py              DONE module 1
+│   ├── main.py                    DONE module 1 + GLM-4.7 fix + timeouts + skills loader + multi-agent
+│   ├── gradio_app.py              DONE module 1 + Gradio 6.6.0
 │   ├── skills.txt                 Patterns de code réutilisables (chargés au démarrage)
 │   ├── SKILLS.md                  Documentation des skills
+│   ├── agents/
+│   │   ├── __init__.py            DONE — package sous-agents
+│   │   ├── pc_control_agent.py    DONE — qwen3-vl:2b + screenshot/vision/ui_tars/mouse
+│   │   ├── browser_agent.py       DONE — qwen3:8b + Chrome DevTools MCP
+│   │   └── web_agent.py           DONE — qwen3:8b + MCP Z.ai (optionnel)
 │   └── tools/
-│       ├── __init__.py            DONE — contient TOOLS = [FileSystemTool(), OsExecTool(), ClipboardTool(), VisionTool(), ScreenshotTool(), MouseKeyboardTool()]
+│       ├── __init__.py            DONE — contient TOOLS = [7 outils dont UITarsGroundingTool]
 │       ├── file_system.py          ✅ DONE — TOOL-1
 │       ├── os_exec.py             ✅ DONE — TOOL-2 (fix curl PowerShell)
 │       ├── clipboard.py           ✅ DONE — TOOL-3
 │       ├── vision.py              ✅ DONE — TOOL-7 (Ollama qwen3-vl:2b)
 │       ├── screenshot.py          ✅ DONE — TOOL-8
-│       └── mouse_keyboard.py      🔄 EN COURS — TOOL-9
+│       ├── mouse_keyboard.py      🔄 EN COURS — TOOL-9
+│       └── ui_tars_grounding.py   ✅ DONE — TOOL-11
 └── gateway/
     ├── prisma.config.ts           DONE module 2
     ├── prisma/schema.prisma       DONE module 2

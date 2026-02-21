@@ -85,7 +85,50 @@ graph TD
     Smolagents --> ZAI
     Tools --> Windows[Windows OS]
     Tools --> Chrome[Chrome DevTools]
+    ```
+
+---
+
+## ⚙️ Configuration des modèles
+
+### Modèle par défaut
+
+Le modèle par défaut pour le manager et tous les sous-agents est **glm-4.7 (reason)** si `ZAI_API_KEY` est configuré, sinon **qwen3:8b** (local).
+
+Vous pouvez changer le modèle par défaut en définissant la variable d'environnement `DEFAULT_MODEL` dans `agent/.env` :
+
+```bash
+# Utiliser glm-4.7 (recommandé)
+DEFAULT_MODEL=reason
+
+# Utiliser glm-4.7-flash (plus rapide)
+DEFAULT_MODEL=coding
+
+# Utiliser qwen3:8b (local, gratuit)
+DEFAULT_MODEL=main
 ```
+
+### Modèles disponibles
+
+| Catégorie | Modèle | Type | Description |
+|-----------|--------|------|-------------|
+| reason | glm-4.7 | Cloud | Raisonnement profond (défaut avec API key) |
+| code | glm-4.7-flash | Cloud | Coding rapide |
+| main | qwen3:8b | Local | Modèle principal (défaut sans API key) |
+| vision | qwen3-vl:8b | Local | Vision locale |
+| smart | qwen3:8b | Local | Usage quotidien |
+| fast | gemma3:latest | Local | Réponses rapides |
+
+### Configuration Z.ai (optionnel)
+
+Pour utiliser les modèles cloud GLM-4.7, configurez votre clé API dans `agent/.env` :
+
+```bash
+ZAI_API_KEY=sk-your-api-key
+ZAI_BASE_URL=https://api.z.ai/api/coding/paas/v4
+```
+
+Sans clé API, le système utilise automatiquement les modèles locaux (qwen3:8b, qwen3-vl:8b).
 
 ---
 

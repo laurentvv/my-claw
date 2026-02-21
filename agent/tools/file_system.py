@@ -15,6 +15,7 @@ logger = logging.getLogger(__name__)
 
 class FileSystemTool(Tool):
     name = "file_system"
+    structured_output = False
     description = """Windows file system operations tool. Performs read, write, create, delete, list, move, and search operations on files and directories.
 
 Operations:

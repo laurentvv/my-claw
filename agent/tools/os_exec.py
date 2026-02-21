@@ -15,6 +15,7 @@ logger = logging.getLogger(__name__)
 
 class OsExecTool(Tool):
     name = "os_exec"
+    structured_output = False
     description = """Windows PowerShell execution tool for SYSTEM OPERATIONS ONLY.
 
 ⚠️ USE THIS TOOL ONLY FOR:

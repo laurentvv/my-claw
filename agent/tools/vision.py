@@ -2,7 +2,7 @@
 VisionTool - Outil d'analyse d'images avec modèle vision local Ollama.
 
 Implémente TOOL-7 selon IMPLEMENTATION-TOOLS.md.
-100% local, 0 donnée sortante - utilise qwen3-vl:2b via Ollama.
+100% local, 0 donnée sortante - utilise qwen3-vl:* via Ollama.
 """
 
 import logging
@@ -16,14 +16,85 @@ from smolagents import Tool
 
 logger = logging.getLogger(__name__)
 
+# Cache pour le modèle de vision détecté (évite de redétecter à chaque appel)
+_detected_vision_model: str | None = None
+
+
+def _detect_vision_model() -> str:
+    """
+    Détecte automatiquement le meilleur modèle de vision disponible.
+
+    Returns:
+        Nom du modèle de vision à utiliser
+    """
+    global _detected_vision_model
+
+    # Retourner le modèle en cache si déjà détecté
+    if _detected_vision_model is not None:
+        return _detected_vision_model
+
+    try:
+        import requests
+        ollama_url = os.environ.get("OLLAMA_BASE_URL", "http://localhost:11434")
+        response = requests.get(f"{ollama_url}/api/tags", timeout=5)
+        response.raise_for_status()
+        available_models = [m["name"] for m in response.json().get("models", [])]
+
+        # Préférences : qwen3-vl:8b (installé), qwen3-vl:2b (plus petit), qwen3-vl:4b
+        vision_preferences = ["qwen3-vl:8b", "qwen3-vl:2b", "qwen3-vl:4b"]
+
+        # Chercher d'abord les modèles qwen3-vl:*
+        vision_models = [m for m in available_models if m.startswith("qwen3-vl")]
+
+        logger.info(f"Modèles de vision détectés: {vision_models}")
+
+        # Si aucun modèle qwen3-vl trouvé, chercher les modèles avec "vision" ou "vl"
+        if not vision_models:
+            vision_models = [m for m in available_models if any(keyword in m.lower() for keyword in ["vision", "vl", "llava", "minicpm", "bakllava"])]
+
+        # Supprimer les doublons
+        vision_models = list(set(vision_models))
+
+        if vision_models:
+            # Préférences : qwen3-vl:8b (installé), qwen3-vl:2b (plus petit), qwen3-vl:4b
+            vision_model = None
+            for pref in vision_preferences:
+                if pref in vision_models:
+                    vision_model = pref
+                    logger.info(f"✓ VisionTool utilise modèle vision: {vision_model}")
+                    break
+            if vision_model is None:
+                # Fallback sur le premier modèle de vision disponible
+                vision_model = vision_models[0]
+                logger.info(f"✓ VisionTool utilise modèle vision (fallback): {vision_model}")
+        else:
+            # Aucun modèle de vision trouvé, fallback sur qwen3:8b (supporte la vision)
+            vision_model = "qwen3:8b"
+            logger.warning(
+                f"⚠️ Aucun modèle de vision trouvé. "
+                f"VisionTool utilise qwen3:8b comme fallback. "
+                f"Pour la vision, installez un modèle avec 'vision' ou 'vl' dans le nom : "
+                f"ollama pull qwen3-vl:2b"
+            )
+
+        _detected_vision_model = vision_model
+        return vision_model
+
+    except Exception as e:
+        logger.warning(f"Impossible de détecter les modèles Ollama: {e}. Utilisation de qwen3:8b comme fallback.")
+        _detected_vision_model = "qwen3:8b"
+        return "qwen3:8b"
+
 
 class VisionTool(Tool):
-    """Analyse une image avec un modèle vision local Ollama (qwen3-vl:2b)."""
+    """Analyse une image avec un modèle vision local Ollama (détection automatique)."""
 
     name = "analyze_image"
+    structured_output = False
     description = """Analyse une image avec un modèle vision local. Peut décrire le contenu, extraire du texte, diagnostiquer des erreurs, etc.
 
-Utilise qwen3-vl:2b via Ollama - 100% local, aucune donnée ne sort de la machine.
+Utilise un modèle vision (qwen3-vl:*) via Ollama - 100% local, aucune donnée ne sort de la machine.
+Le modèle est détecté automatiquement parmi les modèles installés.
 
 Paramètres:
 - image_path: Chemin absolu vers l'image à analyser (PNG, JPG, etc.)
@@ -46,7 +117,7 @@ Retourne une description textuelle de l'image ou un message d'erreur préfixé p
 
     def forward(self, image_path: str, prompt: Optional[str] = None) -> str:
         """
-        Analyse une image avec qwen3-vl:2b.
+        Analyse une image avec un modèle vision détecté automatiquement.
 
         Args:
             image_path: Chemin absolu vers l'image
@@ -69,12 +140,15 @@ Retourne une description textuelle de l'image ou un message d'erreur préfixé p
             if not prompt:
                 prompt = "Describe this image in detail."
 
+            # Détecter le meilleur modèle de vision disponible
+            vision_model = _detect_vision_model()
+
             # Lire et encoder l'image en base64
             with open(image_path, "rb") as f:
                 image_data = f.read()
                 image_b64 = base64.b64encode(image_data).decode("utf-8")
 
-            logger.info(f"Analyse de l'image {image_path} avec qwen3-vl:2b")
+            logger.info(f"Analyse de l'image {image_path} avec {vision_model}")
             logger.info(f"Prompt: {prompt}")
 
             # Appeler Ollama API avec le modèle vision via /api/chat
@@ -82,7 +156,7 @@ Retourne une description textuelle de l'image ou un message d'erreur préfixé p
             response = requests.post(
                 f"{ollama_url}/api/chat",
                 json={
-                    "model": "qwen3-vl:2b",
+                    "model": vision_model,
                     "messages": [
                         {
                             "role": "user",
@@ -92,7 +166,7 @@ Retourne une description textuelle de l'image ou un message d'erreur préfixé p
                     ],
                     "stream": False,
                 },
-                timeout=180,  # 3 minutes max pour l'analyse (qwen3-vl:2b est plus rapide que 4b)
+                timeout=180,  # 3 minutes max pour l'analyse
             )
             response.raise_for_status()
 
@@ -113,7 +187,7 @@ Retourne une description textuelle de l'image ou un message d'erreur préfixé p
             return f"ERROR: {error_msg}"
 
         except requests.Timeout:
-            error_msg = "Timeout lors de l'analyse de l'image (>120s)"
+            error_msg = "Timeout lors de l'analyse de l'image (>180s)"
             logger.error(error_msg)
             return f"ERROR: {error_msg}"
 

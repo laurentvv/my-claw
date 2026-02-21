@@ -15,6 +15,7 @@ class MouseKeyboardTool(Tool):
     """Outil pour contrôler la souris et le clavier sur Windows."""
 
     name = "mouse_keyboard"
+    structured_output = False
     description = (
         "Contrôle la souris et le clavier sur Windows. Permet de cliquer, déplacer, "
         "taper du texte, utiliser des raccourcis clavier, glisser-déposer et scroller."

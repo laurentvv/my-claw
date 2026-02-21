@@ -1,6 +1,6 @@
 # STATUS — Vue rapide my-claw
 
-> Dernière mise à jour : 2026-02-20  
+> Dernière mise à jour : 2026-02-22
 > Repo : https://github.com/laurentvv/my-claw
 
 ---
@@ -119,4 +119,3 @@ my-claw/
 - **Architecture** : Voir `PLAN.md`
 - **Techniques** : Voir `LEARNING.md`
 - **Skills** : Voir `agent/SKILLS.md`
-
