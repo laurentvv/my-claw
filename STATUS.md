@@ -20,7 +20,7 @@ Architecture : Next.js 16 (gateway) + Python smolagents (agent) + Gradio (UI dev
 | **1 — Agent** | ✅ DONE | smolagents + FastAPI + Gradio + GLM-4.7 fix + skills |
 | **2 — Mémoire** | ✅ DONE | Prisma 7 + SQLite + historique conversations |
 | **3 — WebChat** | ✅ DONE | UI React + SSE streaming + auth Bearer |
-| **Tools** | 🔄 **6/10** | TOOL-1,2,3,7,8,9 DONE / TOOL-4,5,6,10 TODO |
+| **Tools** | 🔄 **7/10** | TOOL-1,2,3,7,8,9,10 DONE / TOOL-4,5,6 TODO |
 | **4 — Nextcloud Talk** | ⏳ TODO | Bot HMAC-SHA256 |
 | **5 — Cron** | ⏳ TODO | Tâches proactives |
 | **6 — Z.ai + Health** | ⏳ TODO | GLM-4.7 + monitoring |
@@ -28,7 +28,7 @@ Architecture : Next.js 16 (gateway) + Python smolagents (agent) + Gradio (UI dev
 
 ---
 
-## 🛠️ Outils smolagents (6/10)
+## 🛠️ Outils smolagents (7/10)
 
 | Tool | Statut | Description |
 |------|--------|-------------|
@@ -38,10 +38,10 @@ Architecture : Next.js 16 (gateway) + Python smolagents (agent) + Gradio (UI dev
 | **TOOL-7** | ✅ | Vision locale (Ollama qwen3-vl:2b) - 100% local |
 | **TOOL-8** | ✅ | Screenshot Windows |
 | **TOOL-9** | ⚠️ | Souris/Clavier (bloqué par orchestration) |
+| **TOOL-10** | ✅ | MCP Chrome DevTools (26 outils Puppeteer) - TESTÉ |
 | **TOOL-4** | ⏳ | MCP Web Search Z.ai |
 | **TOOL-5** | ⏳ | MCP Web Reader Z.ai |
 | **TOOL-6** | ⏳ | MCP Zread GitHub |
-| **TOOL-10** | ⏳ | MCP Chrome Playwright |
 
 ---
 
@@ -52,6 +52,7 @@ Architecture : Next.js 16 (gateway) + Python smolagents (agent) + Gradio (UI dev
 - ✅ **Guidage agent** : `instructions` + `additional_authorized_imports` (Python natif)
 - ✅ **TOOL-7 Vision** : Ollama qwen3-vl:2b au lieu de Z.ai MCP (100% local)
 - ✅ **Skills externalisés** : `agent/skills.txt` avec patterns de code + `final_answer()`
+- ✅ **TOOL-10 Chrome DevTools** : MCP chargé avec 26 outils Puppeteer - Tests validés
 
 ---
 

@@ -3,16 +3,28 @@ import logging
 import re
 import requests
 from pathlib import Path
+from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
-from smolagents import CodeAgent, LiteLLMModel
+from smolagents import CodeAgent, LiteLLMModel, ToolCollection
+from mcp import StdioServerParameters
 from dotenv import load_dotenv
 from tools import TOOLS
 
 load_dotenv()
 
-logging.basicConfig(level=logging.INFO)
+# Configuration du logging
+# INFO pour les logs généraux, DEBUG pour smolagents afin d'avoir les détails d'exécution
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    datefmt='%H:%M:%S'
+)
 logger = logging.getLogger(__name__)
+
+# Mettre smolagents et LiteLLM en DEBUG pour voir les logs détaillés
+logging.getLogger("smolagents").setLevel(logging.DEBUG)
+logging.getLogger("LiteLLM").setLevel(logging.INFO)
 
 # Charger les skills depuis le fichier externe
 def load_skills() -> str:
@@ -34,11 +46,12 @@ SKILLS = load_skills()
 
 # Configuration des modèles par catégorie
 # Chaque catégorie a une liste de modèles préférés (ordre de priorité)
+# Note: qwen3:8b correspond au modèle qwen3 version 8B (qwen3:latest peut ne pas exister)
 MODEL_PREFERENCES: dict[str, list[str]] = {
-    "fast":   ["gemma3:latest", "qwen3:latest", "gemma3n:latest"],
-    "smart":  ["qwen3:latest", "gemma3n:latest", "gemma3:latest"],
-    "main":   ["qwen3:latest", "gemma3n:latest", "gemma3:latest"],
-    "vision": ["qwen3-vl:2b", "qwen3-vl:4b", "llama3.2-vision"],
+    "fast":   ["gemma3:latest", "qwen3:8b", "qwen3:4b", "gemma3n:latest"],
+    "smart":  ["qwen3:8b", "qwen3:4b", "gemma3n:latest", "gemma3:latest"],
+    "main":   ["qwen3:8b", "qwen3:4b", "gemma3n:latest", "gemma3:latest"],
+    "vision": ["qwen3-vl:8b", "qwen3-vl:4b", "qwen3-vl:2b", "llama3.2-vision"],
 }
 
 # Modèles cloud (toujours disponibles si ZAI_API_KEY est configuré)
@@ -99,11 +112,82 @@ def detect_models() -> dict[str, tuple[str, str]]:
 # Initialiser la détection au démarrage
 MODELS = detect_models()
 
-app = FastAPI(title="my-claw agent", version="0.1.0")
+
+# Variables globales pour les outils MCP Chrome DevTools
+_mcp_context: ToolCollection | None = None
+_mcp_tools: list = []
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """
+    Gestion du cycle de vie du client MCP Chrome DevTools.
+
+    Startup:
+    - Initialise le client MCP Chrome DevTools via ToolCollection.from_mcp()
+    - Charge les outils MCP disponibles
+
+    Shutdown:
+    - Ferme proprement le client MCP
+    """
+    global _mcp_context, _mcp_tools
+
+    # Startup: initialiser Chrome DevTools MCP via ToolCollection.from_mcp()
+    logger.info("Initialisation Chrome DevTools MCP via ToolCollection.from_mcp()...")
+    try:
+        chrome_devtools_params = StdioServerParameters(
+            command="npx",
+            args=["-y", "chrome-devtools-mcp@latest"],
+            env={**os.environ}  # Important pour trouver Node.js sur Windows
+        )
+
+        # Utiliser ToolCollection.from_mcp() pour charger les outils MCP
+        # from_mcp() retourne un context manager (generator), il faut appeler __enter__()
+        # trust_remote_code=True est requis pour les serveurs MCP
+        _mcp_context = ToolCollection.from_mcp(chrome_devtools_params, trust_remote_code=True)
+        tool_collection = _mcp_context.__enter__()
+        _mcp_tools = list(tool_collection.tools)
+        logger.info(f"✓ Chrome DevTools MCP chargé : {len(_mcp_tools)} outils")
+        logger.info(f"  Outils: {[t.name for t in _mcp_tools]}")
+
+    except Exception as e:
+        logger.warning(f"✗ Impossible de charger Chrome DevTools MCP : {e}")
+        logger.warning("  L'agent fonctionnera avec les outils locaux uniquement")
+        _mcp_context = None
+        _mcp_tools = []
+
+    yield  # L'application tourne ici, le client MCP reste actif
+
+    # Shutdown: fermer proprement le client MCP
+    logger.info("Arrêt Chrome DevTools MCP...")
+    if _mcp_context is not None:
+        try:
+            _mcp_context.__exit__(None, None, None)
+            logger.info("✓ Chrome DevTools MCP fermé")
+        except Exception as e:
+            logger.error(f"✗ Erreur lors de la fermeture du client MCP : {e}")
+
+
+app = FastAPI(title="my-claw agent", version="0.1.0", lifespan=lifespan)
+
+
+def get_all_tools() -> list:
+    """
+    Retourne tous les outils disponibles (locaux + MCP).
+
+    Returns:
+        list: Liste des outils disponibles
+    """
+    all_tools = TOOLS.copy()
+    if _mcp_context is not None:
+        all_tools.extend(_mcp_tools)
+    return all_tools
+
 
 # Log des outils disponibles au démarrage
-logger.info(f"Tools disponibles: {len(TOOLS)} outils locaux - 100% local, 0 donnée sortante")
-logger.info(f"Outils: {[t.name for t in TOOLS]}")
+logger.info(f"Tools disponibles: {len(TOOLS)} outils locaux")
+logger.info(f"Outils locaux: {[t.name for t in TOOLS]}")
+# Note: Les outils MCP Chrome DevTools seront chargés via lifespan au démarrage
 
 
 class CleanedLiteLLMModel(LiteLLMModel):
@@ -117,21 +201,34 @@ class CleanedLiteLLMModel(LiteLLMModel):
     def generate(self, messages, stop_sequences=None, response_format=None, tools_to_call_from=None, **kwargs):
         """Override de la méthode generate() pour nettoyer la réponse."""
         # Appeler le modèle parent
+        logger.info(f"CleanedLiteLLMModel.generate() appelé avec stop_sequences={stop_sequences}")
         chat_message = super().generate(messages, stop_sequences, response_format, tools_to_call_from, **kwargs)
 
         # Nettoyer le contenu de la réponse
+        logger.info(f"Réponse brute reçue: {len(chat_message.content) if chat_message.content else 0} chars")
         if chat_message.content:
             original_len = len(chat_message.content)
+            logger.info(f"Contenu brut (premiers 200 chars): {repr(chat_message.content[:200])}")
+            
             chat_message.content = clean_glm_response(chat_message.content)
             cleaned_len = len(chat_message.content)
 
             if original_len != cleaned_len:
                 logger.info(f"✓ Nettoyage GLM-4.7: {original_len} -> {cleaned_len} chars ({original_len - cleaned_len} chars retirés)")
+                logger.info(f"Contenu nettoyé (premiers 200 chars): {repr(chat_message.content[:200])}")
+            else:
+                logger.info("Aucun nettoyage nécessaire")
+        else:
+            logger.warning("chat_message.content est None ou vide!")
 
         return chat_message
 
 
 def get_model(model_id: str = "main") -> LiteLLMModel:
+    """
+    Récupère le modèle LLM configuré pour model_id.
+    Utilise CleanedLiteLLMModel pour les modèles GLM-4.7 (code/reason) afin de nettoyer les balises problématiques.
+    """
     # Fallback sécurisé : si model_id n'existe pas, essayer "main", sinon prendre le premier modèle disponible
     if model_id not in MODELS:
         if "main" in MODELS:
@@ -147,18 +244,25 @@ def get_model(model_id: str = "main") -> LiteLLMModel:
     else:
         model_name, base_url = MODELS[model_id]
 
+    # Déterminer si c'est un modèle GLM-4.7 (cloud) ou Ollama (local)
+    # Les modèles GLM-4.7 utilisent l'API Z.ai (base_url contient z.ai)
+    is_glm_model = "z.ai" in base_url.lower() or model_id in ["code", "reason"]
+
     # Déterminer l'API key selon le provider
-    if model_id in ["code", "reason"]:
+    if is_glm_model:
         api_key = os.environ.get("ZAI_API_KEY", "ollama")
         # Ajouter stop sequences pour éviter les balises </code> et </s> dans le code généré
-        stop_sequences = ["</code>", "</s>"]
+        # IMPORTANT: Inclure "</code" (sans >) car GLM-4.7 le génère sans le >
+        stop_sequences = ["</code>", "</code", "</s>"]
         # Utiliser le wrapper nettoyant pour GLM-4.7
         model_class = CleanedLiteLLMModel
+        logger.info(f"Utilisation de CleanedLiteLLMModel pour {model_name} (GLM-4.7)")
     else:
         api_key = "ollama"
         stop_sequences = None
         # Utiliser le modèle standard pour Ollama
         model_class = LiteLLMModel
+        logger.info(f"Utilisation de LiteLLMModel pour {model_name} (Ollama)")
 
     # Construire les kwargs de base
     kwargs = {
@@ -169,7 +273,7 @@ def get_model(model_id: str = "main") -> LiteLLMModel:
     }
 
     # Ajouter les paramètres spécifiques à Ollama uniquement pour les modèles Ollama
-    if model_id not in ["code", "reason"]:
+    if not is_glm_model:
         kwargs["num_ctx"] = 32768
         kwargs["extra_body"] = {"think": False}
 
@@ -189,6 +293,9 @@ def clean_glm_response(text: str) -> str:
     """
     if not text:
         return text
+
+    # IMPORTANT: GLM-4.7 génère "</code" (sans >) ou "</code>" (avec >)
+    # Il faut aussi gérer "</s>" qui peut apparaître
 
     # Retirer </code (SANS >) en fin de chaîne - c'est ce que GLM-4.7 génère réellement
     text = re.sub(r'</code\s*$', '', text, flags=re.MULTILINE)
@@ -230,26 +337,29 @@ class RunRequest(BaseModel):
 @app.post("/run")
 async def run(req: RunRequest):
     try:
-        logger.info(f"Exécution avec {len(TOOLS)} outils locaux")
+        # Récupérer tous les outils disponibles (locaux + MCP)
+        all_tools = get_all_tools()
+        mcp_count = len(all_tools) - len(TOOLS) if _mcp_context is not None else 0
+        logger.info(f"Exécution avec {len(TOOLS)} outils locaux + {mcp_count} outils MCP Chrome DevTools")
 
         agent = CodeAgent(
-            tools=TOOLS,
+            tools=all_tools,
             model=get_model(req.model),
             max_steps=10,
-            verbosity_level=1,
+            verbosity_level=2,  # Augmenté à 2 pour voir les logs détaillés (boîtes ╭───╮)
             additional_authorized_imports=[
-                "requests",      # HTTP requests
-                "urllib",        # HTTP requests (stdlib)
-                "json",          # JSON processing
-                "csv",           # CSV processing
-                "pathlib",       # Modern file paths
-                "os",            # OS operations
-                "subprocess",    # Process management
+                "requests",
+                "urllib",
+                "json",
+                "csv",
+                "pathlib",
+                "os",
+                "subprocess",
             ],
             executor_kwargs={
-                "timeout_seconds": 240,  # Timeout de 240 secondes (4 minutes) pour l'exécution du code Python
+                "timeout_seconds": 240,
             },
-            instructions=SKILLS,  # Chargé depuis agent/skills.txt
+            instructions=SKILLS,
         )
         prompt = build_prompt_with_history(req.message, req.history)
         result = agent.run(prompt)

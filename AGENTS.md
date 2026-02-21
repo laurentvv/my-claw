@@ -159,7 +159,7 @@ Règles modèles :
 - web_search via SearXNG local
 - run_code sandbox Python/Node
 - read_file / write_file dossier whitelist
-- Browser control Playwright
+- Browser control Chrome DevTools
 
 ### Règles de codage outils
 - Toujours sous-classe Tool (pas décorateur @tool) pour compatibilité Ollama
@@ -187,7 +187,7 @@ Règles modèles :
 ### agent/.env
 - OLLAMA_BASE_URL : http://localhost:11434
 - ZAI_API_KEY : optionnel
-- ZAI_BASE_URL : https://open.bigmodel.cn/api/paas/v4
+- ZAI_BASE_URL : https://api.z.ai/api/coding/paas/v4
 - SCREENSHOT_DIR : C:\tmp\myclawshots (défaut)
 
 ---

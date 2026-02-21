@@ -92,8 +92,8 @@ OpenClaw utilise des embeddings pour retrouver des souvenirs pertinents dans de 
 | **50+ intégrations** | ✅ ClawdHub registry | ❌ | ❌ non voulu |
 
 ### 🟡 Browser Control — Intéressant ?
-OpenClaw pilote un navigateur headless pour scraper, remplir des formulaires, etc. C'est lourd (Puppeteer) mais très utile pour automatiser des tâches web que l'API ne couvre pas.  
-→ **Décision** : hors scope v1, possible en v2 avec `playwright` en option.
+OpenClaw pilote un navigateur headless pour scraper, remplir des formulaires, etc. C'est lourd (Puppeteer) mais très utile pour automatiser des tâches web que l'API ne couvre pas.
+→ **Décision** : hors scope v1, possible en v2 avec `chrome-devtools-mcp` en option.
 
 ### 🟡 Obsidian — Intéressant ?
 OpenClaw peut lire/écrire dans un vault Obsidian (notes markdown). Parfait pour un assistant qui mémorise dans tes notes.  
@@ -150,7 +150,7 @@ Voici les features d'OpenClaw absentes de mon assistant, avec recommandation cla
 |---|---|---|---|
 | Mémoire vectorielle (pgvector + embeddings) | Moyen | Haute si longues histoires | **v2** — après avoir utilisé l'outil |
 | Résumé auto des conversations | Faible | Moyen | **v1.5** — simple prompt |
-| Browser control (Playwright) | Moyen | Haute pour automatisation | **v2 optionnel** |
+| Browser control (Chrome DevTools) | Moyen | Haute pour automatisation | **v2 optionnel** |
 | Création fichiers (Word/Excel) | Faible | Moyen | **v1.5** — lib simple |
 | Lecture vault Obsidian | Très faible | Dépend de toi | **À toi de décider** |
 | Health check endpoint | Très faible | Moyen | **v1** — 1 route `/api/health` |

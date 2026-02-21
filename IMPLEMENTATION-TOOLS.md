@@ -40,7 +40,7 @@ via MCPClient ou ToolCollection.from_mcp() au démarrage de FastAPI.
 Le fichier main.py doit être modifié pour :
 1. Charger les tools locaux depuis tools/__init__.py
 2. Charger les tools MCP Z.ai (HTTP remote) au démarrage
-3. Charger les tools MCP stdio (Vision, Playwright) au démarrage
+3. Charger les tools MCP stdio (Vision, Chrome DevTools) au démarrage
 4. Passer tous les tools au CodeAgent
 
 Pattern général à maintenir dans main.py :
@@ -340,32 +340,150 @@ Commit message : feat(tools): tool-9 mouse keyboard control
 
 ---
 
-## TOOL-10 — MCP Chrome DevTools (Playwright)
+## TOOL-10 — MCP Chrome DevTools (Puppeteer)
+
+https://github.com/ChromeDevTools/chrome-devtools-mcp/
 
 Pas de fichier tools/ — intégration dans main.py via ToolCollection.from_mcp().
 
-Dépendance : npx @playwright/mcp@latest (pas d'installation locale requise)
-Chrome doit être installé sur la machine Windows.
+Prérequis :
+- Node.js 20.19+ (déjà présent d'après setup)
+- Chrome stable ou plus récent installé
 
 Configuration StdioServerParameters :
   command : "npx"
-  args : ["@playwright/mcp@latest"]
-  env : os.environ (pour trouver Chrome)
+  args : ["-y", "chrome-devtools-mcp@latest"]
+  env : {...os.environ}
 
-Optionnel : passer --headed pour voir Chrome s'ouvrir (utile pour debug).
-En production : headless par défaut.
+Important : passer tout os.environ dans env pour que npx trouve Node.js sur Windows.
 
-Outils chargés (dépend de la version Playwright MCP) :
-  navigate, click, fill, select, press_key, screenshot, get_text, get_html,
-  wait_for_element, scroll, hover, new_tab, close_tab...
+Le MCP server démarre automatiquement une instance Chrome avec un profil dédié :
+- Windows : %HOMEPATH%/.cache/chrome-devtools-mcp/chrome-profile-stable
+- Linux/macOS : $HOME/.cache/chrome-devtools-mcp/chrome-profile-stable
 
-Test Gradio :
+Le profil n'est pas effacé entre les runs. Pour utiliser un profil temporaire, ajouter --isolated=true.
+
+Options de configuration supplémentaires (à ajouter dans args si nécessaire) :
+- --headless=true : mode sans interface (défaut : false)
+- --channel=canary|beta|dev : utiliser une autre version de Chrome
+- --viewport=1280x720 : taille initiale du viewport
+- --isolated=true : utiliser un profil temporaire
+- --user-data-dir=C:\path\to\profile : profil personnalisé
+- --accept-insecure-certs=true : ignorer les erreurs SSL
+- --category-performance=false : désactiver les outils de performance
+- --category-network=false : désactiver les outils réseau
+- --category-emulation=false : désactiver les outils d'émulation
+
+### Outils disponibles (26 au total)
+
+**Input automation (8 outils)**
+- click : cliquer sur un élément (uid, dblClick?, includeSnapshot?)
+- drag : glisser un élément vers un autre (from_uid, to_uid, includeSnapshot?)
+- fill : remplir un champ de saisie (uid, value, includeSnapshot?)
+- fill_form : remplir plusieurs champs à la fois (elements[], includeSnapshot?)
+- handle_dialog : gérer les boîtes de dialogue (action: accept/dismiss, promptText?)
+- hover : survoler un élément (uid, includeSnapshot?)
+- press_key : appuyer sur une touche ou combinaison (key: "Enter", "Control+A", etc., includeSnapshot?)
+- upload_file : uploader un fichier (filePath, uid, includeSnapshot?)
+
+**Navigation automation (6 outils)**
+- close_page : fermer une page (pageId)
+- list_pages : lister les pages ouvertes
+- navigate_page : naviguer vers une URL (type: url/back/forward/reload, url?, ignoreCache?, handleBeforeUnload?, timeout?)
+- new_page : créer une nouvelle page (url, timeout?)
+- select_page : sélectionner une page comme contexte (pageId, bringToFront?)
+- wait_for : attendre qu'un texte apparaisse (text, timeout?)
+
+**Emulation (2 outils)**
+- emulate : émuler diverses fonctionnalités (cpuThrottlingRate?, geolocation?, networkConditions?, userAgent?, viewport?)
+- resize_page : redimensionner la page (width, height)
+
+**Performance (3 outils)**
+- performance_analyze_insight : analyser une insight de performance (insightName, insightSetId)
+- performance_start_trace : démarrer un enregistrement de trace (autoStop, reload, filePath?)
+- performance_stop_trace : arrêter l'enregistrement de trace (filePath?)
+
+**Network (2 outils)**
+- get_network_request : récupérer une requête réseau (reqid?, requestFilePath?, responseFilePath?)
+- list_network_requests : lister les requêtes (includePreservedRequests?, pageIdx?, pageSize?, resourceTypes[]?)
+
+**Debugging (5 outils)**
+- evaluate_script : exécuter du JavaScript (function: "() => { return document.title }", args[]?)
+- get_console_message : récupérer un message console (msgid)
+- list_console_messages : lister les messages console (includePreservedMessages?, pageIdx?, pageSize?, types[]?)
+- take_screenshot : prendre un screenshot (format: png/jpeg/webp, fullPage?, quality?, uid?, filePath?)
+- take_snapshot : prendre un snapshot textuel de la page (verbose?, filePath?)
+
+### Bonnes pratiques d'utilisation
+
+1. **Snapshot avant action** : Toujours utiliser take_snapshot() avant d'interagir avec la page pour connaître les uid des éléments.
+2. **Préférez snapshot à screenshot** : take_snapshot() est plus rapide et fournit des uid exploitables pour les interactions.
+3. **Gestion des pages** : Utiliser list_pages() pour voir les pages ouvertes et select_page() pour changer de contexte.
+4. **Attente de chargement** : Utiliser wait_for() ou laisser le tool gérer automatiquement les attentes.
+5. **Performance traces** : Pour performance_start_trace(), naviguer d'abord vers l'URL voulue avec navigate_page(), puis lancer la trace.
+
+### Intégration dans main.py
+
+Pattern d'intégration similaire à TOOL-7 (Vision) :
+
+```python
+from smolagents import ToolCollection
+
+# Configuration pour Chrome DevTools MCP
+chrome_devtools_params = StdioServerParameters(
+    command="npx",
+    args=["-y", "chrome-devtools-mcp@latest"],
+    env={**os.environ}  # Important pour trouver Node.js sur Windows
+)
+
+try:
+    chrome_devtools_mcp = ToolCollection.from_mcp(
+        "chrome-devtools",
+        chrome_devtools_params,
+        timeout=60  # Timeout plus long au démarrage
+    )
+    TOOLS.extend(chrome_devtools_mcp.tools)
+    logger.info(f"Chrome DevTools MCP chargé : {len(chrome_devtools_mcp.tools)} outils")
+except Exception as e:
+    logger.warning(f"Impossible de charger Chrome DevTools MCP : {e}")
+    # Continuer sans ce tool
+```
+
+Délai de démarrage : npx télécharge le package au premier lancement (~5-10s).
+Gérer avec un timeout approprié à l'initialisation (60s recommandé).
+
+### Test Gradio
+
 1. "Ouvre https://example.com dans Chrome"
-2. "Récupère le titre H1 de la page"
-3. "Prends un screenshot de la page entière"
-4. "Va sur https://huggingface.co et cherche smolagents dans la barre de recherche"
+2. "Prends un snapshot de la page et liste les éléments visibles"
+3. "Récupère le titre H1 de la page via evaluate_script"
+4. "Prends un screenshot de la page entière"
+5. "Va sur https://huggingface.co et prends un snapshot"
+6. "Cherche 'smolagents' dans la barre de recherche et valide avec Enter"
+7. "Liste les requêtes réseau de la page"
+8. "Vérifie les messages console de la page"
 
-Commit message : feat(tools): tool-10 mcp chrome playwright
+### Scénarios avancés de test
+
+**Test performance** :
+1. "Ouvre https://developers.chrome.com"
+2. "Lance un enregistrement de performance trace avec autoStop et reload"
+3. "Analyse les insights de performance"
+
+**Test navigation multi-pages** :
+1. "Crée une nouvelle page sur https://example.com"
+2. "Crée une deuxième page sur https://huggingface.co"
+3. "Liste toutes les pages ouvertes"
+4. "Sélectionne la première page"
+5. "Ferme la deuxième page"
+
+**Test formulaire** :
+1. "Ouvre un site avec un formulaire de contact"
+2. "Prends un snapshot pour identifier les champs"
+3. "Remplis le formulaire avec fill_form"
+4. "Soumets le formulaire"
+
+Commit message : feat(tools): tool-10 mcp chrome devtools
 
 ---
 
@@ -384,7 +502,7 @@ TOOL-7   MCP Vision GLM-4.6V
 TOOL-8   Screenshot Windows
 TOOL-9   Souris/Clavier
          → Checkpoint intermédiaire : pilotage PC complet fonctionnel
-TOOL-10  MCP Chrome Playwright
+TOOL-10  MCP Chrome DevTools
          → CHECKPOINT FINAL : tous les tools validés → passer au MODULE 4
 ```
 

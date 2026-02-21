@@ -9,7 +9,7 @@
 # PREREQUIS:
 #   - Node.js 24+
 #   - uv (gestionnaire Python)
-#   - Ollama avec Qwen3:14b
+#   - Ollama avec qwen3:latest (8b) — ou gemma3:latest pour le mode fast
 #
 # USAGE:
 #   .\setup.ps1
@@ -46,7 +46,7 @@ $ColorHeader = "Magenta"
 .PARAMETER Message
     Le message à afficher
 #>
-function Write-Success {
+function Write-SuccessMessage {
     param([string]$Message)
     Write-Host "[✓] $Message" -ForegroundColor $ColorSuccess
 }
@@ -57,7 +57,7 @@ function Write-Success {
 .PARAMETER Message
     Le message à afficher
 #>
-function Write-Warning {
+function Write-WarningMessage {
     param([string]$Message)
     Write-Host "[⚠] $Message" -ForegroundColor $ColorWarning
 }
@@ -68,7 +68,7 @@ function Write-Warning {
 .PARAMETER Message
     Le message à afficher
 #>
-function Write-Error {
+function Write-ErrorMessage {
     param([string]$Message)
     Write-Host "[✗] $Message" -ForegroundColor $ColorError
 }
@@ -162,8 +162,8 @@ function Invoke-CommandSafe {
             if ($exitCode -ne 0) {
                 throw "La commande a échoué avec le code de sortie $exitCode. Sortie: $output"
             }
-            
-            Write-Success "$Description terminé avec succès"
+
+            Write-SuccessMessage "$Description terminé avec succès"
             return $true
         }
         finally {
@@ -172,7 +172,7 @@ function Invoke-CommandSafe {
         }
     }
     catch {
-        Write-Error "$Description a échoué: $_"
+        Write-ErrorMessage "$Description a échoué: $_"
         return $false
     }
 }
@@ -193,23 +193,23 @@ function Test-NodeVersion {
         if ($versionOutput -match 'v(\d+\.\d+\.\d+)') {
             $currentVersion = [version]$matches[1]
             $minVersionObj = [version]$MinVersion
-            
+
             if ($currentVersion -ge $minVersionObj) {
-                Write-Success "Node.js version $currentVersion détecté (min: $MinVersion)"
+                Write-SuccessMessage "Node.js version $currentVersion détecté (min: $MinVersion)"
                 return $true
             }
             else {
-                Write-Error "Node.js version $currentVersion détecté mais $MinVersion ou supérieur requis"
+                Write-ErrorMessage "Node.js version $currentVersion détecté mais $MinVersion ou supérieur requis"
                 return $false
             }
         }
         else {
-            Write-Error "Impossible de déterminer la version de Node.js"
+            Write-ErrorMessage "Impossible de déterminer la version de Node.js"
             return $false
         }
     }
     catch {
-        Write-Error "Erreur lors de la vérification de Node.js: $_"
+        Write-ErrorMessage "Erreur lors de la vérification de Node.js: $_"
         return $false
     }
 }
@@ -225,25 +225,25 @@ function Test-Ollama {
         # Vérifier si Ollama est installé
         $ollamaVersion = ollama --version 2>&1
         if ($LASTEXITCODE -ne 0) {
-            Write-Error "Ollama n'est pas installé ou non accessible"
+            Write-ErrorMessage "Ollama n'est pas installé ou non accessible"
             return $false
         }
-        
-        Write-Success "Ollama détecté: $ollamaVersion"
-        
-        # Vérifier si le modèle qwen3:14b est disponible
+
+        Write-SuccessMessage "Ollama détecté: $ollamaVersion"
+
+        # Vérifier si le modèle qwen3:latest est disponible
         $models = ollama list 2>&1
-        if ($models -match "qwen3:14b") {
-            Write-Success "Modèle qwen3:14b détecté"
+        if ($models -match "qwen3:latest") {
+            Write-SuccessMessage "Modèle qwen3:latest (8b) détecté"
             return $true
         }
         else {
-            Write-Warning "Modèle qwen3:14b non détecté. Installez-le avec: ollama pull qwen3:14b"
+            Write-WarningMessage "Modèle qwen3:latest non détecté. Installez-le avec: ollama pull qwen3:latest"
             return $false
         }
     }
     catch {
-        Write-Error "Erreur lors de la vérification d'Ollama: $_"
+        Write-ErrorMessage "Erreur lors de la vérification d'Ollama: $_"
         return $false
     }
 }
@@ -280,42 +280,42 @@ function Set-EnvironmentFile {
     try {
         # Vérifier si le fichier source existe
         if (-not (Test-Path $SourceFile)) {
-            Write-Error "Fichier source non trouvé: $SourceFile"
+            Write-ErrorMessage "Fichier source non trouvé: $SourceFile"
             return $false
         }
-        
+
         # Vérifier si le fichier cible existe déjà
         if (Test-Path $TargetFile) {
-            Write-Warning "Le fichier $TargetFile existe déjà. Préservation du fichier existant."
+            Write-WarningMessage "Le fichier $TargetFile existe déjà. Préservation du fichier existant."
             return $true
         }
-        
+
         # Lire le contenu du fichier source
         $content = Get-Content $SourceFile -Raw
-        
+
         # Générer les tokens sécurisés pour le développement
         $webchatToken = New-SecureToken
         $cronSecret = New-SecureToken
-        
+
         # Remplacer les valeurs vides par des valeurs par défaut pour le développement
         $content = $content -replace 'WEBCHAT_TOKEN=""', "WEBCHAT_TOKEN=`"$webchatToken`""
         $content = $content -replace 'CRON_SECRET=""', "CRON_SECRET=`"$cronSecret`""
-        
+
         # Garder les autres valeurs par défaut (elles sont déjà dans .env.example)
         # DATABASE_URL, AGENT_URL, OLLAMA_BASE_URL, etc. ont déjà des valeurs par défaut
-        
+
         # Écrire le fichier cible
         $content | Out-File -FilePath $TargetFile -Encoding UTF8
-        
-        Write-Success "Fichier $TargetFile créé avec valeurs par défaut pour le développement"
+
+        Write-SuccessMessage "Fichier $TargetFile créé avec valeurs par défaut pour le développement"
         Write-Info "Tokens générés automatiquement:"
         Write-Info "  - WEBCHAT_TOKEN: $webchatToken"
         Write-Info "  - CRON_SECRET: $cronSecret"
-        
+
         return $true
     }
     catch {
-        Write-Error "Erreur lors de la configuration de l'environnement: $_"
+        Write-ErrorMessage "Erreur lors de la configuration de l'environnement: $_"
         return $false
     }
 }
@@ -331,25 +331,25 @@ function Install-NpmDependencies {
     
     try {
         $packageJson = Join-Path $Directory "package.json"
-        
+
         if (-not (Test-Path $packageJson)) {
-            Write-Warning "Fichier package.json non trouvé dans $Directory - Installation ignorée"
+            Write-WarningMessage "Fichier package.json non trouvé dans $Directory - Installation ignorée"
             return $true
         }
-        
+
         Write-Info "Installation des dépendances npm dans $Directory..."
-        
+
         # Installer les dépendances
         $success = Invoke-CommandSafe -Command "npm" -Arguments "install" -WorkingDirectory $Directory -Description "npm install"
-        
+
         if (-not $success) {
             throw "Échec de l'installation des dépendances npm"
         }
-        
+
         return $true
     }
     catch {
-        Write-Error "Erreur lors de l'installation des dépendances npm: $_"
+        Write-ErrorMessage "Erreur lors de l'installation des dépendances npm: $_"
         return $false
     }
 }
@@ -365,25 +365,25 @@ function Invoke-PrismaMigrations {
     
     try {
         $schemaFile = Join-Path $Directory "prisma" "schema.prisma"
-        
+
         if (-not (Test-Path $schemaFile)) {
-            Write-Warning "Fichier schema.prisma non trouvé dans $Directory - Migrations ignorées"
+            Write-WarningMessage "Fichier schema.prisma non trouvé dans $Directory - Migrations ignorées"
             return $true
         }
-        
+
         Write-Info "Exécution des migrations Prisma dans $Directory..."
-        
+
         # Exécuter les migrations
         $success = Invoke-CommandSafe -Command "npx" -Arguments "prisma migrate dev --name init" -WorkingDirectory $Directory -Description "Prisma migrate dev"
-        
+
         if (-not $success) {
             throw "Échec des migrations Prisma"
         }
-        
+
         return $true
     }
     catch {
-        Write-Error "Erreur lors des migrations Prisma: $_"
+        Write-ErrorMessage "Erreur lors des migrations Prisma: $_"
         return $false
     }
 }
@@ -399,25 +399,25 @@ function Install-UvDependencies {
     
     try {
         $pyprojectToml = Join-Path $Directory "pyproject.toml"
-        
+
         if (-not (Test-Path $pyprojectToml)) {
-            Write-Warning "Fichier pyproject.toml non trouvé dans $Directory - Installation ignorée"
+            Write-WarningMessage "Fichier pyproject.toml non trouvé dans $Directory - Installation ignorée"
             return $true
         }
-        
+
         Write-Info "Installation des dépendances Python avec uv dans $Directory..."
-        
+
         # Installer les dépendances avec uv sync
         $success = Invoke-CommandSafe -Command "uv" -Arguments "sync" -WorkingDirectory $Directory -Description "uv sync"
-        
+
         if (-not $success) {
             throw "Échec de l'installation des dépendances Python"
         }
-        
+
         return $true
     }
     catch {
-        Write-Error "Erreur lors de l'installation des dépendances Python: $_"
+        Write-ErrorMessage "Erreur lors de l'installation des dépendances Python: $_"
         return $false
     }
 }
@@ -499,7 +499,7 @@ try {
     
     # Vérifier Node.js
     if (-not (Test-Command "node")) {
-        Write-Error "Node.js n'est pas installé"
+        Write-ErrorMessage "Node.js n'est pas installé"
         Write-Info "Téléchargez et installez Node.js 24+ depuis: https://nodejs.org/"
         $prerequisitesMet = $false
     }
@@ -508,38 +508,38 @@ try {
             $prerequisitesMet = $false
         }
     }
-    
+
     # Vérifier npm
     if (-not (Test-Command "npm")) {
-        Write-Error "npm n'est pas installé (normalement fourni avec Node.js)"
+        Write-ErrorMessage "npm n'est pas installé (normalement fourni avec Node.js)"
         $prerequisitesMet = $false
     }
     else {
         $npmVersion = npm --version 2>&1
-        Write-Success "npm version $npmVersion détecté"
+        Write-SuccessMessage "npm version $npmVersion détecté"
     }
-    
+
     # Vérifier uv
     if (-not (Test-Command "uv")) {
-        Write-Error "uv n'est pas installé"
+        Write-ErrorMessage "uv n'est pas installé"
         Write-Info "Installez uv depuis: https://docs.astral.sh/uv/getting-started/installation/"
         $prerequisitesMet = $false
     }
     else {
         $uvVersion = uv --version 2>&1
-        Write-Success "uv version $uvVersion détecté"
+        Write-SuccessMessage "uv version $uvVersion détecté"
     }
-    
+
     # Vérifier Ollama (optionnel mais recommandé)
     if (-not (Test-Ollama)) {
-        Write-Warning "Ollama ou le modèle qwen3:14b n'est pas disponible"
+        Write-WarningMessage "Ollama ou le modèle qwen3:latest n'est pas disponible"
         Write-Info "Installez Ollama depuis: https://ollama.ai"
-        Write-Info "Puis installez le modèle: ollama pull qwen3:14b"
+        Write-Info "Puis installez le modèle: ollama pull qwen3:latest"
         # On continue quand même, car Ollama est optionnel pour le setup
     }
-    
+
     if (-not $prerequisitesMet) {
-        Write-Error "Certains prérequis ne sont pas satisfaits. Veuillez les installer avant de continuer."
+        Write-ErrorMessage "Certains prérequis ne sont pas satisfaits. Veuillez les installer avant de continuer."
         exit 1
     }
     
@@ -554,7 +554,7 @@ try {
     $envFileSuccess = Set-EnvironmentFile -SourceFile $gatewayEnvExample -TargetFile $gatewayEnvFile
 
     if (-not $envFileSuccess) {
-        Write-Error "Échec de la configuration de l'environnement Gateway"
+        Write-ErrorMessage "Échec de la configuration de l'environnement Gateway"
         exit 1
     }
 
@@ -564,74 +564,74 @@ try {
     $agentEnvFileSuccess = Set-EnvironmentFile -SourceFile $agentEnvExample -TargetFile $agentEnvFile
 
     if (-not $agentEnvFileSuccess) {
-        Write-Error "Échec de la configuration de l'environnement Agent"
+        Write-ErrorMessage "Échec de la configuration de l'environnement Agent"
         exit 1
     }
-    
+
     # ============================================================
     # ÉTAPE 3: Installation des dépendances Gateway (Next.js)
     # ============================================================
     Write-Header "ÉTAPE 3: Installation des dépendances Gateway (Next.js)"
-    
+
     $gatewayDir = Join-Path $PSScriptRoot "gateway"
-    
+
     if (-not (Test-Path $gatewayDir)) {
-        Write-Error "Répertoire gateway non trouvé: $gatewayDir"
+        Write-ErrorMessage "Répertoire gateway non trouvé: $gatewayDir"
         exit 1
     }
-    
+
     # Installer les dépendances npm
     $npmSuccess = Install-NpmDependencies -Directory $gatewayDir
-    
+
     if (-not $npmSuccess) {
-        Write-Error "Échec de l'installation des dépendances npm"
+        Write-ErrorMessage "Échec de l'installation des dépendances npm"
         exit 1
     }
-    
+
     # ============================================================
     # ÉTAPE 4: Migrations Prisma
     # ============================================================
     Write-Header "ÉTAPE 4: Migrations Prisma"
-    
+
     $prismaSuccess = Invoke-PrismaMigrations -Directory $gatewayDir
-    
+
     if (-not $prismaSuccess) {
-        Write-Error "Échec des migrations Prisma"
+        Write-ErrorMessage "Échec des migrations Prisma"
         exit 1
     }
-    
+
     # ============================================================
     # ÉTAPE 4.5: Génération du client Prisma
     # ============================================================
     Write-Header "ÉTAPE 4.5: Génération du client Prisma"
-    
+
     Write-Info "Génération du client Prisma dans $gatewayDir..."
-    
+
     # Générer le client Prisma
     $prismaGenerateSuccess = Invoke-CommandSafe -Command "npx" -Arguments "prisma generate" -WorkingDirectory $gatewayDir -Description "Prisma generate"
-    
+
     if (-not $prismaGenerateSuccess) {
-        Write-Error "Échec de la génération du client Prisma"
+        Write-ErrorMessage "Échec de la génération du client Prisma"
         exit 1
     }
-    
+
     # ============================================================
     # ÉTAPE 5: Installation des dépendances Agent (Python)
     # ============================================================
     Write-Header "ÉTAPE 5: Installation des dépendances Agent (Python)"
-    
+
     $agentDir = Join-Path $PSScriptRoot "agent"
-    
+
     if (-not (Test-Path $agentDir)) {
-        Write-Error "Répertoire agent non trouvé: $agentDir"
+        Write-ErrorMessage "Répertoire agent non trouvé: $agentDir"
         exit 1
     }
-    
+
     # Installer les dépendances avec uv
     $uvSuccess = Install-UvDependencies -Directory $agentDir
-    
+
     if (-not $uvSuccess) {
-        Write-Error "Échec de l'installation des dépendances Python"
+        Write-ErrorMessage "Échec de l'installation des dépendances Python"
         exit 1
     }
     
@@ -639,25 +639,25 @@ try {
     # RÉSUMÉ FINAL
     # ============================================================
     Write-Header "RÉSUMÉ DE L'INSTALLATION"
-    
-    Write-Success "✓ Prérequis vérifiés"
-    Write-Success "✓ Configuration de l'environnement Gateway (gateway/.env.local)"
-    Write-Success "✓ Configuration de l'environnement Agent (agent/.env)"
-    Write-Success "✓ Dépendances Gateway (Next.js) installées"
-    Write-Success "✓ Migrations Prisma exécutées"
-    Write-Success "✓ Client Prisma généré"
-    Write-Success "✓ Dépendances Agent (Python) installées"
-    
+
+    Write-SuccessMessage "✓ Prérequis vérifiés"
+    Write-SuccessMessage "✓ Configuration de l'environnement Gateway (gateway/.env.local)"
+    Write-SuccessMessage "✓ Configuration de l'environnement Agent (agent/.env)"
+    Write-SuccessMessage "✓ Dépendances Gateway (Next.js) installées"
+    Write-SuccessMessage "✓ Migrations Prisma exécutées"
+    Write-SuccessMessage "✓ Client Prisma généré"
+    Write-SuccessMessage "✓ Dépendances Agent (Python) installées"
+
     Write-Host "`nL'environnement a été initialisé avec succès!" -ForegroundColor $ColorSuccess
-    
+
     # Afficher les étapes suivantes
     Show-NextSteps
-    
+
     exit 0
 }
 catch {
-    Write-Error "Une erreur inattendue s'est produite:"
-    Write-Error $_.Exception.Message
-    Write-Error "Stack trace: $($_.ScriptStackTrace)"
+    Write-ErrorMessage "Une erreur inattendue s'est produite:"
+    Write-ErrorMessage $_.Exception.Message
+    Write-ErrorMessage "Stack trace: $($_.ScriptStackTrace)"
     exit 1
 }

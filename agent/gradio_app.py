@@ -11,12 +11,19 @@ MODELS = ["fast", "smart", "main", "vision", "code", "reason"]
 
 
 def chat(message: str, history: list, model_choice: str) -> str:
-    # Gradio 5 — historique en dicts {"role": ..., "content": ...}
-    history_dicts = [
-        {"role": m["role"], "content": m["content"]}
-        for m in history
-        if isinstance(m, dict)
-    ]
+    # Gradio 5 — historique peut être list de tuples ou dicts
+    # Conversion en format attendu par l'API
+    history_dicts = []
+    for m in history:
+        if isinstance(m, dict):
+            history_dicts.append({"role": m.get("role", "user"), "content": m.get("content", "")})
+        elif isinstance(m, (list, tuple)) and len(m) == 2:
+            # Format tuple: (user_message, assistant_message)
+            history_dicts.append({"role": "user", "content": str(m[0])})
+            history_dicts.append({"role": "assistant", "content": str(m[1])})
+        else:
+            # Format inconnu, on ignore
+            pass
 
     try:
         resp = requests.post(

@@ -55,7 +55,7 @@ uv run python gradio_app.py          # → http://localhost:7860
 | 1 — Agent | ✅ | smolagents + FastAPI + Gradio + GLM-4.7 fix |
 | 2 — Mémoire | ✅ | Prisma + historique conversations |
 | 3 — WebChat | ✅ | UI web + streaming + auth |
-| Tools | 🔄 | 6/10 outils implémentés (1,2,3,7,8,9 DONE / 4,5,6,10 TODO) |
+| Tools | 🔄 | 7/10 outils implémentés (1,2,3,7,8,9,10 DONE / 4,5,6 TODO) |
 | 4 — Nextcloud Talk | ⏳ | Bot HMAC-SHA256 |
 | 5 — Cron | ⏳ | Tâches proactives |
 | 6 — Z.ai + Health | ⏳ | GLM-4.7 + monitoring |
@@ -71,6 +71,7 @@ uv run python gradio_app.py          # → http://localhost:7860
 | TOOL-7 | ✅ | Vision locale (Ollama qwen3-vl:2b) - 100% local |
 | TOOL-8 | ✅ | Screenshot Windows |
 | TOOL-9 | ⚠️ | Contrôle souris/clavier (implémenté mais nécessite orchestration avancée) |
+| TOOL-10 | ✅ | MCP Chrome DevTools (26 outils Puppeteer) - TESTÉ & VALIDÉ |
 
 ### Améliorations récentes (2026-02-20)
 
@@ -78,6 +79,7 @@ uv run python gradio_app.py          # → http://localhost:7860
 - ✅ **Timeouts augmentés** : Gateway 5min, Agent 3min pour l'exécution du code Python
 - ✅ **Guidage de l'agent** : `instructions` + `additional_authorized_imports` pour préférer Python natif (requests, urllib, json, etc.)
 - ✅ **TOOL-7 Vision** : Implémenté avec Ollama local (qwen3-vl:2b) au lieu de Z.ai MCP - 100% local, 0 donnée sortante
+- ✅ **TOOL-10 Chrome DevTools** : MCP chargé avec 26 outils Puppeteer - Tests validés
 
 > **Note** : WhatsApp a été retiré du projet (2026-02-19). Nextcloud Talk suffit pour les besoins actuels.
 

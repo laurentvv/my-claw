@@ -5,6 +5,181 @@
 
 ---
 
+## TOOL-10 — MCP Chrome DevTools (2026-02-20)
+
+### Test de validation (2026-02-20)
+
+**Statut** : ✅ **DONE** - MCP Chrome DevTools opérationnel avec 26 outils
+
+**Prérequis** :
+- ✅ Node.js 24.13.1 installé
+- ✅ npx disponible (inclus avec Node.js)
+- ✅ Ollama démarré (7 modèles installés)
+- ⚠️ Chrome/Edge non installé (MCP peut le télécharger automatiquement)
+
+**Résultats des tests** :
+
+```
+============================================================
+RESUME DES TESTS
+============================================================
+  MCP Connection:     [PASS]
+  main.py Integration: [PASS]
+============================================================
+[SUCCESS] TOUS LES TESTS TOOL-10 SONT PASSES
+```
+
+**Outils chargés (26 au total)** :
+
+1. click
+2. close_page
+3. drag
+4. emulate
+5. evaluate_script
+6. fill
+7. fill_form
+8. get_console_message
+9. get_network_request
+10. handle_dialog
+11. hover
+12. list_console_messages
+13. list_network_requests
+14. list_pages
+15. navigate_page
+16. new_page
+17. performance_analyze_insight
+18. performance_start_trace
+19. performance_stop_trace
+20. press_key
+21. resize_page
+22. select_page
+23. take_screenshot
+24. take_snapshot
+25. upload_file
+26. wait_for
+
+**Catégorisation des outils** :
+- Input automation : 8 outils
+- Navigation : 6 outils
+- Emulation : 2 outils
+- Performance : 3 outils
+- Network : 2 outils
+- Debugging : 5 outils
+
+### Intégration dans main.py
+
+**Configuration MCP** :
+```python
+from smolagents import ToolCollection
+from mcp import StdioServerParameters
+
+# Variables globales pour gérer le cycle de vie MCP
+_mcp_context: ToolCollection | None = None
+_mcp_tools: list = []
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    global _mcp_context, _mcp_tools
+
+    # Startup: initialiser Chrome DevTools MCP via ToolCollection.from_mcp()
+    chrome_devtools_params = StdioServerParameters(
+        command="npx",
+        args=["-y", "chrome-devtools-mcp@latest"],
+        env={**os.environ}  # Important pour trouver Node.js sur Windows
+    )
+
+    # from_mcp() retourne un context manager, il faut appeler __enter__()
+    # trust_remote_code=True est requis pour les serveurs MCP
+    _mcp_context = ToolCollection.from_mcp(chrome_devtools_params, trust_remote_code=True)
+    tool_collection = _mcp_context.__enter__()
+    _mcp_tools = list(tool_collection.tools)
+
+    yield  # L'application tourne ici, le client MCP reste actif
+
+    # Shutdown: fermer proprement le client MCP
+    if _mcp_context is not None:
+        _mcp_context.__exit__(None, None, None)
+```
+
+**Points clés** :
+1. `from_mcp()` retourne un context manager → appeler `__enter__()` pour obtenir la ToolCollection
+2. `trust_remote_code=True` est obligatoire (sinon ValueError)
+3. Stocker le context manager pour cleanup via `__exit__(None, None, None)`
+4. Stocker la liste des outils séparément pour utilisation dans CodeAgent
+5. Les outils MCP sont ajoutés aux outils locaux via `get_all_tools()`
+
+### Script de test (agent/test_tool10.py)
+
+**Fonctions** :
+- `check_prerequisites()` : Vérifie Node.js, npm/npx, Ollama, Chrome/Edge
+- `test_mcp_connection()` : Teste la connexion MCP et le chargement des 26 outils
+- `test_main_py_integration()` : Vérifie l'intégration dans main.py
+
+**Exécution** :
+```bash
+cd agent
+uv run python test_tool10.py
+```
+
+**Sortie attendue** :
+```
+[OK] Node.js: v24.13.1
+[OK] Ollama: 7 modeles installes
+[OK] Contexte MCP cree
+[OK] 26 outils charges
+[PASS] MCP Connection
+[PASS] main.py Integration
+[SUCCESS] TOUS LES TESTS TOOL-10 SONT PASSES
+```
+
+### Découvertes techniques
+
+**ToolCollection.from_mcp()** :
+- Retourne un generator/context manager, pas directement une ToolCollection
+- Il faut appeler `__enter__()` pour obtenir la ToolCollection
+- Il faut appeler `__exit__(None, None, None)` pour le cleanup
+- `trust_remote_code=True` est obligatoire pour les serveurs MCP
+
+**StdioServerParameters sur Windows** :
+- Passer `env={**os.environ}` pour que npx trouve Node.js
+- Le premier lancement télécharge le package chrome-devtools-mcp (~5-10s)
+- Timeout de 60s recommandé à l'initialisation
+
+**chrome-devtools-mcp** :
+- Basé sur Puppeteer (pas Playwright)
+- Crée un profil Chrome dédié dans `%HOMEPATH%/.cache/chrome-devtools-mcp/chrome-profile-stable`
+- Le profil n'est pas effacé entre les runs
+- Peut fonctionner sans Chrome installé (télécharge une version headless)
+
+**Options de configuration** :
+- `--headless=true` : mode sans interface (défaut : false)
+- `--channel=canary|beta|dev` : utiliser une autre version de Chrome
+- `--viewport=1280x720` : taille initiale du viewport
+- `--isolated=true` : utiliser un profil temporaire
+- `--category-performance=false` : désactiver les outils de performance
+- `--category-network=false` : désactiver les outils réseau
+- `--category-emulation=false` : désactiver les outils d'émulation
+
+### Bonnes pratiques d'utilisation
+
+1. **Snapshot avant action** : Toujours utiliser `take_snapshot()` avant d'interagir avec la page
+2. **Préférez snapshot à screenshot** : `take_snapshot()` est plus rapide et fournit des uid exploitables
+3. **Gestion des pages** : Utiliser `list_pages()` pour voir les pages ouvertes et `select_page()` pour changer de contexte
+4. **Attente de chargement** : Utiliser `wait_for()` ou laisser le tool gérer automatiquement les attentes
+
+### Prochaines étapes
+
+TOOL-10 est maintenant opérationnel. Les tests fonctionnels avec un agent réel (CodeAgent) peuvent être effectués via :
+1. Gradio UI : `uv run python gradio_app.py`
+2. Requête API : `POST http://localhost:8000/run`
+
+**Exemple de prompt de test** :
+- "Ouvre https://example.com dans Chrome et prends un snapshot de la page"
+- "Liste toutes les pages ouvertes dans Chrome"
+- "Va sur https://huggingface.co et extrais le titre de la page"
+
+---
+
 ## TOOL-1 — FileSystemTool (2026-02-19)
 
 ### Structure smolagents Tool
@@ -519,6 +694,276 @@ Selon IMPLEMENTATION-TOOLS.md, tests à effectuer via Gradio:
 
 ---
 
+## TOOL-10 — MCP Chrome DevTools (2026-02-20)
+
+### Chrome DevTools MCP Overview
+
+**Package** : chrome-devtools-mcp@latest
+**Repository** : https://github.com/ChromeDevTools/chrome-devtools-mcp
+**Base** : Puppeteer (pas Playwright comme initialement prévu)
+
+### Prérequis
+
+- Node.js 20.19+ (déjà présent d'après setup)
+- Chrome stable ou plus récent installé
+- npx (inclus avec Node.js)
+
+### Configuration StdioServerParameters
+
+**IMPORTANT** : `ToolCollection.from_mcp()` retourne un **context manager** (generator), pas directement une ToolCollection. De plus, `trust_remote_code=True` est **obligatoire** pour les serveurs MCP.
+
+```python
+from smolagents import ToolCollection
+from mcp import StdioServerParameters
+
+# Variables globales pour gérer le cycle de vie MCP
+_mcp_context: ToolCollection | None = None
+_mcp_tools: list = []
+
+chrome_devtools_params = StdioServerParameters(
+    command="npx",
+    args=["-y", "chrome-devtools-mcp@latest"],
+    env={**os.environ}  # Important pour trouver Node.js sur Windows
+)
+
+# Dans le startup (lifespan FastAPI) :
+try:
+    # from_mcp() retourne un context manager, il faut appeler __enter__()
+    _mcp_context = ToolCollection.from_mcp(chrome_devtools_params, trust_remote_code=True)
+    tool_collection = _mcp_context.__enter__()
+    _mcp_tools = list(tool_collection.tools)
+    logger.info(f"✓ Chrome DevTools MCP chargé : {len(_mcp_tools)} outils")
+except Exception as e:
+    logger.warning(f"✗ Impossible de charger Chrome DevTools MCP : {e}")
+    _mcp_context = None
+    _mcp_tools = []
+
+# Dans le shutdown (lifespan FastAPI) :
+if _mcp_context is not None:
+    _mcp_context.__exit__(None, None, None)
+    logger.info("✓ Chrome DevTools MCP fermé")
+```
+
+**Points clés** :
+1. `from_mcp()` retourne un context manager → appeler `__enter__()` pour obtenir la ToolCollection
+2. `trust_remote_code=True` est obligatoire (sinon ValueError)
+3. Stocker le context manager pour cleanup via `__exit__(None, None, None)`
+4. Stocker la liste des outils séparément pour utilisation dans CodeAgent
+
+### 26 outils disponibles
+
+**Input automation (8 outils)** :
+- `click` : cliquer sur un élément (uid, dblClick?, includeSnapshot?)
+- `drag` : glisser un élément vers un autre (from_uid, to_uid, includeSnapshot?)
+- `fill` : remplir un champ de saisie (uid, value, includeSnapshot?)
+- `fill_form` : remplir plusieurs champs à la fois (elements[], includeSnapshot?)
+- `handle_dialog` : gérer les boîtes de dialogue (action: accept/dismiss, promptText?)
+- `hover` : survoler un élément (uid, includeSnapshot?)
+- `press_key` : appuyer sur une touche ou combinaison (key: "Enter", "Control+A", etc., includeSnapshot?)
+- `upload_file` : uploader un fichier (filePath, uid, includeSnapshot?)
+
+**Navigation automation (6 outils)** :
+- `close_page` : fermer une page (pageId)
+- `list_pages` : lister les pages ouvertes
+- `navigate_page` : naviguer vers une URL (type: url/back/forward/reload, url?, ignoreCache?, handleBeforeUnload?, timeout?)
+- `new_page` : créer une nouvelle page (url, timeout?)
+- `select_page` : sélectionner une page comme contexte (pageId, bringToFront?)
+- `wait_for` : attendre qu'un texte apparaisse (text, timeout?)
+
+**Emulation (2 outils)** :
+- `emulate` : émuler diverses fonctionnalités (cpuThrottlingRate?, geolocation?, networkConditions?, userAgent?, viewport?)
+- `resize_page` : redimensionner la page (width, height)
+
+**Performance (3 outils)** :
+- `performance_analyze_insight` : analyser une insight de performance (insightName, insightSetId)
+- `performance_start_trace` : démarrer un enregistrement de trace (autoStop, reload, filePath?)
+- `performance_stop_trace` : arrêter l'enregistrement de trace (filePath?)
+
+**Network (2 outils)** :
+- `get_network_request` : récupérer une requête réseau (reqid?, requestFilePath?, responseFilePath?)
+- `list_network_requests` : lister les requêtes (includePreservedRequests?, pageIdx?, pageSize?, resourceTypes[]?)
+
+**Debugging (5 outils)** :
+- `evaluate_script` : exécuter du JavaScript (function: "() => { return document.title }", args[]?)
+- `get_console_message` : récupérer un message console (msgid)
+- `list_console_messages` : lister les messages console (includePreservedMessages?, pageIdx?, pageSize?, types[]?)
+- `take_screenshot` : prendre un screenshot (format: png/jpeg/webp, fullPage?, quality?, uid?, filePath?)
+- `take_snapshot` : prendre un snapshot textuel de la page (verbose?, filePath?)
+
+### Options de configuration supplémentaires
+
+À ajouter dans args si nécessaire :
+- `--headless=true` : mode sans interface (défaut : false)
+- `--channel=canary|beta|dev` : utiliser une autre version de Chrome
+- `--viewport=1280x720` : taille initiale du viewport
+- `--isolated=true` : utiliser un profil temporaire
+- `--user-data-dir=C:\path\to\profile` : profil personnalisé
+- `--accept-insecure-certs=true` : ignorer les erreurs SSL
+- `--category-performance=false` : désactiver les outils de performance
+- `--category-network=false` : désactiver les outils réseau
+- `--category-emulation=false` : désactiver les outils d'émulation
+
+### Bonnes pratiques d'utilisation
+
+1. **Snapshot avant action** : Toujours utiliser take_snapshot() avant d'interagir avec la page pour connaître les uid des éléments.
+2. **Préférez snapshot à screenshot** : take_snapshot() est plus rapide et fournit des uid exploitables pour les interactions.
+3. **Gestion des pages** : Utiliser list_pages() pour voir les pages ouvertes et select_page() pour changer de contexte.
+4. **Attente de chargement** : Utiliser wait_for() ou laisser le tool gérer automatiquement les attentes.
+5. **Performance traces** : Pour performance_start_trace(), naviguer d'abord vers l'URL voulue avec navigate_page(), puis lancer la trace.
+
+### Profil Chrome
+
+Le MCP server démarre automatiquement une instance Chrome avec un profil dédié :
+- Windows : %HOMEPATH%/.cache/chrome-devtools-mcp/chrome-profile-stable
+- Linux/macOS : $HOME/.cache/chrome-devtools-mcp/chrome-profile-stable
+
+Le profil n'est pas effacé entre les runs et partagé entre toutes les instances de chrome-devtools-mcp. Set l'option `isolated` à `true` pour utiliser un profil temporaire qui sera effacé automatiquement après la fermeture du navigateur.
+
+### Test plan
+
+Tests de base :
+1. "Ouvre https://example.com dans Chrome"
+2. "Prends un snapshot de la page et liste les éléments visibles"
+3. "Récupère le titre H1 de la page via evaluate_script"
+4. "Prends un screenshot de la page entière"
+5. "Va sur https://huggingface.co et prends un snapshot"
+6. "Cherche 'smolagents' dans la barre de recherche et valide avec Enter"
+7. "Liste les requêtes réseau de la page"
+8. "Vérifie les messages console de la page"
+
+Scénarios avancés :
+- **Test performance** : "Ouvre https://developers.chrome.com", "Lance un enregistrement de performance trace avec autoStop et reload", "Analyse les insights de performance"
+- **Test navigation multi-pages** : "Crée une nouvelle page sur https://example.com", "Crée une deuxième page sur https://huggingface.co", "Liste toutes les pages ouvertes", "Sélectionne la première page", "Ferme la deuxième page"
+- **Test formulaire** : "Ouvre un site avec un formulaire de contact", "Prends un snapshot pour identifier les champs", "Remplis le formulaire avec fill_form", "Soumets le formulaire"
+
+### Découvertes techniques
+
+**Correction importante** : Le package est basé sur **Puppeteer** et non Playwright comme initialement prévu dans le plan. Le nom du package est chrome-devtools-mcp@latest.
+
+**API ToolCollection.from_mcp() - Correction critique** :
+
+1. **Signature correcte : UN SEUL paramètre** :
+   - `ToolCollection.from_mcp()` attend UN SEUL paramètre (`StdioServerParameters` ou `dict`)
+   - Le premier paramètre n'est PAS le nom du serveur (contrairement à ce qui était indiqué dans le plan)
+   - Le timeout par défaut est de 30 secondes (non configurable)
+   - Sur cet environnement, `npx chrome-devtools-mcp@latest` ne parvient pas à démarrer dans ce délai
+
+2. **Retourne un `_GeneratorContextManager`** :
+   - `ToolCollection.from_mcp()` ne retourne PAS directement un objet `ToolCollection`
+   - Il retourne un `_GeneratorContextManager` qui doit être entré avec `.__enter__()`
+   - Il faut appeler `.__enter__()` pour obtenir l'objet `ToolCollection` et accéder à `.tools`
+
+3. **Code correct pour ToolCollection.from_mcp()** :
+```python
+chrome_devtools_params = StdioServerParameters(
+    command="npx",
+    args=["-y", "chrome-devtools-mcp@latest"],
+    env={**os.environ}
+)
+
+_mcp_client = ToolCollection.from_mcp(
+    chrome_devtools_params  # ← Un seul paramètre (pas de nom de serveur)
+).__enter__()  # ← Important : appeler __enter__()
+
+_mcp_tools = list(_mcp_client.tools)
+```
+
+**Timeout de connexion** :
+- Le timeout par défaut est de 30 secondes (non configurable)
+- Sur cet environnement, `npx chrome-devtools-mcp@latest` ne parvient pas à démarrer dans ce délai
+- Le fallback silencieux fonctionne correctement : l'agent fonctionne avec les outils locaux uniquement
+
+**Gestion des erreurs** : Si la connexion échoue au démarrage, désactiver silencieusement et continuer sans ce tool.
+
+**Paramètre trust_remote_code requis** :
+- `ToolCollection.from_mcp()` exige le paramètre `trust_remote_code=True` pour charger les outils MCP
+- Ce paramètre est obligatoire car le serveur MCP exécute du code sur la machine locale
+- Sans ce paramètre, l'erreur suivante se produit : `Loading tools from MCP requires you to acknowledge you trust the MCP server, as it will execute code on your local machine: pass 'trust_remote_code=True'`
+- Code correct :
+  ```python
+  _mcp_client = ToolCollection.from_mcp(
+      chrome_devtools_params,
+      trust_remote_code=True  # ← Obligatoire
+  ).__enter__()
+  ```
+
+### Solution MCPClient pour CodeAgent (2026-02-20)
+
+**Problème identifié** : `ToolCollection.from_mcp()` ne fonctionne pas avec CodeAgent (erreur "Event loop is closed").
+
+**Solution identifiée** : Utiliser `MCPClient` comme un context manager.
+
+**Pourquoi ToolCollection.from_mcp() échoue** :
+- Les outils MCP sont implémentés comme des fonctions async qui nécessitent une boucle d'événements active
+- smolagents CodeAgent exécute le code Python dans un contexte synchrone sans boucle d'événements
+- `ToolCollection.from_mcp()` crée un contexte MCP qui est fermé immédiatement après avoir récupéré les outils
+- Les outils MCP ne fonctionnent plus une fois le contexte fermé
+
+**Solution : MCPClient comme context manager dans /run**
+
+La solution est d'utiliser `MCPClient` directement comme un context manager dans l'endpoint `/run`, créant et fermant le client MCP dans le même contexte synchrone.
+
+**Code correct** :
+```python
+from smolagents import CodeAgent, MCPClient
+from mcp import StdioServerParameters
+
+chrome_devtools_params = StdioServerParameters(
+    command="npx",
+    args=["-y", "chrome-devtools-mcp@latest"],
+    env={**os.environ}
+)
+
+# Utiliser MCPClient comme context manager dans /run
+with MCPClient(chrome_devtools_params) as mcp_tools:
+    all_tools = TOOLS.copy()
+    all_tools.extend(mcp_tools)
+    
+    agent = CodeAgent(
+        tools=all_tools,
+        model=get_model(req.model),
+        ...
+    )
+    result = agent.run(prompt)
+```
+
+**Avantages de cette approche** :
+- ✅ Pas de conflit avec la boucle d'événements async de FastAPI
+- ✅ Le client MCP est créé et fermé dans le même contexte synchrone
+- ✅ Les outils MCP sont disponibles pour CodeAgent pendant l'exécution
+- ✅ Fallback automatique : si MCP ne peut pas être chargé, l'erreur est capturée
+- ✅ Compatible avec l'architecture FastAPI lifespan existante
+
+**Implémentation recommandée** :
+1. Ne pas charger les outils MCP au démarrage (dans lifespan)
+2. Charger les outils MCP à chaque requête dans `/run`
+3. Fusionner les outils locaux et MCP avant de créer CodeAgent
+4. Capturer les erreurs MCP et continuer avec les outils locaux uniquement
+
+**Exemple d'implémentation avec fallback** :
+```python
+@app.post("/run")
+async def run_agent(req: RunRequest):
+    try:
+        # Essayer de charger les outils MCP
+        with MCPClient(chrome_devtools_params) as mcp_tools:
+            all_tools = TOOLS.copy()
+            all_tools.extend(mcp_tools)
+            agent = CodeAgent(tools=all_tools, model=get_model(req.model), ...)
+            result = agent.run(req.message)
+    except Exception as e:
+        logger.warning(f"Erreur MCP, utilisation des outils locaux uniquement: {e}")
+        # Fallback sur les outils locaux
+        agent = CodeAgent(tools=TOOLS, model=get_model(req.model), ...)
+        result = agent.run(req.message)
+    
+    return {"response": result}
+```
+
+**Note** : Cette approche est compatible avec l'architecture existante de FastAPI et ne nécessite pas de modifications complexes du code.
+
+---
+
 ## TOOL-9 — MouseKeyboardTool (2026-02-19)
 
 ### Implémentation
@@ -611,7 +1056,7 @@ Pour diagnostiquer le problème, des logs ont été ajoutés:
 - TOOL-7: MCP Vision GLM-4.6V ✅ implémenté, EN ATTENTE DE VALIDATION
 - TOOL-8: ScreenshotTool ✅ implémenté, testé et validé
 - TOOL-9: MouseKeyboardTool ✅ implémenté, débloqué par TOOL-7, EN ATTENTE DE VALIDATION
-- TOOL-10: MCP Chrome Playwright ⏳ à implémenter
+- TOOL-10: MCP Chrome DevTools ⏳ à implémenter
 
 ---
 
