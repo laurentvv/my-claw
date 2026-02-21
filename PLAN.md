@@ -170,7 +170,7 @@ S'appuie sur les coordonnées fournies par TOOL-7 Vision.
 Checkpoint : ouvrir le menu Démarrer (Win), taper "notepad", Entrée, vérifier via screenshot.
 **Statut : 🔄 EN COURS (non validé)** - L'outil fonctionne mais nécessite un orchestrateur plus puissant (glm-4.7) pour coordonner screenshot + vision + actions de manière autonome.
 
-### TOOL-10 — MCP Chrome DevTools (Playwright)
+### TOOL-10 — MCP Chrome DevTools (Puppeteer)
 Priorité : 10 | Quota : 0 | Dépendance : npx chrome-devtools-mcp@latest | **Statut : ✅ DONE**
 
 Piloter Chrome headless ou visible via Chrome DevTools MCP (basé sur Puppeteer).

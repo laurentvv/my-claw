@@ -100,7 +100,7 @@ Statut actuel : **6/10 outils cœurs implémentés**
 | **Presse-papier** | ✅ | Accéder et modifier le presse-papier Windows. |
 | **Vision** | ✅ | Analyse d'images locale et OCR via `qwen3-vl:2b`. |
 | **Capture d'écran** | ✅ | Capturer l'écran entier ou des régions spécifiques. |
-| **Chrome DevTools** | ✅ | Automatisation complète du navigateur via MCP (Playwright). |
+| **Chrome DevTools** | ✅ | Automatisation complète du navigateur via MCP (Puppeteer). |
 | **Souris & Clavier** | 🔄 | Contrôle direct des entrées OS (En cours). |
 | **Recherche Web** | ⏳ | Recherche web en temps réel (Roadmap). |
 | **Lecteur Web** | ⏳ | Extraction de contenu depuis des URLs (Roadmap). |

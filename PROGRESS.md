@@ -225,7 +225,7 @@ Checkpoint :
 - **Solution requise** : Modèle orchestrateur plus puissant (glm-4.7) + Vision (qwen3-vl:2b ou GLM-4.6V via Z.ai MCP)
 - **Alternative** : Améliorer les instructions de l'agent avec des exemples concrets de séquences d'actions
 
-### TOOL-10 — MCP Chrome DevTools (Playwright)
+### TOOL-10 — MCP Chrome DevTools (Puppeteer)
 **Statut : ✅ DONE (Testé & Validé)**
 
 Intégration :

@@ -100,7 +100,7 @@ Current status: **6/10 core tools implemented**
 | **Clipboard** | ✅ | Access and modify the Windows clipboard. |
 | **Vision** | ✅ | Local image analysis and OCR via `qwen3-vl:2b`. |
 | **Screenshot** | ✅ | Capture full screen or specific regions. |
-| **Chrome DevTools**| ✅ | Full browser automation via MCP (Playwright). |
+| **Chrome DevTools**| ✅ | Full browser automation via MCP (Puppeteer). |
 | **Mouse & Keyboard**| 🔄 | Direct OS input control (In Progress). |
 | **Web Search** | ⏳ | Real-time web search (Roadmap). |
 | **Web Reader** | ⏳ | Content extraction from URLs (Roadmap). |
