@@ -78,7 +78,7 @@ OpenClaw utilise des embeddings pour retrouver des souvenirs pertinents dans de 
 
 | Outil | OpenClaw | Mon Assistant | Décision |
 |---|---|---|---|
-| **Recherche web** | ✅ (provider externe) | ✅ Z.ai MCP | ✅ local-first |
+| **Recherche web** | ✅ (provider externe) | ⏳ Z.ai MCP (TODO) | ⏳ cloud-first (à implémenter) |
 | **Browser control** | ✅ Puppeteer headless | ✅ Chrome DevTools | ✅ DONE (v1) |
 | **Exécution de code** | ✅ sandbox | ✅ sandbox Node/Python | ⏳ **v2** |
 | **Lecture de fichiers** | ✅ | ✅ dossier autorisé | ⏳ **v2** |
