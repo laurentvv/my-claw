@@ -51,13 +51,6 @@ Repo : https://github.com/laurentvv/my-claw
 
 ---
 
-## DÉCISION — WhatsApp retiré (2026-02-19)
-
-Retiré définitivement. Nextcloud Talk suffit, pas de dépendance Meta souhaitée.
-Les modules 4/5/6/7/8 originaux ont été renumérotés en conséquence.
-
----
-
 ## MODULE TOOLS — Extensions Smolagents
 **Statut : EN COURS — PRIORITAIRE avant Nextcloud Talk**
 

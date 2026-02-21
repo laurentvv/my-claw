@@ -24,7 +24,7 @@
 | Canal | OpenClaw | Mon Assistant | Notes |
 |---|---|---|---|
 | **WebChat** | ✅ | ✅ | |
-| **WhatsApp** | ✅ via Baileys (hack non-officiel) | ❌ retiré (2026-02-19) | Nextcloud Talk suffit |
+| **WhatsApp** | ✅ via Baileys (hack non-officiel) | ❌ non voulu | |
 | **Telegram** | ✅ | ❌ non voulu | |
 | **Nextcloud Talk** | ❌ | ✅ | Avantage privacy |
 | **Discord** | ✅ | ❌ non voulu | |
@@ -177,7 +177,6 @@ Voici les features d'OpenClaw absentes de mon assistant, avec recommandation cla
 | Richesse fonctionnelle | ⭐⭐⭐⭐⭐ | ⭐⭐⭐ |
 | Simplicité / maintenabilité | ⭐⭐ | ⭐⭐⭐⭐⭐ |
 | Vie privée / local-first | ⭐⭐⭐ | ⭐⭐⭐⭐⭐ |
-| Stabilité (WhatsApp officiel) | ⭐⭐⭐ (Baileys = hack) | ⭐⭐⭐⭐⭐ |
 | Time-to-first-use | ⭐⭐ (wizard lourd) | ⭐⭐⭐⭐⭐ |
 | Extensibilité future | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ |
 | Coût infra | ⭐⭐⭐ | ⭐⭐⭐⭐⭐ |
@@ -189,8 +188,7 @@ Voici les features d'OpenClaw absentes de mon assistant, avec recommandation cla
 OpenClaw est impressionnant mais souffre de sa propre ambition : il veut tout faire pour tout le monde. Mon assistant fait **exactement ce que j'utilise**, rien de plus.
 
 **Points où mon assistant est objectivement meilleur que OpenClaw :**
-1. **WhatsApp via Meta Cloud API** (officiel) vs Baileys (reverse-engineering = risque de ban)
-2. **Nextcloud Talk** (inexistant dans OpenClaw)
-3. **100% local par défaut** (Ollama prioritaire, pas cloud)
-4. **Privacy by design** (machine dédiée, SearXNG local)
-5. **Maintenabilité** (1 dev peut lire tout le code en 1h)
+1. **Nextcloud Talk** (inexistant dans OpenClaw)
+2. **100% local par défaut** (Ollama prioritaire, pas cloud)
+3. **Privacy by design** (machine dédiée, SearXNG local)
+4. **Maintenabilité** (1 dev peut lire tout le code en 1h)

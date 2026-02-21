@@ -66,8 +66,6 @@ Lancer le script d'installation automatique :
 - ✅ **TOOL-7 Vision** : Implémenté avec Ollama local (qwen3-vl:2b) au lieu de Z.ai MCP - 100% local, 0 donnée sortante
 - ✅ **TOOL-10 Chrome DevTools** : MCP chargé avec 26 outils Puppeteer - Tests validés
 
-> **Note** : WhatsApp a été retiré du projet (2026-02-19). Nextcloud Talk suffit pour les besoins actuels.
-
 ## Documentation
 
 ### Vue d'ensemble

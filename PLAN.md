@@ -229,7 +229,6 @@ User: "Ouvre Notepad et écris un résumé de ma journée"
 
 | Sujet | Décision | Raison |
 |-------|----------|--------|
-| WhatsApp | Retiré définitivement | Dépendance Meta inutile pour usage perso |
 | SearXNG | Remplacé par MCP Web Search Z.ai | Déjà dans le token, zéro infra supplémentaire |
 | Modèle principal | qwen3:8b (Ollama local) | 100% local, 0 donnée sortante, performant |
 | Modèle orchestrateur | glm-4.7 (Z.ai cloud, optionnel) | Meilleur pour l'orchestration complexe (TOOL-9) |

@@ -1,84 +1,9 @@
 ---
 name: channel-webhooks
-description: Implémentation des webhooks WhatsApp (Meta Cloud API) et Nextcloud Talk Bot. Utilise ce skill pour créer ou modifier app/api/webhook/whatsapp/route.ts et app/api/webhook/nextcloud/route.ts.
+description: Implémentation du webhook Nextcloud Talk Bot. Utilise ce skill pour créer ou modifier app/api/webhook/nextcloud/route.ts.
 ---
 
-# Channel Webhooks — WhatsApp & Nextcloud Talk
-
-## WhatsApp — Meta Cloud API
-
-### Vérification du webhook (GET — requis par Meta)
-```typescript
-export async function GET(req: NextRequest) {
-  const { searchParams } = new URL(req.url)
-  const mode = searchParams.get("hub.mode")
-  const token = searchParams.get("hub.verify_token")
-  const challenge = searchParams.get("hub.challenge")
-
-  if (mode === "subscribe" && token === process.env.WHATSAPP_VERIFY_TOKEN) {
-    return new Response(challenge, { status: 200 })
-  }
-  return new Response("Forbidden", { status: 403 })
-}
-```
-
-### Réception et traitement (POST)
-```typescript
-export async function POST(req: NextRequest) {
-  // 1. Répondre 200 IMMÉDIATEMENT (Meta resend si pas de 200 rapide)
-  const body = await req.json()
-
-  // Traitement async — ne PAS await ici
-  processWhatsAppMessage(body).catch(console.error)
-
-  return NextResponse.json({ status: "ok" })
-}
-
-async function processWhatsAppMessage(body: unknown) {
-  const entry = (body as any)?.entry?.[0]
-  const changes = entry?.changes?.[0]
-  const message = changes?.value?.messages?.[0]
-  if (!message || message.type !== "text") return
-
-  const from = message.from         // numéro E.164
-  const text = message.text.body
-
-  // Appel au cerveau central
-  const response = await fetch(`${process.env.APP_URL}/api/chat`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ message: text, channel: "whatsapp", channelId: from }),
-  })
-  const { answer } = await response.json()
-
-  // Envoi de la réponse
-  await sendWhatsAppMessage(from, answer)
-}
-```
-
-### Envoi d'un message WhatsApp
-```typescript
-async function sendWhatsAppMessage(to: string, text: string) {
-  await fetch(
-    `https://graph.facebook.com/v19.0/${process.env.WHATSAPP_PHONE_NUMBER_ID}/messages`,
-    {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${process.env.WHATSAPP_ACCESS_TOKEN}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        messaging_product: "whatsapp",
-        to,
-        type: "text",
-        text: { body: text },
-      }),
-    }
-  )
-}
-```
-
----
+# Channel Webhooks — Nextcloud Talk
 
 ## Nextcloud Talk Bot
 
@@ -144,7 +69,6 @@ async function sendNextcloudMessage(token: string, message: string) {
 
 ## Points Critiques
 
-- WhatsApp : répondre HTTP 200 dans les 20 secondes ou Meta renvoie le message
 - Nextcloud : la vérification HMAC est obligatoire, sans ça le bot est rejeté
 - Toujours utiliser `crypto.timingSafeEqual` pour comparer les signatures (évite timing attacks)
 - Ne jamais logger le contenu des messages (vie privée) — logger uniquement le canal et le timestamp

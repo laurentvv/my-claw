@@ -344,7 +344,6 @@ User: "Open Notepad and write a summary of your day"
 - No V2 features without explicit validation
 - No Telegram, Discord, Slack, Signal
 - No PC control without Vision (TOOL-7 required for TOOL-9)
-- No WhatsApp (removed 2026-02-19, Nextcloud Talk sufficient)
 
 ---
 
