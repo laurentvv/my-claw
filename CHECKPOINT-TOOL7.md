@@ -33,7 +33,7 @@ TOOL-7 a été refondu pour être **100% local** en utilisant Ollama avec le mod
 ### 1. agent/tools/vision.py
 - ✅ Création de la classe `VisionTool`.
 - ✅ Encodage base64 des images.
-- ✅ Appel à l'API locale Ollama (`/api/generate`).
+- ✅ Appel à l'API locale Ollama (`/api/chat`).
 
 ### 2. agent/main.py
 - ✅ Intégration de `VisionTool` dans la liste `TOOLS`.
