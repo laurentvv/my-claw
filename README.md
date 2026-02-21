@@ -1,82 +1,165 @@
 # my-claw 🦞
 
-Assistant personnel minimaliste, self-hosted, privacy-first.
+A minimalist, self-hosted, and privacy-first personal assistant designed for Windows.
 
-📊 **Vue rapide** : [STATUS.md](STATUS.md) | 📋 **Détails complets** : [PROGRESS.md](PROGRESS.md)
+**my-claw** is a powerful hybrid assistant that combines a modern Next.js 16 frontend with a Python-based "brain" powered by `smolagents`. It is built to run entirely on your own hardware, ensuring your data never leaves your machine unless you explicitly choose to use optional cloud models.
 
-## Architecture
+---
 
-```
-gateway/    → Next.js 16 — webhooks canaux, mémoire Prisma, WebChat
-agent/      → Python smolagents — cerveau LLM, outils, Gradio dev UI
-```
+## ✨ Key Features
 
-## Prérequis
+- 🛡️ **Privacy-First**: Designed to run 100% locally with Ollama.
+- 🪟 **Deep Windows Integration**: Full access to the file system, PowerShell, clipboard, and screen.
+- 🧠 **Hybrid Brain**: Uses `smolagents` for intelligent tool use and code execution.
+- 🌐 **Modern Web Interface**: Clean, responsive UI built with Next.js 16 and Tailwind CSS.
+- 🔌 **Extensible Tools**: Supports custom Python tools and Model Context Protocol (MCP) integrations.
+- 🤖 **Multi-Model Support**: Native support for Qwen3, Gemma3, and GLM-4.7 (via Z.ai).
 
-- Node.js 24+
-- [uv](https://docs.astral.sh/uv/getting-started/installation/) (gestionnaire Python)
-- [Ollama](https://ollama.ai) avec les modèles suivants :
-  - `ollama pull qwen3:8b` (5.2GB — modèle principal, recommandé)
-  - `ollama pull qwen3-vl:2b` (2.3GB — vision locale pour TOOL-7)
-  - `ollama pull gemma3:latest` (3.3GB — modèle rapide)
-- Python 3.11+ (via uv)
-- (Optionnel) Token Z.ai pour GLM-4.7 cloud (code/reason)
+---
 
-## Démarrage rapide
+## 🚀 Quick Start
 
-Lancer le script d'installation automatique :
+### Prerequisites
+
+- **Node.js**: 24.x or higher
+- **uv**: [Python package manager](https://docs.astral.sh/uv/)
+- **Ollama**: For local LLM acceleration
+- **Windows OS**: Recommended (for native tool support)
+
+### Installation
+
+The project includes an automatic setup script for convenience:
 
 ```powershell
 ./setup.ps1
 ```
 
-> Pour ajouter une dépendance Python : `uv add <package>` (jamais pip)
+This script will:
+1. Initialize the Gateway (Next.js) environment and dependencies.
+2. Setup the Agent (Python) environment using `uv`.
+3. Configure the Prisma 7 SQLite database.
+4. Prepare your `.env` files.
 
-## Modules
+---
 
-| Module | Status | Description |
-|--------|--------|-------------|
-| 0 — Socle | ✅ | Structure, config, services locaux |
-| 1 — Agent | ✅ | smolagents + FastAPI + Gradio + GLM-4.7 fix |
-| 2 — Mémoire | ✅ | Prisma + historique conversations |
-| 3 — WebChat | ✅ | UI web + streaming + auth |
-| Tools | 🔄 | 6/10 outils implémentés (1,2,3,7,8,10 DONE / 9 EN COURS / 4,5,6 TODO) |
-| 4 — Nextcloud Talk | ⏳ | Bot HMAC-SHA256 |
-| 5 — Cron | ⏳ | Tâches proactives |
-| 6 — Z.ai + Health | ⏳ | GLM-4.7 + monitoring |
-| 7 — Identity | ⏳ | Persona + system prompt |
+## 🏗️ Architecture
 
-### Outils smolagents implémentés
+The system is split into two main components: the **Gateway** (handling UI and memory) and the **Agent** (handling reasoning and tools).
+
+```mermaid
+graph TD
+    User([User])
+    WebChat[Next.js 16 WebChat]
+    NCTalk[Nextcloud Talk]
+
+    subgraph "Gateway (Node.js/Next.js)"
+        API_Chat[API /api/chat]
+        API_Webhook[API /api/webhook]
+        Prisma[Prisma 7 + SQLite]
+    end
+
+    subgraph "Agent (Python)"
+        FastAPI[FastAPI Server]
+        Smolagents[smolagents CodeAgent]
+        Tools[Windows & MCP Tools]
+    end
+
+    subgraph "Local Services"
+        Ollama[Ollama - Qwen3/Gemma3]
+    end
+
+    subgraph "External (Optional)"
+        ZAI[Z.ai GLM-4.7]
+    end
+
+    User --> WebChat
+    User --> NCTalk
+    WebChat --> API_Chat
+    NCTalk --> API_Webhook
+    API_Chat --> Prisma
+    API_Chat --> FastAPI
+    API_Webhook --> FastAPI
+    FastAPI --> Smolagents
+    Smolagents --> Tools
+    Smolagents --> Ollama
+    Smolagents --> ZAI
+    Tools --> Windows[Windows OS]
+    Tools --> Chrome[Chrome DevTools]
+```
+
+---
+
+## 🛠️ Tool Capabilities
+
+Current status: **6/10 core tools implemented**
 
 | Tool | Status | Description |
 |------|--------|-------------|
-| TOOL-1 | ✅ | Fichiers Windows (read/write/create/delete/list/move/search) |
-| TOOL-2 | ✅ | Exécution OS Windows (PowerShell + fix curl alias) |
-| TOOL-3 | ✅ | Presse-papier Windows |
-| TOOL-7 | ✅ | Vision locale (Ollama qwen3-vl:2b) - 100% local |
-| TOOL-8 | ✅ | Screenshot Windows |
-| TOOL-9 | 🔄 | Contrôle souris/clavier (en cours - nécessite orchestration avancée) |
-| TOOL-10 | ✅ | MCP Chrome DevTools (26 outils Puppeteer) - TESTÉ & VALIDÉ |
+| **File System** | ✅ | Read, write, move, delete, and search files on Windows. |
+| **OS Exec** | ✅ | Execute PowerShell commands and scripts. |
+| **Clipboard** | ✅ | Access and modify the Windows clipboard. |
+| **Vision** | ✅ | Local image analysis and OCR via `qwen3-vl:2b`. |
+| **Screenshot** | ✅ | Capture full screen or specific regions. |
+| **Chrome DevTools**| ✅ | Full browser automation via MCP (Puppeteer). |
+| **Mouse & Keyboard**| 🔄 | Direct OS input control (In Progress). |
+| **Web Search** | ⏳ | Real-time web search (Roadmap). |
+| **Web Reader** | ⏳ | Content extraction from URLs (Roadmap). |
+| **GitHub** | ⏳ | Repository analysis and file reading (Roadmap). |
 
-### Améliorations récentes (2026-02-20)
+---
 
-- ✅ **Fix GLM-4.7** : Nettoyage automatique des balises `</code` générées par GLM-4.7 (SyntaxError résolu)
-- ✅ **Timeouts augmentés** : Gateway 5min, Agent 3min pour l'exécution du code Python
-- ✅ **Guidage de l'agent** : `instructions` + `additional_authorized_imports` pour préférer Python natif (requests, urllib, json, etc.)
-- ✅ **TOOL-7 Vision** : Implémenté avec Ollama local (qwen3-vl:2b) au lieu de Z.ai MCP - 100% local, 0 donnée sortante
-- ✅ **TOOL-10 Chrome DevTools** : MCP chargé avec 26 outils Puppeteer - Tests validés
+## 📅 Roadmap
 
-## Documentation
+### Module 0: Foundation ✅
+- Project structure, Next.js 16, Python `uv`, and Ollama integration.
 
-### Vue d'ensemble
-- 📊 [STATUS.md](./STATUS.md) — **Vue rapide** du projet (statut, progression, stack)
-- 📋 [PROGRESS.md](./PROGRESS.md) — État d'avancement détaillé (checkpoints, validations)
+### Module 1: Python Brain ✅
+- `smolagents` integration, FastAPI server, and Gradio development UI.
 
-### Architecture et plan
-- 🏗️ [AGENTS.md](./AGENTS.md) — Guide complet d'architecture et d'implémentation
-- 🗺️ [PLAN.md](./PLAN.md) — Plan global et architecture cible
-- 🛠️ [IMPLEMENTATION-TOOLS.md](./IMPLEMENTATION-TOOLS.md) — Plan d'implémentation des outils smolagents
+### Module 2: Memory (Prisma 7) ✅
+- SQLite persistence for conversations and settings.
 
-### Techniques et apprentissages
-- 📚 [LEARNING.md](./LEARNING.md) — Découvertes techniques et solutions
-- 🎯 [agent/SKILLS.md](./agent/SKILLS.md) — Patterns de code réutilisables pour l'agent
+### Module 3: WebChat ✅
+- Streaming UI, SSE, and secure authentication.
+
+### Module 4: Nextcloud Talk Integration ⏳
+- Bot support via HMAC-SHA256 webhooks for mobile interaction.
+
+### Module 5: Proactive Tasks ⏳
+- Cron-based job execution and proactive notifications.
+
+### Module 6: Identity & Persona ⏳
+- Customizable system prompts and assistant personality settings.
+
+---
+
+## 📚 Documentation
+
+For more detailed information, please refer to the following files:
+
+- 📊 [STATUS.md](STATUS.md) — Quick project overview.
+- 📋 [PROGRESS.md](PROGRESS.md) — Detailed development checkpoints.
+- 🗺️ [PLAN.md](PLAN.md) — Long-term architecture and goals.
+- 🏗️ [AGENTS.md](AGENTS.md) — Technical guide for developers and agents.
+- 🎯 [agent/SKILLS.md](agent/SKILLS.md) — Agent-specific code patterns.
+
+---
+
+## 🛠️ Tech Stack
+
+- **Frontend**: Next.js 16, React, Tailwind CSS
+- **Database**: SQLite with Prisma 7
+- **Agent Framework**: [smolagents](https://github.com/huggingface/smolagents)
+- **API**: FastAPI (Python)
+- **Environment**: Node.js 24+, Python 3.11+ (via `uv`)
+- **LLM**: Ollama (Local), Z.ai (Cloud/Optional)
+
+---
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+---
+
+Built with 🦞 and 🐍 for a better personal AI experience.
