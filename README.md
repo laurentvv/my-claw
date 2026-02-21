@@ -24,25 +24,10 @@ agent/      → Python smolagents — cerveau LLM, outils, Gradio dev UI
 
 ## Démarrage rapide
 
-```bash
-# 1. Variables d'environnement
-cp .env.example .env.local
-# Remplir les valeurs dans .env.local
+Lancer le script d'installation automatique :
 
-# 2. Gateway (Next.js)
-cd gateway
-npm install
-npx prisma migrate dev --name init
-npm run dev                          # → http://localhost:3000
-
-# 3. Agent (Python — uv)
-cd agent
-uv sync                              # installe les dépendances (pyautogui, pillow, pyperclip, etc.)
-uv run uvicorn main:app --reload     # → http://localhost:8000
-
-# 4. Gradio dev UI (optionnel)
-cd agent
-uv run python gradio_app.py          # → http://localhost:7860
+```powershell
+./setup.ps1
 ```
 
 > Pour ajouter une dépendance Python : `uv add <package>` (jamais pip)
@@ -55,7 +40,7 @@ uv run python gradio_app.py          # → http://localhost:7860
 | 1 — Agent | ✅ | smolagents + FastAPI + Gradio + GLM-4.7 fix |
 | 2 — Mémoire | ✅ | Prisma + historique conversations |
 | 3 — WebChat | ✅ | UI web + streaming + auth |
-| Tools | 🔄 | 7/10 outils implémentés (1,2,3,7,8,9,10 DONE / 4,5,6 TODO) |
+| Tools | 🔄 | 6/10 outils implémentés (1,2,3,7,8,10 DONE / 9 EN COURS / 4,5,6 TODO) |
 | 4 — Nextcloud Talk | ⏳ | Bot HMAC-SHA256 |
 | 5 — Cron | ⏳ | Tâches proactives |
 | 6 — Z.ai + Health | ⏳ | GLM-4.7 + monitoring |
@@ -70,7 +55,7 @@ uv run python gradio_app.py          # → http://localhost:7860
 | TOOL-3 | ✅ | Presse-papier Windows |
 | TOOL-7 | ✅ | Vision locale (Ollama qwen3-vl:2b) - 100% local |
 | TOOL-8 | ✅ | Screenshot Windows |
-| TOOL-9 | ⚠️ | Contrôle souris/clavier (implémenté mais nécessite orchestration avancée) |
+| TOOL-9 | 🔄 | Contrôle souris/clavier (en cours - nécessite orchestration avancée) |
 | TOOL-10 | ✅ | MCP Chrome DevTools (26 outils Puppeteer) - TESTÉ & VALIDÉ |
 
 ### Améliorations récentes (2026-02-20)
@@ -80,8 +65,6 @@ uv run python gradio_app.py          # → http://localhost:7860
 - ✅ **Guidage de l'agent** : `instructions` + `additional_authorized_imports` pour préférer Python natif (requests, urllib, json, etc.)
 - ✅ **TOOL-7 Vision** : Implémenté avec Ollama local (qwen3-vl:2b) au lieu de Z.ai MCP - 100% local, 0 donnée sortante
 - ✅ **TOOL-10 Chrome DevTools** : MCP chargé avec 26 outils Puppeteer - Tests validés
-
-> **Note** : WhatsApp a été retiré du projet (2026-02-19). Nextcloud Talk suffit pour les besoins actuels.
 
 ## Documentation
 

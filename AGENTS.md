@@ -153,13 +153,13 @@ Règles modèles :
 - **OsExecTool** (TOOL-2) : exécution PowerShell
 - **ClipboardTool** (TOOL-3) : lecture/écriture presse-papier
 - **ScreenshotTool** (TOOL-8) : capture d'écran Windows
-- **MouseKeyboardTool** (TOOL-9) : contrôle souris/clavier (bloqué par manque de Vision)
+- **ChromeDevTools MCP** (TOOL-10) : pilotage Chrome (Puppeteer)
+- **MouseKeyboardTool** (TOOL-9) : contrôle souris/clavier (en cours - nécessite Vision)
 
 ### V2 — Bloqués, ne pas implémenter
 - web_search via SearXNG local
 - run_code sandbox Python/Node
 - read_file / write_file dossier whitelist
-- Browser control Chrome DevTools
 
 ### Règles de codage outils
 - Toujours sous-classe Tool (pas décorateur @tool) pour compatibilité Ollama

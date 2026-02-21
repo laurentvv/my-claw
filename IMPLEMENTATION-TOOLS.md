@@ -158,28 +158,32 @@ Commit message : feat(tools): tool-3 clipboard windows
 ## TOOL-4 — MCP Web Search Z.ai (HTTP Remote)
 
 Pas de fichier tools/ — intégration dans main.py.
+Utiliser la même solution que TOOL-10 (FastAPI lifespan + ToolCollection).
 
 Dépendances à ajouter : uv add mcp (ou smolagents gère via ToolCollection)
 Vérifier la version smolagents installée — MCP HTTP disponible depuis v1.4.1.
 
 Variable d'env requise : ZAI_API_KEY dans agent/.env
 
-Pattern d'intégration dans main.py :
+Pattern d'intégration dans main.py (identique à TOOL-10) :
 
-La documentation smolagents pour MCP HTTP remote utilise MCPClient avec
-type "streamable-http" et un header d'authentification.
+Utiliser `ToolCollection.from_mcp()` dans la fonction `lifespan`.
 
 Configuration :
-  url : https://api.z.ai/api/mcp/web_search_prime/mcp
-  type : streamable-http (ou http selon version smolagents)
-  headers : {"Authorization": f"Bearer {os.environ['ZAI_API_KEY']}"}
+```python
+web_search_params = {
+    "url": "https://api.z.ai/api/mcp/web_search_prime/mcp",
+    "type": "http", # ou streamable-http selon la version
+    "headers": {"Authorization": f"Bearer {os.environ['ZAI_API_KEY']}"}
+}
+```
 
 Outils chargés : webSearchPrime
 
 Logique de démarrage dans main.py :
-- Si ZAI_API_KEY présent → charger le client MCP web search
+- Si ZAI_API_KEY présent → charger via `ToolCollection.from_mcp(web_search_params)` dans `lifespan`
 - Si absent → logger un warning, continuer sans ce tool
-- Ajouter les tools MCP à la liste TOOLS avant de créer le CodeAgent
+- Ajouter les tools à la liste globale des outils MCP
 
 Test Gradio avec modèle "reason" :
 1. "Quelle est la météo à Paris aujourd'hui ?"
@@ -192,12 +196,16 @@ Commit message : feat(tools): tool-4 mcp web search zai
 
 ## TOOL-5 — MCP Web Reader Z.ai (HTTP Remote)
 
-Même pattern que TOOL-4.
+Même pattern que TOOL-4 (lifespan + ToolCollection).
 
 Configuration :
-  url : https://api.z.ai/api/mcp/web_reader/mcp
-  type : streamable-http
-  headers : {"Authorization": f"Bearer {os.environ['ZAI_API_KEY']}"}
+```python
+web_reader_params = {
+    "url": "https://api.z.ai/api/mcp/web_reader/mcp",
+    "type": "http",
+    "headers": {"Authorization": f"Bearer {os.environ['ZAI_API_KEY']}"}
+}
+```
 
 Outils chargés : webReader
 
@@ -211,12 +219,16 @@ Commit message : feat(tools): tool-5 mcp web reader zai
 
 ## TOOL-6 — MCP Zread Z.ai (GitHub, HTTP Remote)
 
-Même pattern que TOOL-4 et TOOL-5.
+Même pattern que TOOL-4 et TOOL-5 (lifespan + ToolCollection).
 
 Configuration :
-  url : https://api.z.ai/api/mcp/zread/mcp
-  type : streamable-http
-  headers : {"Authorization": f"Bearer {os.environ['ZAI_API_KEY']}"}
+```python
+zread_params = {
+    "url": "https://api.z.ai/api/mcp/zread/mcp",
+    "type": "http",
+    "headers": {"Authorization": f"Bearer {os.environ['ZAI_API_KEY']}"}
+}
+```
 
 Outils chargés : search_doc, get_repo_structure, read_file
 
@@ -229,37 +241,28 @@ Commit message : feat(tools): tool-6 mcp zread github
 
 ---
 
-## TOOL-7 — MCP Vision Z.ai (GLM-4.6V, stdio local)
+## TOOL-7 — Vision locale (Ollama qwen3-vl:2b)
 
-Pas de fichier tools/ — intégration dans main.py via ToolCollection.from_mcp().
+Fichier : agent/tools/vision.py
 
-Prérequis : Node.js 22+ installé (déjà présent d'après setup).
+Outil vision 100% local utilisant Ollama.
 
-Configuration StdioServerParameters :
-  command : "npx"
-  args : ["-y", "@z_ai/mcp-server@latest"]
-  env : {"Z_AI_API_KEY": ZAI_API_KEY, "Z_AI_MODE": "ZAI", ...os.environ}
+Caractéristiques :
+- Utilise qwen3-vl:2b via Ollama API locale
+- 100% local, aucune donnée sortante
+- Plus rapide et plus fiable que la solution MCP cloud
 
-Important : passer tout os.environ dans env pour que npx trouve Node.js sur Windows.
+Implémentation :
+- Sous-classe Tool smolagents
+- Encodage base64 de l'image
+- Appel direct à l'API Ollama /api/generate (ou /api/chat)
+- Support de l'OCR via prompt adapté
 
-Outils chargés (8 au total) :
-  image_analysis, extract_text_from_screenshot, ui_to_artifact,
-  video_analysis, diagnose_error_screenshot, understand_technical_diagram,
-  ui_diff_check, analyze_data_visualization
+Test Gradio :
+1. "Prends un screenshot de l'écran et analyse-le"
+2. "Prends un screenshot et extrais tout le texte visible"
 
-Bonne pratique Z.ai : référencer les images par chemin de fichier dans le prompt,
-ne pas coller d'image directement. Ex : "Analyse l'image C:\tmp\screen.png"
-
-Délai de démarrage : npx télécharge le package au premier lancement (~5-10s).
-Gérer avec un timeout approprié à l'initialisation.
-
-Test Gradio (nécessite d'avoir TOOL-8 ou un PNG existant) :
-1. Préparer un screenshot PNG quelconque dans C:\tmp\capture.png
-2. "Analyse l'image C:\tmp\capture.png et décris précisément ce que tu vois"
-3. "Extrait tout le texte visible dans C:\tmp\capture.png"
-4. Si une image d'erreur existe : "Analyse cette erreur : C:\tmp\error.png et propose un fix"
-
-Commit message : feat(tools): tool-7 mcp vision glm46v
+Commit message : feat(tools): tool-7 vision locale ollama
 
 ---
 
@@ -490,20 +493,19 @@ Commit message : feat(tools): tool-10 mcp chrome devtools
 ## RÉCAPITULATIF ORDRE D'IMPLÉMENTATION
 
 ```
-TOOL-1   Fichiers Windows          ← COMMENCER ICI
-TOOL-2   OS PowerShell
-TOOL-3   Clipboard
-         → Checkpoint intermédiaire : les 3 tools locaux fonctionnent ensemble
-TOOL-4   MCP Web Search Z.ai
-TOOL-5   MCP Web Reader Z.ai
-TOOL-6   MCP Zread GitHub
-         → Checkpoint intermédiaire : MCP HTTP remote fonctionnels
-TOOL-7   MCP Vision GLM-4.6V
-TOOL-8   Screenshot Windows
-TOOL-9   Souris/Clavier
-         → Checkpoint intermédiaire : pilotage PC complet fonctionnel
-TOOL-10  MCP Chrome DevTools
-         → CHECKPOINT FINAL : tous les tools validés → passer au MODULE 4
+TOOL-1   Fichiers Windows          ✅ DONE
+TOOL-2   OS PowerShell             ✅ DONE
+TOOL-3   Clipboard                 ✅ DONE
+TOOL-7   Vision locale (Ollama)    ✅ DONE
+TOOL-8   Screenshot Windows        ✅ DONE
+TOOL-10  MCP Chrome DevTools       ✅ DONE
+TOOL-9   Souris/Clavier            🔄 EN COURS
+───────────────────────────────────
+TOOL-4   MCP Web Search Z.ai       ⏳ A FAIRE (PROCHAIN)
+TOOL-5   MCP Web Reader Z.ai       ⏳ A FAIRE
+TOOL-6   MCP Zread GitHub          ⏳ A FAIRE
+───────────────────────────────────
+→ CHECKPOINT FINAL : tous les tools validés → passer au MODULE 4
 ```
 
 ---

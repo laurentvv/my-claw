@@ -14,7 +14,7 @@
 - **Agent** (`agent/`): Python smolagents + FastAPI — LLM brain with 7 local tools + MCP Chrome DevTools (26 tools)
 - **UI Dev** (`agent/gradio_app.py`): Gradio for development/testing
 
-**Current Status:** 7/10 tools implemented (TOOL-1,2,3,7,8,9,10 DONE)
+**Current Status:** 6/10 tools terminés (TOOL-1,2,3,7,8,10 DONE / TOOL-9 EN COURS / TOOL-4,5,6 TODO)
 
 ---
 
@@ -47,25 +47,10 @@
 
 ### Startup Commands
 
-```bash
-# 1. Environment setup
-cp .env.example .env.local          # gateway/.env.local
-cp agent/.env.example agent/.env    # agent/.env
+Run the automatic setup script:
 
-# 2. Gateway (Next.js)
-cd gateway
-npm install
-npx prisma migrate dev --name init
-npm run dev                          # → http://localhost:3000
-
-# 3. Agent (Python with uv)
-cd agent
-uv sync                              # installs dependencies
-uv run uvicorn main:app --reload     # → http://localhost:8000
-
-# 4. Gradio dev UI (optional)
-cd agent
-uv run python gradio_app.py          # → http://localhost:7860
+```powershell
+./setup.ps1
 ```
 
 > **Important:** Never run `npm run dev` or `uv run uvicorn` without asking the user first. Ask the user to run and report any errors.
@@ -244,7 +229,7 @@ my-claw/
 
 ---
 
-## Implemented Tools (7/10)
+## Implemented Tools (6/10)
 
 | Tool | Status | Description |
 |------|--------|-------------|
@@ -253,8 +238,8 @@ my-claw/
 | **TOOL-3** | ✅ | Windows Clipboard |
 | **TOOL-7** | ✅ | Local Vision (Ollama qwen3-vl:2b) - 100% local |
 | **TOOL-8** | ✅ | Windows Screenshot |
-| **TOOL-9** | ⚠️ | Mouse/Keyboard Control (implemented but needs advanced orchestration) |
-| **TOOL-10** | ✅ | MCP Chrome DevTools (26 Puppeteer tools) - TESTED & VALIDATED |
+| **TOOL-9** | 🔄 | Mouse/Keyboard Control (en cours - nécessite orchestration) |
+| **TOOL-10** | ✅ | MCP Chrome DevTools (26 Puppeteer tools) - TESTÉ & VALIDÉ |
 
 ### Pending Tools
 
@@ -359,7 +344,6 @@ User: "Open Notepad and write a summary of your day"
 - No V2 features without explicit validation
 - No Telegram, Discord, Slack, Signal
 - No PC control without Vision (TOOL-7 required for TOOL-9)
-- No WhatsApp (removed 2026-02-19, Nextcloud Talk sufficient)
 
 ---
 
@@ -401,8 +385,8 @@ See `IMPLEMENTATION-TOOLS.md` for detailed implementation guide.
 
 ## Checkpoints
 
-Current checkpoint: **TOOL-9 DONE** (mouse/keyboard control implemented, blocked by orchestration)
+Current checkpoint: **TOOL-10 DONE** (MCP Chrome DevTools validé)
 
 Next checkpoint: **TOOL-4** (MCP Web Search Z.ai) — WAITING FOR USER VALIDATION
 
-**DO NOT proceed to TOOL-4 without explicit user validation of TOOL-9.**
+**DO NOT proceed to TOOL-4 without explicit user validation.**

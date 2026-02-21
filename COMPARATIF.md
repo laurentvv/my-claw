@@ -10,7 +10,7 @@
 | | OpenClaw 🦞 | Mon Assistant ✅ |
 |---|---|---|
 | **Architecture** | Gateway Node.js persistant + daemon système | Next.js 16 tout-en-un |
-| **Installation** | CLI wizard + launchd/systemd daemon | `npm run dev` / `pm2 start` |
+| **Installation** | CLI wizard + launchd/systemd daemon | `./setup.ps1` |
 | **Utilisateurs** | Mono (mais complexe multi-agent) | Mono — assumé et simplifié |
 | **Vie privée** | Variable selon config | Machine dédiée, privacy-first |
 | **Modèles** | Cloud-first (Claude, GPT, xAI Grok...) | Local-first (Ollama) + Z.ai opt. |
@@ -24,7 +24,7 @@
 | Canal | OpenClaw | Mon Assistant | Notes |
 |---|---|---|---|
 | **WebChat** | ✅ | ✅ | |
-| **WhatsApp** | ✅ via Baileys (hack non-officiel) | ✅ via Meta Cloud API (officiel) | Meta API = plus stable, pas de ban |
+| **WhatsApp** | ✅ via Baileys (hack non-officiel) | ❌ non voulu | |
 | **Telegram** | ✅ | ❌ non voulu | |
 | **Nextcloud Talk** | ❌ | ✅ | Avantage privacy |
 | **Discord** | ✅ | ❌ non voulu | |
@@ -78,8 +78,8 @@ OpenClaw utilise des embeddings pour retrouver des souvenirs pertinents dans de 
 
 | Outil | OpenClaw | Mon Assistant | Décision |
 |---|---|---|---|
-| **Recherche web** | ✅ (provider externe) | ✅ SearXNG local | ✅ meilleur (local) |
-| **Browser control** | ✅ Puppeteer headless | ❌ | 🟡 Utile, voir plus bas |
+| **Recherche web** | ✅ (provider externe) | ⏳ Z.ai MCP (TODO) | ⏳ cloud-first (à implémenter) |
+| **Browser control** | ✅ Puppeteer headless | ✅ Chrome DevTools | ✅ DONE (v1) |
 | **Exécution de code** | ✅ sandbox | ✅ sandbox Node/Python | ⏳ **v2** |
 | **Lecture de fichiers** | ✅ | ✅ dossier autorisé | ⏳ **v2** |
 | **Création de fichiers** | ✅ (Word, Excel, PPT) | ✅ fichiers simples | ⏳ **v2** |
@@ -150,7 +150,7 @@ Voici les features d'OpenClaw absentes de mon assistant, avec recommandation cla
 |---|---|---|---|
 | Mémoire vectorielle (pgvector + embeddings) | Moyen | Haute si longues histoires | **v2** — après avoir utilisé l'outil |
 | Résumé auto des conversations | Faible | Moyen | **v1.5** — simple prompt |
-| Browser control (Chrome DevTools) | Moyen | Haute pour automatisation | **v2 optionnel** |
+| Browser control (Chrome DevTools) | Moyen | Haute pour automatisation | ✅ **v1 DONE** |
 | Création fichiers (Word/Excel) | Faible | Moyen | **v1.5** — lib simple |
 | Lecture vault Obsidian | Très faible | Dépend de toi | **À toi de décider** |
 | Health check endpoint | Très faible | Moyen | **v1** — 1 route `/api/health` |
@@ -159,7 +159,6 @@ Voici les features d'OpenClaw absentes de mon assistant, avec recommandation cla
 
 ### ✅ Déjà prévu dans mon design
 - WebChat
-- WhatsApp (Meta API officielle, plus stable que Baileys)
 - Nextcloud Talk
 - Mémoire conversations (Prisma)
 - Ollama multi-modèles
@@ -178,7 +177,6 @@ Voici les features d'OpenClaw absentes de mon assistant, avec recommandation cla
 | Richesse fonctionnelle | ⭐⭐⭐⭐⭐ | ⭐⭐⭐ |
 | Simplicité / maintenabilité | ⭐⭐ | ⭐⭐⭐⭐⭐ |
 | Vie privée / local-first | ⭐⭐⭐ | ⭐⭐⭐⭐⭐ |
-| Stabilité (WhatsApp officiel) | ⭐⭐⭐ (Baileys = hack) | ⭐⭐⭐⭐⭐ |
 | Time-to-first-use | ⭐⭐ (wizard lourd) | ⭐⭐⭐⭐⭐ |
 | Extensibilité future | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ |
 | Coût infra | ⭐⭐⭐ | ⭐⭐⭐⭐⭐ |
@@ -190,8 +188,7 @@ Voici les features d'OpenClaw absentes de mon assistant, avec recommandation cla
 OpenClaw est impressionnant mais souffre de sa propre ambition : il veut tout faire pour tout le monde. Mon assistant fait **exactement ce que j'utilise**, rien de plus.
 
 **Points où mon assistant est objectivement meilleur que OpenClaw :**
-1. **WhatsApp via Meta Cloud API** (officiel) vs Baileys (reverse-engineering = risque de ban)
-2. **Nextcloud Talk** (inexistant dans OpenClaw)
-3. **100% local par défaut** (Ollama prioritaire, pas cloud)
-4. **Privacy by design** (machine dédiée, SearXNG local)
-5. **Maintenabilité** (1 dev peut lire tout le code en 1h)
+1. **Nextcloud Talk** (inexistant dans OpenClaw)
+2. **100% local par défaut** (Ollama prioritaire, pas cloud)
+3. **Privacy by design** (machine dédiée, 100% local par défaut)
+4. **Maintenabilité** (1 dev peut lire tout le code en 1h)

@@ -22,9 +22,10 @@ uv sync                                  # après git pull
 
 | ID | Modèle Ollama | Taille | Usage |
 |---|---|---|---|
-| `fast`  | `qwen3:4b`  | 2.6GB | Réponses rapides, simple |
-| `smart` | `qwen3:8b`  | 5.2GB | Usage quotidien équilibré |
-| `main`  | `qwen3:14b` | 9.3GB | **Modèle principal** — max qualité |
+| `fast`  | `gemma3:latest` | 3.3GB | Réponses rapides, simple |
+| `smart` | `qwen3:8b`      | 5.2GB | Usage quotidien équilibré |
+| `main`  | `qwen3:8b`      | 5.2GB | **Modèle principal** — max qualité |
+| `vision`| `qwen3-vl:2b`   | 2.3GB | Vision locale (TOOL-7) |
 
 ### Z.ai / GLM-4.7 — Cloud (données envoyées)
 
@@ -59,35 +60,23 @@ model = LiteLLMModel(
 
 ---
 
-## Factory de modèles
+## Factory de modèles (avec détection auto)
+
+Dans `main.py`, les modèles sont détectés au démarrage via `detect_models()`.
 
 ```python
-import os
-from smolagents import LiteLLMModel
-
-MODELS: dict[str, tuple[str, str]] = {
-    "fast":   ("ollama_chat/qwen3:4b",   "http://localhost:11434"),
-    "smart":  ("ollama_chat/qwen3:8b",   "http://localhost:11434"),
-    "main":   ("ollama_chat/qwen3:14b",  "http://localhost:11434"),
-    "code":   ("openai/glm-4.7-flash",   "https://open.bigmodel.cn/api/paas/v4"),
-    "reason": ("openai/glm-4.7",         "https://open.bigmodel.cn/api/paas/v4"),
+# Modèles cloud (toujours disponibles si ZAI_API_KEY est configuré)
+CLOUD_MODELS = {
+    "code":   ("openai/glm-4.7-flash", "https://api.z.ai/api/coding/paas/v4"),
+    "reason": ("openai/glm-4.7",       "https://api.z.ai/api/coding/paas/v4"),
 }
 
 def get_model(model_id: str = "main") -> LiteLLMModel:
-    # Fallback si Z.ai non configuré
-    if model_id in ("code", "reason") and not os.environ.get("ZAI_API_KEY"):
-        model_id = "main"
-
+    # Récupère le modèle détecté ou fallback
     model_name, base_url = MODELS[model_id]
-    is_ollama = "ollama" in model_name
 
-    return LiteLLMModel(
-        model_id=model_name,
-        api_base=base_url,
-        api_key="ollama" if is_ollama else os.environ["ZAI_API_KEY"],
-        num_ctx=32768 if is_ollama else None,
-        extra_body={"think": False} if is_ollama else None,  # désactiver thinking en mode agent
-    )
+    # ... logique de nettoyage pour GLM-4.7 (CleanedLiteLLMModel)
+    # ... configuration spécifique Ollama (num_ctx, think: False)
 ```
 
 ---
