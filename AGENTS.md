@@ -45,9 +45,9 @@
 | ID | Modèle | Taille | Usage |
 |----|--------|--------|-------|
 | fast | gemma3:latest | 3.3GB | Réponses rapides |
-| smart | qwen3:latest (8b) | 5.2GB | Usage quotidien — recommandé |
-| main | qwen3:latest (8b) | 5.2GB | Modèle principal — défaut |
-| vision | qwen3-vl:2b | ~2GB | Vision locale (TOOL-7) |
+| smart | qwen3:8b | 5.2GB | Usage quotidien — recommandé |
+| main | qwen3:8b | 5.2GB | Modèle principal — défaut |
+| vision | qwen3-vl:2b | 2.3GB | Vision locale (TOOL-7) |
 
 ### Z.ai — Cloud (données envoyées à Z.ai) - OPTIONNEL
 
@@ -154,10 +154,12 @@ Règles modèles :
 - **ClipboardTool** (TOOL-3) : lecture/écriture presse-papier
 - **ScreenshotTool** (TOOL-8) : capture d'écran Windows
 - **ChromeDevTools MCP** (TOOL-10) : pilotage Chrome (Puppeteer)
-- **MouseKeyboardTool** (TOOL-9) : contrôle souris/clavier (en cours - nécessite Vision)
+- **MouseKeyboardTool** (TOOL-9) : 🔄 contrôle souris/clavier (en cours - nécessite Vision)
+- **Web Search MCP** (TOOL-4) : ⏳ recherche web Z.ai
+- **Web Reader MCP** (TOOL-5) : ⏳ lecture URL Z.ai
+- **Zread MCP** (TOOL-6) : ⏳ lecture GitHub Z.ai
 
 ### V2 — Bloqués, ne pas implémenter
-- web_search via SearXNG local
 - run_code sandbox Python/Node
 - read_file / write_file dossier whitelist
 
