@@ -40,7 +40,7 @@ Lancer le script d'installation automatique :
 | 1 — Agent | ✅ | smolagents + FastAPI + Gradio + GLM-4.7 fix |
 | 2 — Mémoire | ✅ | Prisma + historique conversations |
 | 3 — WebChat | ✅ | UI web + streaming + auth |
-| Tools | 🔄 | 7/10 outils implémentés (1,2,3,7,8,10 DONE / 9 EN COURS / 4,5,6 TODO) |
+| Tools | 🔄 | 6/10 outils implémentés (1,2,3,7,8,10 DONE / 9 EN COURS / 4,5,6 TODO) |
 | 4 — Nextcloud Talk | ⏳ | Bot HMAC-SHA256 |
 | 5 — Cron | ⏳ | Tâches proactives |
 | 6 — Z.ai + Health | ⏳ | GLM-4.7 + monitoring |

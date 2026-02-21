@@ -14,7 +14,7 @@
 - **Agent** (`agent/`): Python smolagents + FastAPI — LLM brain with 7 local tools + MCP Chrome DevTools (26 tools)
 - **UI Dev** (`agent/gradio_app.py`): Gradio for development/testing
 
-**Current Status:** 7/10 tools implémentés ou en cours (TOOL-1,2,3,7,8,10 DONE / TOOL-9 EN COURS)
+**Current Status:** 6/10 tools terminés (TOOL-1,2,3,7,8,10 DONE / TOOL-9 EN COURS / TOOL-4,5,6 TODO)
 
 ---
 
@@ -229,7 +229,7 @@ my-claw/
 
 ---
 
-## Implemented Tools (7/10)
+## Implemented Tools (6/10)
 
 | Tool | Status | Description |
 |------|--------|-------------|

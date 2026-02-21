@@ -72,7 +72,7 @@ def check_prerequisites():
         print(f"[WARN] Chrome/Edge: {e}")
 
     print()
-    return all(v for v in checks.values() if v is not False)
+    return all(checks.values())
 
 
 def test_mcp_connection():
@@ -155,7 +155,7 @@ def test_mcp_connection():
         if mcp_context is not None:
             try:
                 mcp_context.__exit__(None, None, None)
-            except:
+            except Exception:
                 pass
         return False
 

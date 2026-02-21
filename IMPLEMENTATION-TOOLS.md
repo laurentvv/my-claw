@@ -241,37 +241,28 @@ Commit message : feat(tools): tool-6 mcp zread github
 
 ---
 
-## TOOL-7 — MCP Vision Z.ai (GLM-4.6V, stdio local)
+## TOOL-7 — Vision locale (Ollama qwen3-vl:2b)
 
-Pas de fichier tools/ — intégration dans main.py via ToolCollection.from_mcp().
+Fichier : agent/tools/vision.py
 
-Prérequis : Node.js 22+ installé (déjà présent d'après setup).
+Outil vision 100% local utilisant Ollama.
 
-Configuration StdioServerParameters :
-  command : "npx"
-  args : ["-y", "@z_ai/mcp-server@latest"]
-  env : {"Z_AI_API_KEY": ZAI_API_KEY, "Z_AI_MODE": "ZAI", ...os.environ}
+Caractéristiques :
+- Utilise qwen3-vl:2b via Ollama API locale
+- 100% local, aucune donnée sortante
+- Plus rapide et plus fiable que la solution MCP cloud
 
-Important : passer tout os.environ dans env pour que npx trouve Node.js sur Windows.
+Implémentation :
+- Sous-classe Tool smolagents
+- Encodage base64 de l'image
+- Appel direct à l'API Ollama /api/generate (ou /api/chat)
+- Support de l'OCR via prompt adapté
 
-Outils chargés (8 au total) :
-  image_analysis, extract_text_from_screenshot, ui_to_artifact,
-  video_analysis, diagnose_error_screenshot, understand_technical_diagram,
-  ui_diff_check, analyze_data_visualization
+Test Gradio :
+1. "Prends un screenshot de l'écran et analyse-le"
+2. "Prends un screenshot et extrais tout le texte visible"
 
-Bonne pratique Z.ai : référencer les images par chemin de fichier dans le prompt,
-ne pas coller d'image directement. Ex : "Analyse l'image C:\tmp\screen.png"
-
-Délai de démarrage : npx télécharge le package au premier lancement (~5-10s).
-Gérer avec un timeout approprié à l'initialisation.
-
-Test Gradio (nécessite d'avoir TOOL-8 ou un PNG existant) :
-1. Préparer un screenshot PNG quelconque dans C:\tmp\capture.png
-2. "Analyse l'image C:\tmp\capture.png et décris précisément ce que tu vois"
-3. "Extrait tout le texte visible dans C:\tmp\capture.png"
-4. Si une image d'erreur existe : "Analyse cette erreur : C:\tmp\error.png et propose un fix"
-
-Commit message : feat(tools): tool-7 mcp vision glm46v
+Commit message : feat(tools): tool-7 vision locale ollama
 
 ---
 

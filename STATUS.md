@@ -20,7 +20,7 @@ Architecture : Next.js 16 (gateway) + Python smolagents (agent) + Gradio (UI dev
 | **1 — Agent** | ✅ DONE | smolagents + FastAPI + Gradio + GLM-4.7 fix + skills |
 | **2 — Mémoire** | ✅ DONE | Prisma 7 + SQLite + historique conversations |
 | **3 — WebChat** | ✅ DONE | UI React + SSE streaming + auth Bearer |
-| **Tools** | 🔄 **7/10** | TOOL-1,2,3,7,8,10 DONE / TOOL-9 EN COURS / TOOL-4,5,6 TODO |
+| **Tools** | 🔄 **6/10** | TOOL-1,2,3,7,8,10 DONE / TOOL-9 EN COURS / TOOL-4,5,6 TODO |
 | **4 — Nextcloud Talk** | ⏳ TODO | Bot HMAC-SHA256 |
 | **5 — Cron** | ⏳ TODO | Tâches proactives |
 | **6 — Z.ai + Health** | ⏳ TODO | GLM-4.7 + monitoring |
@@ -28,7 +28,7 @@ Architecture : Next.js 16 (gateway) + Python smolagents (agent) + Gradio (UI dev
 
 ---
 
-## 🛠️ Outils smolagents (7/10)
+## 🛠️ Outils smolagents (6/10)
 
 | Tool | Statut | Description |
 |------|--------|-------------|

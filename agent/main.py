@@ -153,6 +153,12 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         logger.warning(f"✗ Impossible de charger Chrome DevTools MCP : {e}")
         logger.warning("  L'agent fonctionnera avec les outils locaux uniquement")
+        # S'assurer de nettoyer si l'initialisation a partiellement réussi
+        if _mcp_context is not None:
+            try:
+                _mcp_context.__exit__(None, None, None)
+            except Exception:
+                pass
         _mcp_context = None
         _mcp_tools = []
 
@@ -179,7 +185,7 @@ def get_all_tools() -> list:
         list: Liste des outils disponibles
     """
     all_tools = TOOLS.copy()
-    if _mcp_context is not None:
+    if _mcp_tools:
         all_tools.extend(_mcp_tools)
     return all_tools
 
