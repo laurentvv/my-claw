@@ -190,5 +190,5 @@ OpenClaw est impressionnant mais souffre de sa propre ambition : il veut tout fa
 **Points où mon assistant est objectivement meilleur que OpenClaw :**
 1. **Nextcloud Talk** (inexistant dans OpenClaw)
 2. **100% local par défaut** (Ollama prioritaire, pas cloud)
-3. **Privacy by design** (machine dédiée, SearXNG local)
+3. **Privacy by design** (machine dédiée, 100% local par défaut)
 4. **Maintenabilité** (1 dev peut lire tout le code en 1h)
