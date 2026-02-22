@@ -23,7 +23,10 @@ class MouseKeyboardTool(Tool):
     inputs = {
         "operation": {
             "type": "string",
-            "description": "Opération à effectuer: click, double_click, move, right_click, type, hotkey, drag, scroll",
+            "description": (
+                "Opération à effectuer: click, double_click, move, right_click, "
+                "type, hotkey, drag, scroll"
+            ),
         },
         "x": {
             "type": "integer",
@@ -53,7 +56,10 @@ class MouseKeyboardTool(Tool):
         "keys": {
             "type": "string",
             "nullable": True,
-            "description": "Touches séparées par virgule pour hotkey (ex: 'ctrl,c' ou 'win' ou 'alt,f4')",
+            "description": (
+                "Touches séparées par virgule pour hotkey "
+                "(ex: 'ctrl,c' ou 'win' ou 'alt,f4')"
+            ),
         },
         "clicks": {
             "type": "integer",
@@ -101,7 +107,10 @@ class MouseKeyboardTool(Tool):
         logger.info(f"DEBUG: Taille de l'écran: {pyautogui.size()}")
 
         # DEBUG: Log des paramètres reçus
-        logger.info(f"DEBUG mouse_keyboard - operation={operation}, x={x}, y={y}, x2={x2}, y2={y2}, text={text}, keys={keys}, clicks={clicks}")
+        logger.info(
+            f"DEBUG mouse_keyboard - operation={operation}, x={x}, y={y}, "
+            f"x2={x2}, y2={y2}, text={text}, keys={keys}, clicks={clicks}"
+        )
 
         try:
             # Validation des paramètres selon l'opération
@@ -113,15 +122,23 @@ class MouseKeyboardTool(Tool):
 
             if operation == "drag":
                 if x is None or y is None or x2 is None or y2 is None:
-                    return "ERROR: Les paramètres 'x', 'y', 'x2', 'y2' sont requis pour operation='drag'"
+                    return (
+                        "ERROR: Les paramètres 'x', 'y', 'x2', 'y2' sont requis "
+                        "pour operation='drag'"
+                    )
 
             if operation in ("click", "double_click", "move", "right_click"):
                 if x is None or y is None:
-                    return f"ERROR: Les paramètres 'x' et 'y' sont requis pour operation='{operation}'"
+                    return (
+                        f"ERROR: Les paramètres 'x' et 'y' sont requis pour operation='{operation}'"
+                    )
 
             if operation == "scroll":
                 if x is None or y is None or clicks is None:
-                    return "ERROR: Les paramètres 'x', 'y' et 'clicks' sont requis pour operation='scroll'"
+                    return (
+                        "ERROR: Les paramètres 'x', 'y' et 'clicks' sont requis "
+                        "pour operation='scroll'"
+                    )
 
             # Exécution de l'opération
             match operation:
@@ -169,10 +186,17 @@ class MouseKeyboardTool(Tool):
                     logger.info(f"DEBUG: Exécution pyautogui.scroll({clicks}, {x}, {y})")
                     pyautogui.scroll(clicks, x, y)
                     direction = "haut" if clicks > 0 else "bas"
-                    result = f"Scroll effectué de {abs(clicks)} clics vers le {direction} aux coordonnées ({x}, {y})"
+                    result = (
+                        f"Scroll effectué de {abs(clicks)} clics vers le {direction} "
+                        f"aux coordonnées ({x}, {y})"
+                    )
 
                 case _:
-                    return f"ERROR: Opération '{operation}' non reconnue. Opérations disponibles: click, double_click, move, right_click, type, hotkey, drag, scroll"
+                    return (
+                        f"ERROR: Opération '{operation}' inconnue. "
+                        "Opérations disponibles: click, double_click, move, "
+                        "right_click, type, hotkey, drag, scroll"
+                    )
 
             # Pause pour laisser l'OS réagir
             time.sleep(0.5)
@@ -182,5 +206,6 @@ class MouseKeyboardTool(Tool):
         except Exception as e:
             logger.error(f"Erreur dans MouseKeyboardTool: {type(e).__name__}: {e}")
             import traceback
+
             logger.error(f"Traceback complet: {traceback.format_exc()}")
             return f"ERROR: {type(e).__name__}: {str(e)}"

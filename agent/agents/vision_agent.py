@@ -40,7 +40,10 @@ result = analyze_image(image_path=image, prompt="Décris cette image en détail"
 final_answer({
     "### 1. Task outcome (short version)": result,
     "### 2. Task outcome (extremely detailed version)": f"Analyse complète de l'image : {result}",
-    "### 3. Additional context (if relevant)": "L'analyse a été effectuée avec le modèle de vision qwen3-vl:8b via l'outil analyze_image"
+    "### 3. Additional context (if relevant)": (
+        "L'analyse a été effectuée avec le modèle de vision "
+        "qwen3-vl:8b via l'outil analyze_image"
+    )
 })
 ```
 """
@@ -64,7 +67,9 @@ def create_vision_agent(ollama_url: str, model_id: str = "qwen3:8b") -> CodeAgen
     vision_tools = [t for t in TOOLS if t.name == "analyze_image"]
 
     if not vision_tools:
-        raise RuntimeError(f"Outil analyze_image non trouvé. Outils disponibles: {[t.name for t in TOOLS]}")
+        raise RuntimeError(
+            f"Outil analyze_image non trouvé. Outils disponibles: {[t.name for t in TOOLS]}"
+        )
 
     logger.info(f"vision_agent tools: {[t.name for t in vision_tools]}")
 
@@ -75,7 +80,7 @@ def create_vision_agent(ollama_url: str, model_id: str = "qwen3:8b") -> CodeAgen
     agent = CodeAgent(
         tools=vision_tools,
         model=model,
-        max_steps=5,           # Analyse simple, pas besoin de beaucoup d'étapes
+        max_steps=5,  # Analyse simple, pas besoin de beaucoup d'étapes
         verbosity_level=1,
         additional_authorized_imports=["json", "re", "time", "os"],
         executor_kwargs={"timeout_seconds": 180},
@@ -83,8 +88,9 @@ def create_vision_agent(ollama_url: str, model_id: str = "qwen3:8b") -> CodeAgen
         name="vision",
         description=(
             "Agent spécialisé dans l'analyse d'images avec un modèle de codage. "
-            "Utilise l'outil analyze_image (qwen3-vl:8b interne) pour décrire le contenu d'images, "
-            "extraire du texte, diagnostiquer des erreurs, et analyser des captures d'écran. "
+            "Utilise l'outil analyze_image (qwen3-vl:8b interne) pour décrire le "
+            "contenu d'images, extraire du texte, diagnostiquer des erreurs, "
+            "et analyser des captures d'écran. "
             "Utilise-le pour : analyser des screenshots, extraire du texte d'images, "
             "comprendre des interfaces visuelles, diagnostiquer des problèmes visuels."
         ),

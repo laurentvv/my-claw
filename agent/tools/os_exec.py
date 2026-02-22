@@ -33,7 +33,8 @@ Parameters:
 - command: The PowerShell command to execute
 - timeout: Timeout in seconds (default: 30)
 
-Returns a formatted string with stdout, stderr, and returncode, or an error message prefixed with 'ERROR:'."""
+Returns a formatted string with stdout, stderr, and returncode, or an error message
+prefixed with 'ERROR:'."""
     inputs = {
         "command": {
             "type": "string",
@@ -65,7 +66,9 @@ Returns a formatted string with stdout, stderr, and returncode, or an error mess
             # which has different syntax. Use curl.exe explicitly if the command starts with curl.
             if command.strip().startswith("curl "):
                 command = command.replace("curl ", "curl.exe ", 1)
-                logger.info("Replaced 'curl' with 'curl.exe' to use native curl instead of PowerShell alias")
+                logger.info(
+                    "Replaced 'curl' with 'curl.exe' to use native curl instead of PowerShell alias"
+                )
 
             result = subprocess.run(
                 ["powershell", "-Command", command],

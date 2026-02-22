@@ -47,6 +47,7 @@ def _detect_grounding_model() -> str:
 
     try:
         import requests
+
         ollama_url = os.environ.get("OLLAMA_BASE_URL", "http://localhost:11434")
         response = requests.get(f"{ollama_url}/api/tags", timeout=5)
         response.raise_for_status()
@@ -75,8 +76,7 @@ def _detect_grounding_model() -> str:
         else:
             # Aucun modèle qwen3-vl trouvé
             raise RuntimeError(
-                "Aucun modèle qwen3-vl trouvé. "
-                "Installez-en un avec: ollama pull qwen3-vl:2b"
+                "Aucun modèle qwen3-vl trouvé. Installez-en un avec: ollama pull qwen3-vl:2b"
             )
 
         _detected_vision_model = vision_model
@@ -101,7 +101,7 @@ class QwenGroundingTool(Tool):
         "ses coordonnées pixel absolues (x, y) pour cliquer dessus avec pyautogui. "
         "Utilise qwen3-vl, modèle vision local. "
         "Exemple: ui_grounding(image_path='C:/tmp/screen.png', element='bouton OK') "
-        "→ retourne '{\"x\": 960, \"y\": 540, \"found\": true}'"
+        '→ retourne \'{"x": 960, "y": 540, "found": true}\''
     )
     inputs = {
         "image_path": {
@@ -110,7 +110,10 @@ class QwenGroundingTool(Tool):
         },
         "element": {
             "type": "string",
-            "description": "Description textuelle de l'élément à localiser (ex: 'bouton OK', 'champ de recherche', 'menu Fichier')",
+            "description": (
+                "Description textuelle de l'élément à localiser (ex: 'bouton OK', "
+                "'champ de recherche', 'menu Fichier')"
+            ),
         },
     }
     output_type = "string"
@@ -139,7 +142,10 @@ class QwenGroundingTool(Tool):
             with Image.open(image_path) as img:
                 screen_width, screen_height = img.size
 
-            logger.info(f"qwen3-vl grounding: '{element}' dans {image_path} ({screen_width}x{screen_height})")
+            logger.info(
+                f"qwen3-vl grounding: '{element}' dans {image_path} "
+                f"({screen_width}x{screen_height})"
+            )
 
             # Détecter le meilleur modèle qwen3-vl disponible
             vision_model = _detect_grounding_model()
@@ -158,7 +164,7 @@ class QwenGroundingTool(Tool):
                         {
                             "role": "user",
                             "content": f"{_GROUNDING_SYSTEM}\n\nFind this element: {element}",
-                            "images": [image_b64]
+                            "images": [image_b64],
                         }
                     ],
                     "stream": False,
@@ -177,11 +183,13 @@ class QwenGroundingTool(Tool):
             # Parser les coordonnées relatives [x, y] retournées par qwen3-vl
             coords = self._parse_coordinates(raw_output)
             if coords is None:
-                return json.dumps({
-                    "found": False,
-                    "error": f"Impossible de parser les coordonnées depuis: {raw_output}",
-                    "raw": raw_output,
-                })
+                return json.dumps(
+                    {
+                        "found": False,
+                        "error": f"Impossible de parser les coordonnées depuis: {raw_output}",
+                        "raw": raw_output,
+                    }
+                )
 
             rel_x, rel_y = coords
 
@@ -189,17 +197,22 @@ class QwenGroundingTool(Tool):
             abs_x = int(rel_x * screen_width)
             abs_y = int(rel_y * screen_height)
 
-            logger.info(f"Élément '{element}' trouvé: rel=({rel_x:.3f}, {rel_y:.3f}) → abs=({abs_x}, {abs_y})")
+            logger.info(
+                f"Élément '{element}' trouvé: rel=({rel_x:.3f}, {rel_y:.3f}) "
+                f"→ abs=({abs_x}, {abs_y})"
+            )
 
-            return json.dumps({
-                "found": True,
-                "x": abs_x,
-                "y": abs_y,
-                "rel_x": round(rel_x, 4),
-                "rel_y": round(rel_y, 4),
-                "screen_size": f"{screen_width}x{screen_height}",
-                "element": element,
-            })
+            return json.dumps(
+                {
+                    "found": True,
+                    "x": abs_x,
+                    "y": abs_y,
+                    "rel_x": round(rel_x, 4),
+                    "rel_y": round(rel_y, 4),
+                    "screen_size": f"{screen_width}x{screen_height}",
+                    "element": element,
+                }
+            )
 
         except requests.Timeout:
             return "ERROR: Timeout qwen3-vl (>60s) — modèle peut-être non chargé"
@@ -214,9 +227,9 @@ class QwenGroundingTool(Tool):
         # qwen3-vl retourne typiquement: [0.73, 0.21]
         # Parfois avec du texte autour
         patterns = [
-            r'\[(\d+\.?\d*),\s*(\d+\.?\d*)\]',   # [0.73, 0.21]
-            r'\((\d+\.?\d*),\s*(\d+\.?\d*)\)',   # (0.73, 0.21)
-            r'(\d+\.?\d*),\s*(\d+\.?\d*)',         # 0.73, 0.21
+            r"\[(\d+\.?\d*),\s*(\d+\.?\d*)\]",  # [0.73, 0.21]
+            r"\((\d+\.?\d*),\s*(\d+\.?\d*)\)",  # (0.73, 0.21)
+            r"(\d+\.?\d*),\s*(\d+\.?\d*)",  # 0.73, 0.21
         ]
         for pattern in patterns:
             match = re.search(pattern, text)

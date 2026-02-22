@@ -71,7 +71,7 @@ def create_pc_control_agent(ollama_url: str, model_id: str = "qwen3:8b") -> Code
     agent = CodeAgent(
         tools=pc_tools,
         model=model,
-        max_steps=15,           # Plus d'étapes car workflow screenshot→grounding→action
+        max_steps=15,  # Plus d'étapes car workflow screenshot→grounding→action
         verbosity_level=1,
         additional_authorized_imports=["json", "re", "time", "os"],
         executor_kwargs={"timeout_seconds": 300},
@@ -79,8 +79,8 @@ def create_pc_control_agent(ollama_url: str, model_id: str = "qwen3:8b") -> Code
         name="pc_control",
         description=(
             "Agent spécialisé pour piloter l'interface graphique Windows. "
-            "Peut prendre des screenshots, localiser précisément les éléments UI (qwen3-vl grounding), "
-            "et interagir avec la souris et le clavier. "
+            "Peut prendre des screenshots, localiser précisément les éléments UI "
+            "(qwen3-vl grounding), et interagir avec la souris et le clavier. "
             "Utilise-le pour : ouvrir des applications, cliquer sur des boutons, "
             "remplir des formulaires, naviguer dans Windows. "
             "Pour analyser des images, délègue au sous-agent vision_agent."

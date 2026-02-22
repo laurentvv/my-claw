@@ -1,6 +1,6 @@
 """
 File system tool for Windows operations.
-Provides read, write, create, delete, list, move, and search operations on files and directories.
+Provides read, write, create, delete, list, move, copy, and search operations.
 """
 
 import logging
@@ -15,7 +15,8 @@ logger = logging.getLogger(__name__)
 class FileSystemTool(Tool):
     name = "file_system"
     structured_output = False
-    description = """Windows file system operations tool. Performs read, write, create, delete, list, move, and search operations on files and directories.
+    description = """Windows file system operations tool. Performs read, write,
+create, delete, list, move, copy, and search operations on files and directories.
 
 Operations:
 - read: Read the content of a text file
@@ -23,14 +24,18 @@ Operations:
 - create: Create a new file (with optional content, creates parent directories if needed)
 - delete: Delete a file or empty directory
 - list: List the contents of a directory
-- move: Move or rename a file/directory
+- move: Move or rename a file/directory (uses Python 3.14 Path.move)
+- copy: Copy a file or directory (uses Python 3.14 Path.copy)
 - search: Search for files by glob pattern in a directory
 
 Returns a string with operation result or error message prefixed with 'ERROR:'."""
     inputs = {
         "operation": {
             "type": "string",
-            "description": "The operation to perform: 'read', 'write', 'create', 'delete', 'list', 'move', or 'search'",
+            "description": (
+                "The operation to perform: 'read', 'write', 'create', 'delete', "
+                "'list', 'move', 'copy', or 'search'"
+            ),
         },
         "path": {
             "type": "string",
@@ -94,12 +99,19 @@ Returns a string with operation result or error message prefixed with 'ERROR:'."
                 if destination is None:
                     return "ERROR: destination parameter is required for 'move' operation"
                 return self._move(path_obj, Path(destination))
+            elif operation == "copy":
+                if destination is None:
+                    return "ERROR: destination parameter is required for 'copy' operation"
+                return self._copy(path_obj, Path(destination))
             elif operation == "search":
                 if pattern is None:
                     return "ERROR: pattern parameter is required for 'search' operation"
                 return self._search(path_obj, pattern)
             else:
-                return f"ERROR: Unknown operation '{operation}'. Valid operations are: read, write, create, delete, list, move, search"
+                return (
+                    f"ERROR: Unknown operation '{operation}'. "
+                    "Valid operations are: read, write, create, delete, list, move, copy, search"
+                )
 
         except FileNotFoundError as e:
             logger.error(f"File not found: {e}")
@@ -172,14 +184,28 @@ Returns a string with operation result or error message prefixed with 'ERROR:'."
             return f"Directory {path_obj} is empty"
 
     def _move(self, path_obj: Path, destination: Path) -> str:
-        """Move or rename a file/directory."""
+        """Move or rename a file/directory using Python 3.14 Path.move."""
         if not path_obj.exists():
             raise FileNotFoundError(f"Source path does not exist: {path_obj}")
         if destination.exists():
             return f"ERROR: Destination already exists: {destination}"
-        path_obj.rename(destination)
+
+        # Utilisation de la nouvelle méthode move() de Python 3.14
+        path_obj.move(destination)
         logger.info(f"Moved {path_obj} -> {destination}")
-        return f"Successfully moved/renamed {path_obj} to {destination}"
+        return f"Successfully moved {path_obj} to {destination}"
+
+    def _copy(self, path_obj: Path, destination: Path) -> str:
+        """Copy a file or directory using Python 3.14 Path.copy."""
+        if not path_obj.exists():
+            raise FileNotFoundError(f"Source path does not exist: {path_obj}")
+        if destination.exists():
+            return f"ERROR: Destination already exists: {destination}"
+
+        # Utilisation de la nouvelle méthode copy() de Python 3.14
+        path_obj.copy(destination)
+        logger.info(f"Copied {path_obj} -> {destination}")
+        return f"Successfully copied {path_obj} to {destination}"
 
     def _search(self, path_obj: Path, pattern: str) -> str:
         """Search for files by glob pattern."""
@@ -191,6 +217,8 @@ Returns a string with operation result or error message prefixed with 'ERROR:'."
             # Sort by name and show relative paths
             matches_sorted = sorted(matches, key=lambda p: p.name)
             result = [str(match) for match in matches_sorted]
-            return f"Found {len(matches)} matches for '{pattern}' in {path_obj}:\n" + "\n".join(f"  - {r}" for r in result)
+            return f"Found {len(matches)} matches for '{pattern}' in {path_obj}:\n" + "\n".join(
+                f"  - {r}" for r in result
+            )
         else:
             return f"No matches found for pattern '{pattern}' in {path_obj}"

@@ -20,12 +20,18 @@ class ScreenshotTool(Tool):
 
     name = "screenshot"
     structured_output = False
-    description = "Prend un screenshot de l'écran entier ou d'une région spécifique. Retourne le chemin absolu du fichier PNG sauvegardé."
+    description = (
+        "Prend un screenshot de l'écran entier ou d'une région spécifique. "
+        "Retourne le chemin absolu du fichier PNG sauvegardé."
+    )
     inputs = {
         "region": {
             "type": "string",
             "nullable": True,
-            "description": "Région optionnelle au format 'x,y,width,height'. Si absent, screenshot de l'écran entier.",
+            "description": (
+                "Région optionnelle au format 'x,y,width,height'. "
+                "Si absent, screenshot de l'écran entier."
+            ),
         }
     }
     output_type = "string"

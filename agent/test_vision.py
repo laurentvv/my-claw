@@ -32,10 +32,10 @@ def test_ollama_connection():
         print(f"  Modèles disponibles: {[m['name'] for m in models]}")
 
         # Vérifier que qwen3-vl:8b est installé
-        vision_models = [m['name'] for m in models if 'vl' in m['name'].lower()]
+        vision_models = [m["name"] for m in models if "vl" in m["name"].lower()]
         print(f"  Modèles vision: {vision_models}")
 
-        if 'qwen3-vl:8b' in vision_models:
+        if "qwen3-vl:8b" in vision_models:
             print("  ✓ qwen3-vl:8b installé")
             return True
         else:
@@ -111,6 +111,7 @@ def test_vision_model():
     except Exception as e:
         print(f"  ✗ Erreur: {e}")
         import traceback
+
         traceback.print_exc()
         return False
 
@@ -127,10 +128,7 @@ def test_vision_tool():
         tool = VisionTool()
         print("  ✓ Outil VisionTool créé")
 
-        result = tool.forward(
-            image_path=SCREENSHOT_PATH,
-            prompt="Décris cette image en détail"
-        )
+        result = tool.forward(image_path=SCREENSHOT_PATH, prompt="Décris cette image en détail")
 
         if result.startswith("ERROR:"):
             print(f"  ✗ Erreur: {result}")
@@ -145,6 +143,7 @@ def test_vision_tool():
     except Exception as e:
         print(f"  ✗ Erreur: {e}")
         import traceback
+
         traceback.print_exc()
         return False
 

@@ -34,6 +34,7 @@ def _detect_vision_model() -> str:
 
     try:
         import requests
+
         ollama_url = os.environ.get("OLLAMA_BASE_URL", "http://localhost:11434")
         response = requests.get(f"{ollama_url}/api/tags", timeout=5)
         response.raise_for_status()
@@ -49,7 +50,14 @@ def _detect_vision_model() -> str:
 
         # Si aucun modèle qwen3-vl trouvé, chercher les modèles avec "vision" ou "vl"
         if not vision_models:
-            vision_models = [m for m in available_models if any(keyword in m.lower() for keyword in ["vision", "vl", "llava", "minicpm", "bakllava"])]
+            vision_models = [
+                m
+                for m in available_models
+                if any(
+                    keyword in m.lower()
+                    for keyword in ["vision", "vl", "llava", "minicpm", "bakllava"]
+                )
+            ]
 
         # Supprimer les doublons
         vision_models = list(set(vision_models))
@@ -80,7 +88,10 @@ def _detect_vision_model() -> str:
         return vision_model
 
     except Exception as e:
-        logger.warning(f"Impossible de détecter les modèles Ollama: {e}. Utilisation de qwen3:8b comme fallback.")
+        logger.warning(
+            f"Impossible de détecter les modèles Ollama: {e}. "
+            "Utilisation de qwen3:8b comme fallback."
+        )
         return "qwen3:8b"  # Don't cache — allow retry on next call
 
 
@@ -89,16 +100,18 @@ class VisionTool(Tool):
 
     name = "analyze_image"
     structured_output = False
-    description = """Analyse une image avec un modèle vision local. Peut décrire le contenu, extraire du texte, diagnostiquer des erreurs, etc.
+    description = """Analyse une image avec un modèle vision local. Peut décrire
+le contenu, extraire du texte, diagnostiquer des erreurs, etc.
 
-Utilise un modèle vision (qwen3-vl:*) via Ollama - 100% local, aucune donnée ne sort de la machine.
-Le modèle est détecté automatiquement parmi les modèles installés.
+Utilise un modèle vision (qwen3-vl:*) via Ollama - 100% local, aucune donnée ne
+sort de la machine. Le modèle est détecté automatiquement.
 
 Paramètres:
 - image_path: Chemin absolu vers l'image à analyser (PNG, JPG, etc.)
-- prompt: Question ou instruction pour l'analyse (ex: "Décris cette image", "Quel texte vois-tu ?", "Y a-t-il des erreurs ?")
+- prompt: Question ou instruction pour l'analyse (ex: "Décris cette image",
+  "Quel texte vois-tu ?", "Y a-t-il des erreurs ?")
 
-Retourne une description textuelle de l'image ou un message d'erreur préfixé par 'ERROR:'."""
+Retourne une description textuelle ou un message d'erreur avec 'ERROR:'."""
 
     inputs = {
         "image_path": {
@@ -198,4 +211,3 @@ Retourne une description textuelle de l'image ou un message d'erreur préfixé p
             error_msg = f"Erreur lors de l'analyse de l'image: {str(e)}"
             logger.error(error_msg, exc_info=True)
             return f"ERROR: {error_msg}"
-
