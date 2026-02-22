@@ -1899,6 +1899,47 @@ Le système est prêt pour des tâches plus complexes nécessitant la coordinati
 
 ## Code Review - 2025-02-22
 
+### Mise à jour des modèles Ollama - 2025-02-22
+
+**Fichier:** `agent/models.py` (lignes 19-24)
+**Description:** Ajout des nouveaux modèles Ollama installés dans les préférences de modèles.
+
+**Modèles ajoutés:**
+- `lfm2.5-thinking:1.2b` (731 MB) - Modèle très rapide pour la catégorie "fast"
+- `hf.co/tantk/Nanbeige4.1-3B-GGUF:Q4_K_M` (2.4 GB) - Modèle rapide pour les catégories "fast", "smart" et "main"
+- `qwen3:14b` (9.3 GB) - Modèle puissant pour les catégories "smart" et "main"
+
+**Modifications:**
+```python
+# Avant:
+MODEL_PREFERENCES: dict[str, list[str]] = {
+    "fast":   ["gemma3:latest", "qwen3:4b", "gemma3n:latest"],
+    "smart":  ["qwen3:8b", "qwen3:4b", "gemma3n:latest", "gemma3:latest"],
+    "main":   ["qwen3:8b", "qwen3:4b", "gemma3n:latest", "gemma3:latest"],
+    "vision": ["qwen3-vl:8b", "qwen3-vl:2b", "qwen3-vl:4b", "llama3.2-vision"],
+}
+
+# Après:
+MODEL_PREFERENCES: dict[str, list[str]] = {
+    "fast":   ["lfm2.5-thinking:1.2b", "hf.co/tantk/Nanbeige4.1-3B-GGUF:Q4_K_M", "qwen3:4b", "gemma3:latest"],
+    "smart":  ["qwen3:14b", "qwen3:8b", "qwen3:4b", "hf.co/tantk/Nanbeige4.1-3B-GGUF:Q4_K_M"],
+    "main":   ["qwen3:14b", "qwen3:8b", "qwen3:4b", "hf.co/tantk/Nanbeige4.1-3B-GGUF:Q4_K_M"],
+    "vision": ["qwen3-vl:8b", "qwen3-vl:2b", "qwen3-vl:4b", "llama3.2-vision"],
+}
+```
+
+**Avantages:**
+- Plus de choix de modèles pour différentes catégories d'utilisation
+- Modèles plus rapides disponibles pour les tâches simples (lfm2.5-thinking:1.2b)
+- Modèles plus puissants pour les tâches complexes (qwen3:14b)
+
+**Test:** Vérifier les modèles détectés via l'endpoint `/models`:
+```bash
+curl http://localhost:8000/models
+```
+
+---
+
 ### Problème 1: Imports inutilisés dans browser_agent.py
 **Fichier:** `agent/agents/browser_agent.py:11`
 **Sévérité:** WARNING

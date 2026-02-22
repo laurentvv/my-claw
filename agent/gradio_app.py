@@ -13,16 +13,80 @@ load_dotenv()
 AGENT_URL = os.environ.get("AGENT_URL", "http://localhost:8000")
 
 
-def get_available_models() -> list[str]:
-    """Récupère les modèles disponibles depuis l'agent."""
+def get_available_models() -> list[tuple[str, str]]:
+    """Récupère les modèles disponibles depuis l'agent.
+    
+    Returns:
+        Liste de tuples (label, model_id) pour Gradio Dropdown
+    """
     try:
         resp = requests.get(f"{AGENT_URL}/models", timeout=5)
         resp.raise_for_status()
         data = resp.json()
-        models = list(data.get("models", {}).keys())
-        return models if models else ["fast", "smart", "main", "vision", "code", "reason"]
+        
+        # Récupérer d'abord les modèles par catégorie (avec métadonnées)
+        category_models = data.get("models", {})
+        
+        # Récupérer tous les modèles Ollama disponibles
+        ollama_models = data.get("ollama_models", [])
+        default_model = data.get("default_model", "main")
+        
+        # Créer des labels plus descriptifs pour chaque modèle Ollama
+        model_choices = []
+        for model_id in ollama_models:
+            # Ignorer les modèles d'embedding (non adaptés pour le chat)
+            if "embedding" in model_id.lower() or "nomic-embed" in model_id:
+                continue
+            
+            # Vérifier si ce modèle est utilisé par une catégorie
+            is_default = False
+            model_type = "local"
+            
+            for cat_id, cat_info in category_models.items():
+                cat_name = cat_info.get("full_name", "")
+                if model_id in cat_name:
+                    model_type = cat_info.get("type", "local")
+                    is_default = (cat_id == default_model)
+                    break
+            
+            # Créer un label descriptif
+            if is_default:
+                label = f"{model_id} ({model_type}) ⭐"
+            else:
+                label = f"{model_id} ({model_type})"
+            
+            # Tuple (label, value) pour Gradio Dropdown
+            model_choices.append((label, model_id))
+        
+        # Ajouter les modèles cloud si disponibles
+        for cat_id, cat_info in category_models.items():
+            cat_type = cat_info.get("type", "unknown")
+            if cat_type == "cloud":
+                model_name = cat_info.get("name", cat_id)
+                is_default = (cat_id == default_model)
+                if is_default:
+                    label = f"{model_name} (cloud) ⭐"
+                else:
+                    label = f"{model_name} (cloud)"
+                model_choices.append((label, cat_id))
+        
+        return model_choices if model_choices else [
+            ("fast", "fast"),
+            ("smart", "smart"),
+            ("main", "main"),
+            ("vision", "vision"),
+            ("code", "code"),
+            ("reason", "reason"),
+        ]
     except Exception:
-        return ["fast", "smart", "main", "vision", "code", "reason"]
+        return [
+            ("fast", "fast"),
+            ("smart", "smart"),
+            ("main", "main"),
+            ("vision", "vision"),
+            ("code", "code"),
+            ("reason", "reason"),
+        ]
 
 
 def chat(
@@ -91,9 +155,25 @@ with gr.Blocks(title="my-claw — Dev Interface") as demo:
     refresh_btn.click(fn=get_agent_status, outputs=status_box)
 
     with gr.Row():
+        # Trouver le modèle par défaut (marqué avec ⭐)
+        default_model = None
+        for label, model_id in AVAILABLE_MODELS:
+            if "⭐" in label:
+                default_model = model_id
+                break
+        # Sinon utiliser le premier modèle ou "smart"
+        if default_model is None:
+            default_model = "smart"
+            for label, model_id in AVAILABLE_MODELS:
+                if model_id == "smart":
+                    default_model = "smart"
+                    break
+            if default_model == "smart" and AVAILABLE_MODELS:
+                default_model = AVAILABLE_MODELS[0][1]
+        
         model_dropdown = gr.Dropdown(
             choices=AVAILABLE_MODELS,
-            value="smart" if "smart" in AVAILABLE_MODELS else AVAILABLE_MODELS[0],
+            value=default_model,
             label="Modèle Manager",
             info="Le manager délègue aux sous-agents selon la tâche",
             scale=2,

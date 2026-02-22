@@ -17,9 +17,9 @@ logger = logging.getLogger(__name__)
 
 # ─── Détection modèles Ollama ────────────────────────────────────────────────
 MODEL_PREFERENCES: dict[str, list[str]] = {
-    "fast":   ["gemma3:latest", "qwen3:4b", "gemma3n:latest"],
-    "smart":  ["qwen3:8b", "qwen3:4b", "gemma3n:latest", "gemma3:latest"],
-    "main":   ["qwen3:8b", "qwen3:4b", "gemma3n:latest", "gemma3:latest"],
+    "fast":   ["lfm2.5-thinking:1.2b", "hf.co/tantk/Nanbeige4.1-3B-GGUF:Q4_K_M", "qwen3:4b", "gemma3:latest"],
+    "smart":  ["qwen3:14b", "qwen3:8b", "qwen3:4b", "hf.co/tantk/Nanbeige4.1-3B-GGUF:Q4_K_M"],
+    "main":   ["qwen3:14b", "qwen3:8b", "qwen3:4b", "hf.co/tantk/Nanbeige4.1-3B-GGUF:Q4_K_M"],
     "vision": ["qwen3-vl:8b", "qwen3-vl:2b", "qwen3-vl:4b", "llama3.2-vision"],
 }
 
@@ -131,6 +131,7 @@ def get_model(model_id: str = "main") -> LiteLLMModel:
 
     Args:
         model_id: Identifiant du modèle (main, smart, fast, vision, code, reason)
+                   OU nom direct d'un modèle Ollama (ex: hf.co/tantk/Nanbeige4.1-3B-GGUF:Q4_K_M)
 
     Returns:
         LiteLLMModel configuré correctement
@@ -139,16 +140,28 @@ def get_model(model_id: str = "main") -> LiteLLMModel:
         RuntimeError: Si aucun modèle n'est disponible
     """
     models = get_models()
-    if model_id not in models:
-        if "main" in models:
-            model_name, base_url = models["main"]
-        elif models:
-            model_name, base_url = next(iter(models.values()))
-            logger.warning(f"Modèle '{model_id}' non trouvé, fallback")
-        else:
-            raise RuntimeError("Aucun modèle disponible.")
-    else:
+    
+    # Vérifier si c'est une catégorie
+    if model_id in models:
         model_name, base_url = models[model_id]
+    else:
+        # Vérifier si c'est un modèle Ollama direct
+        ollama_models = get_ollama_models()
+        if model_id in ollama_models:
+            # Créer le modèle Ollama directement
+            ollama_url = os.environ.get("OLLAMA_BASE_URL", "http://localhost:11434")
+            model_name = f"ollama_chat/{model_id}"
+            base_url = ollama_url
+            logger.info(f"✓ Utilisation du modèle Ollama direct: {model_id}")
+        else:
+            # Fallback sur main ou le premier modèle disponible
+            if "main" in models:
+                model_name, base_url = models["main"]
+            elif models:
+                model_name, base_url = next(iter(models.values()))
+                logger.warning(f"Modèle '{model_id}' non trouvé, fallback")
+            else:
+                raise RuntimeError("Aucun modèle disponible.")
 
     is_glm = "z.ai" in base_url.lower() or model_id in ["code", "reason"]
 
