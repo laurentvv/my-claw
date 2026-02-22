@@ -251,7 +251,7 @@ async def get_or_build_agent(model_id: str | None = None) -> CodeAgent:
         if model_id not in _agent_cache:
             logger.info(f"Construction du système multi-agent pour modèle {model_id}")
             # Construire l'agent dans un thread séparé (appel bloquant)
-            loop = asyncio.get_event_loop()
+            loop = asyncio.get_running_loop()
             new_agent = await loop.run_in_executor(
                 None, build_multi_agent_system, model_id
             )
@@ -339,7 +339,7 @@ async def run(req: RunRequest):
         agent = await get_or_build_agent(validated_model)  # Utilise le cache
         prompt = build_prompt_with_history(req.message, req.history)
         # Exécuter l'agent dans un thread séparé pour ne pas bloquer l'event loop
-        loop = asyncio.get_event_loop()
+        loop = asyncio.get_running_loop()
         result = await loop.run_in_executor(None, lambda: agent.run(prompt, reset=True))
         return {"response": str(result)}
     except HTTPException:
