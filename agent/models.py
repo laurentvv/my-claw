@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 # ─── Détection modèles Ollama ────────────────────────────────────────────────
 MODEL_PREFERENCES: dict[str, list[str]] = {
-    "fast":   ["lfm2.5-thinking:1.2b", "hf.co/tantk/Nanbeige4.1-3B-GGUF:Q4_K_M", "qwen3:4b", "gemma3:latest"],
+    "fast":   ["hf.co/tantk/Nanbeige4.1-3B-GGUF:Q4_K_M", "qwen3:4b", "gemma3:latest"],
     "smart":  ["qwen3:14b", "qwen3:8b", "qwen3:4b", "hf.co/tantk/Nanbeige4.1-3B-GGUF:Q4_K_M"],
     "main":   ["qwen3:14b", "qwen3:8b", "qwen3:4b", "hf.co/tantk/Nanbeige4.1-3B-GGUF:Q4_K_M"],
     "vision": ["qwen3-vl:8b", "qwen3-vl:2b", "qwen3-vl:4b", "llama3.2-vision"],
@@ -124,6 +124,26 @@ class CleanedLiteLLMModel(LiteLLMModel):
         return chat_message
 
 
+def is_cloud_model(model_id: str, models: dict[str, tuple[str, str]]) -> bool:
+    """
+    Vérifie si un modèle nécessite ZAI_API_KEY.
+
+    Args:
+        model_id: Identifiant du modèle
+        models: Dictionnaire des modèles disponibles
+
+    Returns:
+        bool: True si le modèle nécessite ZAI_API_KEY
+    """
+    # Vérifier les modèles cloud par ID
+    if model_id in ["code", "reason"]:
+        return True
+    # Vérifier si le modèle est dans la liste et a une URL cloud
+    if model_id in models and "z.ai" in models[model_id][1].lower():
+        return True
+    return False
+
+
 def get_model(model_id: str = "main") -> LiteLLMModel:
     """
     Crée un modèle LiteLLMModel à partir d'un identifiant.
@@ -162,13 +182,21 @@ def get_model(model_id: str = "main") -> LiteLLMModel:
             else:
                 raise RuntimeError("Aucun modèle disponible.")
 
-    is_glm = "z.ai" in base_url.lower() or model_id in ["code", "reason"]
+    is_glm = is_cloud_model(model_id, models)
 
     if is_glm:
+        # Vérifier que ZAI_API_KEY est configuré
+        api_key = os.environ.get("ZAI_API_KEY")
+        if not api_key:
+            raise RuntimeError(
+                "ZAI_API_KEY est requis pour les modèles cloud (code, reason). "
+                "Configurez-le dans agent/.env ou utilisez un modèle local (main, smart, fast)."
+            )
+        
         return CleanedLiteLLMModel(
             model_id=model_name,
             api_base=base_url,
-            api_key=os.environ.get("ZAI_API_KEY", "ollama"),
+            api_key=api_key,
             stop=["</code>", "</code", "</s>"],
         )
     else:

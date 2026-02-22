@@ -9,7 +9,7 @@ from smolagents import CodeAgent, ToolCollection
 from mcp import StdioServerParameters
 from dotenv import load_dotenv
 from tools import TOOLS
-from models import get_model, get_default_model, get_models, get_ollama_models
+from models import get_model, get_default_model, get_models, get_ollama_models, is_cloud_model
 
 load_dotenv()
 
@@ -232,6 +232,8 @@ async def get_or_build_agent(model_id: str | None = None) -> CodeAgent:
     """
     Récupère l'agent depuis le cache ou le construit si nécessaire.
     
+    Thread-safe : empêche le double-build avec un lock global.
+    
     Args:
         model_id: Identifiant du modèle (optionnel, utilise le défaut sinon)
     
@@ -241,24 +243,74 @@ async def get_or_build_agent(model_id: str | None = None) -> CodeAgent:
     if model_id is None:
         model_id = get_default_model()
     
-    # Vérifier si l'agent est déjà en cache (lecture sans lock)
-    if model_id not in _agent_cache:
-        logger.info(f"Construction du système multi-agent pour modèle {model_id}")
-        # Construire l'agent hors du lock (appel bloquant)
-        new_agent = build_multi_agent_system(model_id)
-        # Acquérir le lock uniquement pour mettre à jour le cache
-        async with _cache_lock:
-            if model_id not in _agent_cache:
-                _agent_cache[model_id] = new_agent
-            else:
-                logger.info(f"Utilisation du cache pour modèle {model_id}")
-    else:
-        logger.info(f"Utilisation du cache pour modèle {model_id}")
+    # Acquérir le lock AVANT le check pour empêcher le double-build
+    async with _cache_lock:
+        if model_id not in _agent_cache:
+            logger.info(f"Construction du système multi-agent pour modèle {model_id}")
+            # Construire l'agent dans un thread séparé (appel bloquant)
+            loop = asyncio.get_event_loop()
+            new_agent = await loop.run_in_executor(
+                None, build_multi_agent_system, model_id
+            )
+            _agent_cache[model_id] = new_agent
+        else:
+            logger.info(f"Utilisation du cache pour modèle {model_id}")
     
     return _agent_cache[model_id]
 
 
 # ─── Helpers ─────────────────────────────────────────────────────────────────
+def validate_model_id(model_id: str | None) -> str:
+    """
+    Valide l'identifiant du modèle avant construction.
+    
+    Cette fonction utilise la même logique de validation que get_model() :
+    - Si le modèle n'est pas trouvé, elle fait un fallback sur "main" ou le premier modèle disponible
+    - Elle valide que les modèles cloud ont leur clé API configurée
+    
+    Note: Contrairement à get_model() qui lève RuntimeError (contexte interne),
+    cette fonction lève HTTPException (contexte API endpoint).
+    
+    Args:
+        model_id: Identifiant du modèle à valider
+        
+    Returns:
+        str: Identifiant du modèle validé (peut être différent de l'entrée en cas de fallback)
+        
+    Raises:
+        HTTPException: Si aucun modèle n'est disponible ou si la clé API est manquante
+    """
+    if model_id is None:
+        model_id = get_default_model()
+    
+    # Vérifier que le modèle existe (même logique que get_model)
+    models = get_models()
+    if model_id not in models:
+        # Vérifier si c'est un modèle Ollama direct
+        ollama_models = get_ollama_models()
+        if model_id not in ollama_models:
+            # Fallback sur main ou le premier modèle disponible (comme get_model)
+            if not models:
+                raise HTTPException(
+                    status_code=400,
+                    detail="Aucun modèle disponible"
+                )
+            # Utiliser le fallback
+            fallback_model = "main" if "main" in models else next(iter(models.keys()))
+            logger.warning(f"Modèle '{model_id}' non trouvé, fallback sur {fallback_model}")
+            model_id = fallback_model
+    
+    # Vérifier que les modèles cloud ont leur clé API
+    if is_cloud_model(model_id, models):
+        if not os.environ.get("ZAI_API_KEY"):
+            raise HTTPException(
+                status_code=400,
+                detail=f"Modèle cloud '{model_id}' requiert ZAI_API_KEY. Configurez-le dans agent/.env"
+            )
+    
+    return model_id
+
+
 def build_prompt_with_history(message: str, history: list[dict]) -> str:
     if not history:
         return message
@@ -279,11 +331,21 @@ class RunRequest(BaseModel):
 @app.post("/run")
 async def run(req: RunRequest):
     try:
-        agent = await get_or_build_agent(req.model)  # Utilise le cache
+        # Valider le modèle avant construction
+        validated_model = validate_model_id(req.model)
+        agent = await get_or_build_agent(validated_model)  # Utilise le cache
         prompt = build_prompt_with_history(req.message, req.history)
         result = agent.run(prompt, reset=True)
         return {"response": str(result)}
+    except HTTPException:
+        # Relever les HTTPException de validate_model_id sans modification
+        raise
+    except RuntimeError as e:
+        # Erreur de configuration/validation → 400 Bad Request
+        logger.error(f"Configuration error: {e}")
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
+        # Erreur serveur interne → 500 Internal Server Error
         logger.error(f"Agent error: {type(e).__name__}: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 

@@ -2016,3 +2016,186 @@ curl -X POST http://localhost:8000/run -H "Content-Type: application/json" -d '{
 
 ### Références
 - Plan détaillé: `plans/correction-code-review-issues.md`
+
+---
+
+## Code Review - 2026-02-22 (Correction v3)
+
+### Résumé
+
+Correction de 3 problèmes critiques identifiés dans le code de l'agent Python :
+
+1. **Pas de validation de `req.model` avant la construction/cache** - Permet de cacher des agents cassés
+2. **Race condition de double-build** - Deux requêtes concurrentes peuvent construire le même agent en parallèle
+3. **Échec silencieux de l'auth Z.ai** - L'erreur survient à l'exécution plutôt qu'au démarrage
+
+---
+
+### Problème 1 : Validation de `req.model`
+
+**Localisation :** [`agent/main.py:279-288`](agent/main.py:279-288)
+
+**Problème :** Si un client envoie `model="reason"` ou `model="code"` sans `ZAI_API_KEY` configuré, l'agent est construit et caché avec une clé API invalide (`"ollama"`), causant des erreurs d'auth permanentes.
+
+**Solution implémentée :** Ajout de la fonction `validate_model_id()` avant la construction de l'agent.
+
+```python
+def validate_model_id(model_id: str | None) -> str:
+    """
+    Valide l'identifiant du modèle avant construction.
+    
+    Args:
+        model_id: Identifiant du modèle à valider
+        
+    Returns:
+        str: Identifiant du modèle validé
+        
+    Raises:
+        HTTPException: Si le modèle n'est pas valide ou si la clé API est manquante
+    """
+    if model_id is None:
+        model_id = get_default_model()
+    
+    # Vérifier que le modèle existe
+    models = get_models()
+    if model_id not in models:
+        # Vérifier si c'est un modèle Ollama direct
+        ollama_models = get_ollama_models()
+        if model_id not in ollama_models:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Modèle '{model_id}' non trouvé. Modèles disponibles: {list(models.keys())}"
+            )
+    
+    # Vérifier que les modèles cloud ont leur clé API
+    if model_id in ["code", "reason"]:
+        if not os.environ.get("ZAI_API_KEY"):
+            raise HTTPException(
+                status_code=400,
+                detail=f"Modèle cloud '{model_id}' requiert ZAI_API_KEY. Configurez-le dans agent/.env"
+            )
+    
+    return model_id
+```
+
+**Modification de l'endpoint `/run` :**
+```python
+@app.post("/run")
+async def run(req: RunRequest):
+    try:
+        # Valider le modèle avant construction
+        validated_model = validate_model_id(req.model)
+        agent = await get_or_build_agent(validated_model)
+        # ... reste du code
+```
+
+**Avantages :**
+- ✅ Validation avant construction → pas d'agent cassé dans le cache
+- ✅ Messages d'erreur clairs avec instructions
+- ✅ Protection contre les modèles inconnus
+
+---
+
+### Problème 2 : Race condition de double-build
+
+**Localisation :** [`agent/main.py:231-258`](agent/main.py:231-258)
+
+**Problème :** Le pattern double-check locking actuel permet à deux requêtes concurrentes de construire le même agent en parallèle, ce qui est coûteux (spawn MCP subprocesses, appels HTTP Ollama).
+
+**Solution implémentée :** Acquérir le lock **avant** le check pour empêcher le double-build.
+
+```python
+async def get_or_build_agent(model_id: str | None = None) -> CodeAgent:
+    """
+    Récupère l'agent depuis le cache ou le construit si nécessaire.
+    
+    Thread-safe : empêche le double-build avec un lock global.
+    """
+    if model_id is None:
+        model_id = get_default_model()
+    
+    # Acquérir le lock AVANT le check pour empêcher le double-build
+    async with _cache_lock:
+        if model_id not in _agent_cache:
+            logger.info(f"Construction du système multi-agent pour modèle {model_id}")
+            # Construire l'agent dans un thread séparé (appel bloquant)
+            loop = asyncio.get_event_loop()
+            new_agent = await loop.run_in_executor(
+                None, build_multi_agent_system, model_id
+            )
+            _agent_cache[model_id] = new_agent
+        else:
+            logger.info(f"Utilisation du cache pour modèle {model_id}")
+    
+    return _agent_cache[model_id]
+```
+
+**Avantages :**
+- ✅ Une seule construction par `model_id`
+- ✅ `build_multi_agent_system()` exécuté dans un thread séparé (non bloquant pour l'event loop)
+- ✅ Lock minimal (uniquement pendant la construction)
+
+---
+
+### Problème 3 : Échec silencieux de l'auth Z.ai
+
+**Localisation :** [`agent/models.py:167-173`](agent/models.py:167-173)
+
+**Problème :** `api_key=os.environ.get("ZAI_API_KEY", "ollama")` retourne `"ollama"` quand la variable n'existe pas, causant une erreur 401/403 à l'**exécution**, pas à la création du modèle.
+
+**Solution implémentée :** Échouer rapidement avec un message clair.
+
+```python
+if is_glm:
+    # Vérifier que ZAI_API_KEY est configuré
+    api_key = os.environ.get("ZAI_API_KEY")
+    if not api_key:
+        raise RuntimeError(
+            "ZAI_API_KEY est requis pour les modèles cloud (code, reason). "
+            "Configurez-le dans agent/.env ou utilisez un modèle local (main, smart, fast)."
+        )
+    
+    return CleanedLiteLLMModel(
+        model_id=model_name,
+        api_base=base_url,
+        api_key=api_key,
+        stop=["</code>", "</code", "</s>"],
+    )
+```
+
+**Avantages :**
+- ✅ Échoue rapidement à la création du modèle (pas à l'exécution)
+- ✅ Message d'erreur clair avec instructions
+- ✅ Le serveur ne démarre pas avec une configuration invalide
+
+---
+
+### Tests à effectuer
+
+1. **Test 1 : Validation du modèle**
+   - Envoyer `model="invalid"` → 400 avec liste des modèles disponibles
+   - Envoyer `model="code"` sans `ZAI_API_KEY` → 400 avec message d'erreur
+   - Envoyer `model="main"` → OK si modèle local disponible
+
+2. **Test 2 : Race condition**
+   - Lancer 10 requêtes simultanées pour un nouveau modèle
+   - Vérifier que `build_multi_agent_system()` n'est appelé qu'une fois
+   - Vérifier que toutes les requêtes reçoivent la même instance d'agent
+
+3. **Test 3 : Échec rapide Z.ai**
+   - Démarrer le serveur sans `ZAI_API_KEY`
+   - Essayer de créer un agent avec `model="code"`
+   - Vérifier que l'erreur survient immédiatement (pas à l'exécution)
+
+---
+
+### Fichiers modifiés
+
+- [`agent/models.py`](agent/models.py) - Correction problème 3 (validation ZAI_API_KEY)
+- [`agent/main.py`](agent/main.py) - Correction problème 2 (race condition) + problème 1 (validation req.model)
+
+---
+
+### Références
+
+- Plan détaillé : [`plans/correction-code-review-issues-v3.md`](plans/correction-code-review-issues-v3.md)
