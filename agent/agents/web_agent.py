@@ -33,7 +33,7 @@ QUOTA : 100 calls/mois partagés entre recherche, lecture et GitHub. Utiliser av
 def create_web_agent(
     ollama_url: str,
     web_search_tools: list,
-    model_id: str = "qwen3:8b",
+    model_id: str | None = None,
 ) -> CodeAgent | None:
     """
     Crée le sous-agent web avec les tools MCP Z.ai déjà chargés.
@@ -42,16 +42,19 @@ def create_web_agent(
     Args:
         ollama_url: URL du serveur Ollama (non utilisé, conservé pour compatibilité)
         web_search_tools: Liste des tools MCP Z.ai (peut être vide)
-        model_id: Modèle à utiliser (défaut: "qwen3:8b")
+        model_id: Modèle à utiliser (défaut: modèle par défaut via get_default_model())
 
     Returns:
         CodeAgent ou None si pas de tools disponibles
     """
-    from models import get_model
+    from models import get_model, get_default_model
 
     if not web_search_tools:
         logger.warning("web_agent: aucun tool web MCP disponible (ZAI_API_KEY manquant?)")
         return None
+
+    if model_id is None:
+        model_id = get_default_model()
 
     model = get_model(model_id)
 
