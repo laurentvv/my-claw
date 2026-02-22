@@ -335,7 +335,9 @@ async def run(req: RunRequest):
         validated_model = validate_model_id(req.model)
         agent = await get_or_build_agent(validated_model)  # Utilise le cache
         prompt = build_prompt_with_history(req.message, req.history)
-        result = agent.run(prompt, reset=True)
+        # Exécuter l'agent dans un thread séparé pour ne pas bloquer l'event loop
+        loop = asyncio.get_event_loop()
+        result = await loop.run_in_executor(None, lambda: agent.run(prompt, reset=True))
         return {"response": str(result)}
     except HTTPException:
         # Relever les HTTPException de validate_model_id sans modification
