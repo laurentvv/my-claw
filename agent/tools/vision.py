@@ -82,8 +82,7 @@ def _detect_vision_model() -> str:
 
     except Exception as e:
         logger.warning(f"Impossible de détecter les modèles Ollama: {e}. Utilisation de qwen3:8b comme fallback.")
-        _detected_vision_model = "qwen3:8b"
-        return "qwen3:8b"
+        return "qwen3:8b"  # Don't cache — allow retry on next call
 
 
 class VisionTool(Tool):
