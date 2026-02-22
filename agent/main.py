@@ -144,7 +144,7 @@ def build_multi_agent_system(model_id: str | None = None) -> CodeAgent:
     - browser : modèle par défaut + Chrome DevTools MCP (si disponible)
     - web_search : modèle par défaut + MCP Z.ai (si ZAI_API_KEY configuré)
 
-    NOTE : Tous les agents sauf vision_agent utilisent le même modèle LLM.
+    NOTE : Tous les agents utilisent le même modèle LLM par défaut.
     Les outils spécialisés (ui_grounding, analyze_image) utilisent leurs propres modèles internes.
 
     Args:
