@@ -8,7 +8,6 @@ Rôle : Voir l'écran, localiser les éléments, cliquer, taper
 NOTE : ui_grounding utilise qwen3-vl en interne pour le GUI grounding.
 """
 
-import os
 import logging
 from smolagents import CodeAgent
 
