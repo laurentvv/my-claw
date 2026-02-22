@@ -164,7 +164,7 @@ class QwenGroundingTool(Tool):
                     "stream": False,
                     "options": {
                         "temperature": 0.0,  # Déterministe pour le grounding
-                        "num_ctx": 32768,
+                        "num_ctx": 4096,  # Suffisant pour grounding
                     },
                 },
                 timeout=120,

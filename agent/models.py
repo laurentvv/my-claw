@@ -43,7 +43,7 @@ def get_ollama_models() -> list[str]:
         return []
 
 
-def detect_models() -> dict[str, tuple[str, str]]:
+def _detect_models_impl() -> dict[str, tuple[str, str]]:
     """Détecte les modèles disponibles (Ollama + cloud)."""
     global _detected_models
     if _detected_models is not None:
@@ -75,7 +75,27 @@ def detect_models() -> dict[str, tuple[str, str]]:
     return detected
 
 
-MODELS = detect_models()
+_MODELS_CACHE: dict[str, tuple[str, str]] | None = None
+
+
+def get_models() -> dict[str, tuple[str, str]]:
+    """
+    Retourne les modèles détectés avec cache lazy.
+    
+    La détection est faite à la première utilisation, pas à l'import.
+    Cela permet au serveur de démarrer même si Ollama est down.
+    
+    Returns:
+        dict: Mapping {category: (model_name, base_url)}
+    """
+    global _MODELS_CACHE
+    if _MODELS_CACHE is None:
+        try:
+            _MODELS_CACHE = _detect_models_impl()
+        except Exception as e:
+            logger.warning(f"Échec détection modèles: {e}")
+            _MODELS_CACHE = {}  # Fallback vide
+    return _MODELS_CACHE
 
 
 # ─── GLM-4.7 cleanup ────────────────────────────────────────────────────────
@@ -118,16 +138,17 @@ def get_model(model_id: str = "main") -> LiteLLMModel:
     Raises:
         RuntimeError: Si aucun modèle n'est disponible
     """
-    if model_id not in MODELS:
-        if "main" in MODELS:
-            model_name, base_url = MODELS["main"]
-        elif MODELS:
-            model_name, base_url = next(iter(MODELS.values()))
+    models = get_models()
+    if model_id not in models:
+        if "main" in models:
+            model_name, base_url = models["main"]
+        elif models:
+            model_name, base_url = next(iter(models.values()))
             logger.warning(f"Modèle '{model_id}' non trouvé, fallback")
         else:
             raise RuntimeError("Aucun modèle disponible.")
     else:
-        model_name, base_url = MODELS[model_id]
+        model_name, base_url = models[model_id]
 
     is_glm = "z.ai" in base_url.lower() or model_id in ["code", "reason"]
 
@@ -162,7 +183,7 @@ def get_default_model() -> str:
     """
     # Priorité 1 : variable d'environnement
     env_default = os.environ.get("DEFAULT_MODEL")
-    if env_default and env_default in MODELS:
+    if env_default and env_default in get_models():
         logger.info(f"✓ Modèle par défaut depuis env: {env_default}")
         return env_default
 

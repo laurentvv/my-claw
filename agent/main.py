@@ -1,4 +1,5 @@
 import os
+import asyncio
 import logging
 from pathlib import Path
 from contextlib import asynccontextmanager
@@ -8,7 +9,7 @@ from smolagents import CodeAgent, ToolCollection
 from mcp import StdioServerParameters
 from dotenv import load_dotenv
 from tools import TOOLS
-from models import get_model, get_default_model, MODELS, get_ollama_models
+from models import get_model, get_default_model, get_models, get_ollama_models
 
 load_dotenv()
 
@@ -53,6 +54,10 @@ _chrome_mcp_tools: list = []
 # MCP Z.ai (web search, web reader, zread) — chargés dans lifespan
 _web_search_context: ToolCollection | None = None
 _web_search_tools: list = []
+
+# Cache des agents par modèle pour éviter de reconstruire à chaque requête
+_agent_cache: dict[str, CodeAgent] = {}
+_cache_lock = asyncio.Lock()
 
 
 @asynccontextmanager
@@ -222,6 +227,31 @@ def build_multi_agent_system(model_id: str | None = None) -> CodeAgent:
     return manager
 
 
+# ─── Cache des agents ──────────────────────────────────────────────────────────
+async def get_or_build_agent(model_id: str | None = None) -> CodeAgent:
+    """
+    Récupère l'agent depuis le cache ou le construit si nécessaire.
+    
+    Args:
+        model_id: Identifiant du modèle (optionnel, utilise le défaut sinon)
+    
+    Returns:
+        CodeAgent: L'agent manager avec ses sous-agents
+    """
+    if model_id is None:
+        model_id = get_default_model()
+    
+    # Vérifier si l'agent est déjà en cache
+    async with _cache_lock:
+        if model_id not in _agent_cache:
+            logger.info(f"Construction du système multi-agent pour modèle {model_id}")
+            _agent_cache[model_id] = build_multi_agent_system(model_id)
+        else:
+            logger.info(f"Utilisation du cache pour modèle {model_id}")
+    
+    return _agent_cache[model_id]
+
+
 # ─── Helpers ─────────────────────────────────────────────────────────────────
 def build_prompt_with_history(message: str, history: list[dict]) -> str:
     if not history:
@@ -243,7 +273,7 @@ class RunRequest(BaseModel):
 @app.post("/run")
 async def run(req: RunRequest):
     try:
-        agent = build_multi_agent_system(req.model)
+        agent = await get_or_build_agent(req.model)  # Utilise le cache
         prompt = build_prompt_with_history(req.message, req.history)
         result = agent.run(prompt)
         return {"response": str(result)}
@@ -266,7 +296,7 @@ async def health():
 async def list_models():
     default_model = get_default_model()
     models_info = {}
-    for category, (model_name, base_url) in MODELS.items():
+    for category, (model_name, base_url) in get_models().items():
         display_name = model_name.split("/")[-1] if "/" in model_name else model_name
         is_local = "ollama_chat/" in model_name or "localhost" in base_url
         is_default = category == default_model

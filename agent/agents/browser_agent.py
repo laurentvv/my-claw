@@ -6,11 +6,8 @@ Modèle : qwen3:8b (local, 0 quota)
 Rôle : Naviguer sur le web, remplir des formulaires, extraire du contenu
 """
 
-import os
 import logging
-from contextlib import contextmanager
-from smolagents import CodeAgent, ToolCollection
-from mcp import StdioServerParameters
+from smolagents import CodeAgent
 
 logger = logging.getLogger(__name__)
 

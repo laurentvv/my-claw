@@ -1894,3 +1894,84 @@ La migration multi-agent est **complètement validée**. L'architecture fonction
 - Séquencement correct des actions pour le pilotage PC
 
 Le système est prêt pour des tâches plus complexes nécessitant la coordination de plusieurs agents.
+
+---
+
+## Code Review - 2025-02-22
+
+### Problème 1: Imports inutilisés dans browser_agent.py
+**Fichier:** `agent/agents/browser_agent.py:11`
+**Sévérité:** WARNING
+
+**Problème:** Imports inutilisés suite au refactoring: `contextmanager`, `ToolCollection`, `StdioServerParameters`, `os`.
+
+**Solution:** Supprimer les imports inutilisés, ne garder que `logging` et `CodeAgent`.
+
+**Avantages:** Code plus propre, moins de confusion sur les dépendances.
+
+**Test:** `cd agent && uv run python -c "from agents.browser_agent import create_browser_agent; print('✓ Import OK')"`
+
+---
+
+### Problème 2: num_ctx excessif dans grounding.py
+**Fichier:** `agent/tools/grounding.py:167`
+**Sévérité:** SUGGESTION
+
+**Problème:** `num_ctx: 32768` est excessif pour qwen3-vl:2b grounding. L'original utilisait 4096.
+
+**Solution:** Réduire `num_ctx` de 32768 à 4096.
+
+**Avantages:** Moins de mémoire utilisée, potentiellement plus rapide.
+
+**Test:** `cd agent && uv run python test_grounding.py`
+
+---
+
+### Problème 3: MODELS = detect_models() au moment de l'import
+**Fichier:** `agent/models.py:78`
+**Sévérité:** WARNING
+
+**Problème:** `MODELS = detect_models()` est exécuté au moment de l'import. Si Ollama est down à ce moment, le cache sera définitivement périmé.
+
+**Solution:** Implémenter lazy initialization avec `get_models()`:
+- Renommer `MODELS` en `_MODELS_CACHE` (privée)
+- Renommer `detect_models()` en `_detect_models_impl()` (privée)
+- Créer `get_models()` avec lazy initialization
+- Mettre à jour `get_model()` et `get_default_model()` pour utiliser `get_models()`
+- Mettre à jour l'import et l'accès dans `main.py`
+
+**Avantages:** Le serveur peut démarrer même si Ollama est down, détection différée à la première utilisation.
+
+**Tests:**
+```bash
+cd agent && uv run python -c "from models import get_models; print('✓ Import OK'); print('Models:', get_models())"
+cd agent && uv run uvicorn main:app --host 0.0.0.0 --port 8000 &
+curl http://localhost:8000/health
+curl http://localhost:8000/models
+```
+
+---
+
+### Problème 4: build_multi_agent_system() appelé à chaque requête /run
+**Fichier:** `agent/main.py:246`
+**Sévérité:** WARNING
+
+**Problème:** `build_multi_agent_system()` est appelé à chaque requête `/run`, reconstruisant tous les sous-agents à chaque fois.
+
+**Solution:** Implémenter un cache global avec `asyncio.Lock()`:
+- Ajouter `_agent_cache: dict[str, CodeAgent]` et `_cache_lock = asyncio.Lock()`
+- Créer `get_or_build_agent()` avec lazy initialization
+- Modifier `/run` pour utiliser `await get_or_build_agent(req.model)`
+
+**Avantages:** Réduction drastique de la latence, moins de charge CPU/mémoire, cache par modèle, thread-safe.
+
+**Tests:**
+```bash
+cd agent && uv run uvicorn main:app --host 0.0.0.0 --port 8000
+curl -X POST http://localhost:8000/run -H "Content-Type: application/json" -d '{"message": "Test", "history": [], "model": "main"}'
+```
+
+---
+
+### Références
+- Plan détaillé: `plans/correction-code-review-issues.md`
