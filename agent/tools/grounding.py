@@ -167,7 +167,7 @@ class QwenGroundingTool(Tool):
                         "num_ctx": 32768,
                     },
                 },
-                timeout=60,
+                timeout=120,
             )
             response.raise_for_status()
 

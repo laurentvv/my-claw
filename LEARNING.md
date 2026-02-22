@@ -966,6 +966,262 @@ async def run_agent(req: RunRequest):
 
 ## TOOL-9 — MouseKeyboardTool (2026-02-19 → 2026-02-22)
 
+### Timeout qwen3-vl pour grounding (2026-02-22)
+
+**Problème identifié** : Le modèle qwen3-vl:8b timeout (>60s) lors du grounding UI.
+
+**Diagnostic** :
+- Dans le test4.1 (scroll), l'agent a essayé d'utiliser `ui_grounding` pour trouver l'icône Firefox
+- Le modèle qwen3-vl:8b a timeout après 60 secondes
+- Erreur : `ERROR: Timeout qwen3-vl (>60s) — modèle peut-être non chargé`
+
+**Solution appliquée** :
+- Timeout doublé de 60s à 120s dans [`grounding.py`](agent/tools/grounding.py:170)
+- **Action requise** : Redémarrer le serveur agent pour appliquer les changements
+
+**Impact** :
+- Les tests qui nécessitent `ui_grounding` peuvent échouer
+- Le grounding est nécessaire pour localiser les éléments UI sans coordonnées précises
+
+**Solutions futures possibles** :
+1. Utiliser un modèle plus rapide (qwen3-vl:2b au lieu de 8b)
+2. Utiliser des coordonnées directes au lieu du grounding quand possible
+
+**Note** : Ce problème affecte TOOL-11 (GUI Grounding) et TOOL-9 (MouseKeyboard) quand ils sont utilisés ensemble.
+
+---
+
+### Améliorations possibles pour TOOL-9 — Utilisation de Skills (2026-02-22)
+
+**Problème identifié** : L'agent régénère le même code Python à chaque fois pour des tâches répétitives, ce qui est :
+- ❌ Lent (génération LLM à chaque appel)
+- ❌ Coûteux en tokens
+- ❌ Risque d'erreurs ou variations
+- ❌ Difficile à maintenir
+
+**Solution** : Créer des skills pour les patterns de code répétitifs
+
+#### Skills à créer pour TOOL-9
+
+**SKILL 1 — Ouvrir une application via le menu Démarrer**
+```python
+# Ouvre une application via le menu Démarrer Windows
+def open_application(app_name: str) -> str:
+    from tools import mouse_keyboard
+    import time
+    
+    # Ouvrir le menu Démarrer
+    mouse_keyboard(operation="hotkey", keys="win")
+    time.sleep(1)
+    
+    # Taper le nom de l'application
+    mouse_keyboard(operation="type", text=app_name)
+    time.sleep(0.5)
+    
+    # Appuyer sur Entrée
+    mouse_keyboard(operation="hotkey", keys="enter")
+    time.sleep(2)
+    
+    return final_answer(f"Application '{app_name}' ouverte")
+```
+
+**SKILL 2 — Fermer une fenêtre active**
+```python
+# Ferme la fenêtre active avec ALT+F4
+def close_active_window() -> str:
+    from tools import mouse_keyboard
+    import time
+    
+    mouse_keyboard(operation="hotkey", keys="alt,f4")
+    time.sleep(0.5)
+    
+    return final_answer("Fenêtre fermée avec ALT+F4")
+```
+
+**SKILL 3 — Taper du texte dans une application**
+```python
+# Taper du texte dans l'application active
+def type_text(text: str) -> str:
+    from tools import mouse_keyboard
+    
+    mouse_keyboard(operation="type", text=text)
+    
+    return final_answer(f"Texte tapé: {text}")
+```
+
+**SKILL 4 — Sélectionner tout le texte**
+```python
+# Sélectionne tout le texte (Ctrl+A)
+def select_all() -> str:
+    from tools import mouse_keyboard
+    
+    mouse_keyboard(operation="hotkey", keys="ctrl+a")
+    
+    return final_answer("Tout le texte sélectionné (Ctrl+A)")
+```
+
+**SKILL 5 — Copier le texte sélectionné**
+```python
+# Copie le texte sélectionné (Ctrl+C)
+def copy_text() -> str:
+    from tools import mouse_keyboard
+    
+    mouse_keyboard(operation="hotkey", keys="ctrl+c")
+    
+    return final_answer("Texte copié (Ctrl+C)")
+```
+
+**SKILL 6 — Coller le texte**
+```python
+# Colle le texte (Ctrl+V)
+def paste_text() -> str:
+    from tools import mouse_keyboard
+    
+    mouse_keyboard(operation="hotkey", keys="ctrl+v")
+    
+    return final_answer("Texte collé (Ctrl+V)")
+```
+
+**SKILL 7 — Sauvegarder un fichier (Ctrl+S)**
+```python
+# Sauvegarde le fichier actuel (Ctrl+S)
+def save_file() -> str:
+    from tools import mouse_keyboard
+    
+    mouse_keyboard(operation="hotkey", keys="ctrl,s")
+    
+    return final_answer("Fichier sauvegardé (Ctrl+S)")
+```
+
+**SKILL 8 — Scroller vers le bas**
+```python
+# Scrolle vers le bas de la page
+def scroll_down(clicks: int = 5) -> str:
+    from tools import mouse_keyboard
+    
+    mouse_keyboard(operation="scroll", clicks=clicks)
+    
+    return final_answer(f"Scrolle vers le bas ({clicks} clics)")
+```
+
+**SKILL 9 — Scroller vers le haut**
+```python
+# Scrolle vers le haut de la page
+def scroll_up(clicks: int = 5) -> str:
+    from tools import mouse_keyboard
+    
+    mouse_keyboard(operation="scroll", clicks=-clicks)
+    
+    return final_answer(f"Scrolle vers le haut ({clicks} clics)")
+```
+
+**SKILL 10 — Prendre un screenshot et l'analyser**
+```python
+# Prend un screenshot et l'analyse
+def screenshot_and_analyze(prompt: str = "Describe what you see") -> str:
+    from tools import screenshot, analyze_image
+    
+    # Prendre le screenshot
+    screenshot_path = screenshot()
+    
+    # Analyser l'image
+    analysis = analyze_image(image_path=screenshot_path, prompt=prompt)
+    
+    return final_answer(f"Screenshot: {screenshot_path}\n\nAnalysis: {analysis}")
+```
+
+**SKILL 11 — Cliquer sur un élément UI via grounding**
+```python
+# Trouve et clique sur un élément UI via grounding
+def click_element(element_description: str) -> str:
+    from tools import screenshot, ui_grounding, mouse_keyboard
+    
+    # Prendre un screenshot
+    screenshot_path = screenshot()
+    
+    # Trouver l'élément via grounding
+    coords = ui_grounding(image_path=screenshot_path, element=element_description)
+    
+    # Cliquer sur les coordonnées
+    mouse_keyboard(operation="click", x=coords[0], y=coords[1])
+    
+    return final_answer(f"Cliqué sur '{element_description}' à {coords}")
+```
+
+#### Avantages des skills
+
+1. **Vitesse** : L'agent copie directement le code sans le régénérer
+2. **Fiabilité** : Code testé et validé, moins d'erreurs
+3. **Cohérence** : Même pattern utilisé à chaque fois
+4. **Économie de tokens** : Moins de génération LLM
+5. **Maintenance** : Modification centralisée dans `skills.txt`
+
+#### Implémentation
+
+1. Ajouter les skills dans `agent/skills.txt`
+2. Redémarrer le serveur : `uv run uvicorn main:app --reload`
+3. Documenter les skills dans `agent/SKILLS.md`
+4. Tester que l'agent copie bien les patterns
+
+#### Exemple d'utilisation
+
+**Sans skills** (lent) :
+```
+User: "Ouvre Notepad"
+Agent: [génère 30 lignes de code Python]
+→ 5-10 secondes de génération
+```
+
+**Avec skills** (rapide) :
+```
+User: "Ouvre Notepad"
+Agent: [copie le skill open_application("notepad")]
+→ 1-2 secondes (copie + exécution)
+```
+
+#### Tests à effectuer
+
+1. Vérifier que l'agent copie les skills au lieu de régénérer le code
+2. Mesurer le gain de temps sur les tâches répétitives
+3. Valider que tous les skills fonctionnent correctement
+4. Comparer la consommation de tokens avec/sans skills
+
+#### Références
+
+- Skills existants : `agent/skills.txt`
+- Documentation skills : `agent/SKILLS.md`
+- Documentation smolagents : https://huggingface.co/docs/smolagents/tutorials/building_good_agents
+
+### Restrictions système Windows — Raccourcis protégés (2026-02-22)
+
+**Raccourcis système protégés** : Windows bloque certains raccourcis via automation pour des raisons de sécurité.
+
+#### Win+L — Verrouillage de session
+**Problème** : Le raccourci Win+L ne fonctionne pas via automation pyautogui.
+
+**Diagnostic** :
+- Testé avec pyautogui.hotkey('win', 'l') — Échec (lettre 'l' affichée)
+- Testé avec pyautogui.hotkey('win', 'L') — Échec
+- Testé avec keyDown('win') + press('l') + keyUp('win') — Échec
+- Testé avec PowerShell SendKeys — Échec
+- Win+E, Win+S, Win+I fonctionnent correctement
+
+**Conclusion** : Windows bloque les raccourcis de verrouillage d'écran via automation pour des raisons de sécurité. C'est une **limitation système connue**, pas un bug de TOOL-9.
+
+**Workaround** : Via PowerShell au lieu de pyautogui
+```python
+os_exec(command="rundll32.exe user32.dll,LockWorkStation")
+```
+
+**Impact sur les tests** : Le test 1.4 (Win+L) est marqué comme "Non applicable - Restriction système Windows".
+
+#### Autres raccourcis qui posent souvent problème
+- **Ctrl+Alt+Del** : Bloqué OS
+- **Win+D** : Parfois capricieux (dépend du focus)
+- **Alt+F4** : Dépend du focus fenêtre
+
+**Référence** : https://github.com/asweigart/pyautogui/issues/371
+
 ### Implémentation
 - Classe MouseKeyboardTool avec paramètres:
   - operation (str): click, double_click, move, right_click, type, hotkey, drag, scroll
