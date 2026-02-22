@@ -74,9 +74,6 @@ def _detect_models_impl() -> dict[str, tuple[str, str]]:
     return detected
 
 
-_MODELS_CACHE: dict[str, tuple[str, str]] | None = None
-
-
 def get_models() -> dict[str, tuple[str, str]]:
     """
     Retourne les modèles détectés avec cache lazy.
@@ -87,14 +84,11 @@ def get_models() -> dict[str, tuple[str, str]]:
     Returns:
         dict: Mapping {category: (model_name, base_url)}
     """
-    global _MODELS_CACHE
-    if _MODELS_CACHE is None:
-        try:
-            _MODELS_CACHE = _detect_models_impl()
-        except Exception as e:
-            logger.warning(f"Échec détection modèles: {e}")
-            _MODELS_CACHE = {}  # Fallback vide
-    return _MODELS_CACHE
+    try:
+        return _detect_models_impl()
+    except Exception as e:
+        logger.warning(f"Échec détection modèles: {e}")
+        return {}  # Fallback vide
 
 
 # ─── GLM-4.7 cleanup ────────────────────────────────────────────────────────
