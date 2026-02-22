@@ -59,6 +59,7 @@ Le projet a été mis à jour vers les dernières versions majeures de ses dépe
 - Génération du client Prisma v7.4.1.
 - Validation de la compilation via `npm run build` (Next.js 16.1.6 Turbopack).
 - Validation du linting (Note: ESLint reste en v9 pour assurer la compatibilité avec `eslint-config-next`).
+- **Pinning** : Les dépendances `next`, `react`, `react-dom` et `eslint-config-next` ont été fixées sur des versions exactes pour éviter des changements cassants imprévus.
 
 ---
 
