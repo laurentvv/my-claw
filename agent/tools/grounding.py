@@ -6,10 +6,10 @@ d'interface à partir d'une description textuelle et d'un screenshot.
 Retourne les coordonnées pixel absolues pour pyautogui.
 """
 
-import logging
-import os
 import base64
 import json
+import logging
+import os
 import re
 from pathlib import Path
 from typing import Optional

@@ -5,9 +5,10 @@ Ce module centralise la logique de création de modèles pour éviter les import
 circulaires entre main.py et les agents.
 """
 
-import os
 import logging
+import os
 import re
+
 import requests
 from smolagents import LiteLLMModel
 
@@ -67,7 +68,7 @@ def _detect_models_impl() -> dict[str, tuple[str, str]]:
     if vision_models:
         logger.info(f"✓ qwen3-vl détecté pour pc_control_agent grounding: {vision_models}")
     else:
-        logger.warning(f"✗ qwen3-vl non trouvé — installer avec: ollama pull qwen3-vl:2b")
+        logger.warning("✗ qwen3-vl non trouvé — installer avec: ollama pull qwen3-vl:2b")
 
     detected.update(CLOUD_MODELS)
     _detected_models = detected

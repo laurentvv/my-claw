@@ -1,15 +1,17 @@
-import os
 import asyncio
 import logging
-from pathlib import Path
+import os
 from contextlib import asynccontextmanager
+from pathlib import Path
+
+from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
+from mcp import StdioServerParameters
 from pydantic import BaseModel
 from smolagents import CodeAgent, ToolCollection
-from mcp import StdioServerParameters
-from dotenv import load_dotenv
+
+from models import get_default_model, get_model, get_models, get_ollama_models, is_cloud_model
 from tools import TOOLS
-from models import get_model, get_default_model, get_models, get_ollama_models, is_cloud_model
 
 load_dotenv()
 
@@ -26,6 +28,7 @@ logging.getLogger("LiteLLM").setLevel(logging.INFO)
 # Ignorer le FutureWarning de smolagents concernant structured_output
 # Ce warning est interne à smolagents et sera corrigé dans une future version
 import warnings
+
 warnings.filterwarnings("ignore", message="Parameter 'structured_output' was not specified", category=FutureWarning)
 
 
@@ -153,9 +156,9 @@ def build_multi_agent_system(model_id: str | None = None) -> CodeAgent:
     Returns:
         CodeAgent: Le manager avec ses sous-agents
     """
+    from agents.browser_agent import create_browser_agent
     from agents.pc_control_agent import create_pc_control_agent
     from agents.vision_agent import create_vision_agent
-    from agents.browser_agent import create_browser_agent
     from agents.web_agent import create_web_agent
 
     ollama_url = os.environ.get("OLLAMA_BASE_URL", "http://localhost:11434")

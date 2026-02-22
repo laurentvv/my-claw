@@ -9,6 +9,7 @@ NOTE : ui_grounding utilise qwen3-vl en interne pour le GUI grounding.
 """
 
 import logging
+
 from smolagents import CodeAgent
 
 logger = logging.getLogger(__name__)
@@ -51,8 +52,8 @@ def create_pc_control_agent(ollama_url: str, model_id: str = "qwen3:8b") -> Code
     Returns:
         CodeAgent pour utilisation dans le manager
     """
-    from tools import TOOLS
     from models import get_model
+    from tools import TOOLS
 
     # Filtrer uniquement les tools pertinents pour le pilotage PC (sans analyze_image)
     pc_tools_names = {"screenshot", "ui_grounding", "mouse_keyboard"}

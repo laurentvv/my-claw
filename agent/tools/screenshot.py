@@ -12,7 +12,6 @@ from typing import Optional
 
 from smolagents import Tool
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -43,7 +42,6 @@ class ScreenshotTool(Tool):
         """
         # Import des packages externes dans forward() pour compatibilité Ollama
         import pyautogui
-        from PIL import Image
 
         try:
             # Récupérer le répertoire de sauvegarde depuis l'environnement
@@ -64,7 +62,7 @@ class ScreenshotTool(Tool):
                     x, y, width, height = [int(v.strip()) for v in region.split(",")]
                     screenshot = pyautogui.screenshot(region=(x, y, width, height))
                     logger.info(f"Screenshot pris de la région {region}")
-                except ValueError as e:
+                except ValueError:
                     error_msg = f"Format de région invalide: {region}. Attendu: 'x,y,width,height'"
                     logger.error(error_msg)
                     return f"ERROR: {error_msg}"

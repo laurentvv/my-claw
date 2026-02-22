@@ -3,9 +3,10 @@ Gradio 6.6.0 — Interface de développement my-claw multi-agent.
 Compatible Gradio 6.x (type="messages" obligatoire).
 """
 
+import os
+
 import gradio as gr
 import requests
-import os
 from dotenv import load_dotenv
 
 load_dotenv()

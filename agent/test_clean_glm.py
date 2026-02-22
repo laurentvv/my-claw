@@ -10,6 +10,7 @@ os_exec(command="...")
 
 import re
 
+
 def clean_glm_response(text: str) -> str:
     """
     Nettoie les balises de fermeture problématiques générées par GLM-4.7.

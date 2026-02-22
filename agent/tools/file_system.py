@@ -9,7 +9,6 @@ from typing import Optional
 
 from smolagents import Tool
 
-
 logger = logging.getLogger(__name__)
 
 

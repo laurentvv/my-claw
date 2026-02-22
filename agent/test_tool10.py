@@ -5,11 +5,13 @@ Ce script teste la connexion MCP et le chargement des outils
 sans demarrer le serveur FastAPI complet.
 """
 
-from smolagents import ToolCollection
-from mcp import StdioServerParameters
 import os
 import sys
+
 import requests
+from mcp import StdioServerParameters
+from smolagents import ToolCollection
+
 
 def check_prerequisites():
     """Vérifie les prérequis pour TOOL-10."""
@@ -65,7 +67,7 @@ def check_prerequisites():
         result = subprocess.run(["where", "chrome"], capture_output=True, text=True, timeout=5)
         if result.returncode == 0:
             checks["Chrome/Edge"] = True
-            print(f"[OK] Chrome/Edge: installe")
+            print("[OK] Chrome/Edge: installe")
         else:
             print("[WARN] Chrome/Edge: non trouve (MCP peut le telecharger)")
     except Exception as e:

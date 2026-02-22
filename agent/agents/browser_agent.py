@@ -7,6 +7,7 @@ Rôle : Naviguer sur le web, remplir des formulaires, extraire du contenu
 """
 
 import logging
+
 from smolagents import CodeAgent
 
 logger = logging.getLogger(__name__)

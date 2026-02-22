@@ -5,14 +5,13 @@ Implémente TOOL-7 selon IMPLEMENTATION-TOOLS.md.
 100% local, 0 donnée sortante - utilise qwen3-vl:* via Ollama.
 """
 
+import base64
 import logging
 import os
-import base64
 from pathlib import Path
 from typing import Optional
 
 from smolagents import Tool
-
 
 logger = logging.getLogger(__name__)
 
@@ -71,10 +70,10 @@ def _detect_vision_model() -> str:
             # Aucun modèle de vision trouvé, fallback sur qwen3:8b (supporte la vision)
             vision_model = "qwen3:8b"
             logger.warning(
-                f"⚠️ Aucun modèle de vision trouvé. "
-                f"VisionTool utilise qwen3:8b comme fallback. "
-                f"Pour la vision, installez un modèle avec 'vision' ou 'vl' dans le nom : "
-                f"ollama pull qwen3-vl:2b"
+                "⚠️ Aucun modèle de vision trouvé. "
+                "VisionTool utilise qwen3:8b comme fallback. "
+                "Pour la vision, installez un modèle avec 'vision' ou 'vl' dans le nom : "
+                "ollama pull qwen3-vl:2b"
             )
 
         _detected_vision_model = vision_model
@@ -180,7 +179,7 @@ Retourne une description textuelle de l'image ou un message d'erreur préfixé p
             logger.info(f"Analyse terminée - {len(analysis)} caractères")
             return analysis
 
-        except FileNotFoundError as e:
+        except FileNotFoundError:
             error_msg = f"Fichier image non trouvé: {image_path}"
             logger.error(error_msg, exc_info=True)
             return f"ERROR: {error_msg}"

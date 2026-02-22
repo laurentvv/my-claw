@@ -62,9 +62,9 @@ Architecture : Next.js 16 (gateway) + Python smolagents (agent) + Gradio (UI dev
 |-----------|-------------|---------|
 | Gateway | Next.js | 16+ |
 | ORM | Prisma | 7+ |
-| Agent | smolagents | 1.9+ |
-| API Python | FastAPI | 0.115+ |
-| UI dev | Gradio | 5+ |
+| Agent | smolagents | 1.24+ |
+| API Python | FastAPI | 0.131+ |
+| UI dev | Gradio | 6+ |
 | LLM local | Ollama | latest |
 | LLM cloud | Z.ai GLM-4.7 | optionnel |
 

@@ -9,6 +9,7 @@ NOTE : L'outil analyze_image utilise qwen3-vl:8b en interne pour la vision.
 """
 
 import logging
+
 from smolagents import CodeAgent
 
 logger = logging.getLogger(__name__)
@@ -56,8 +57,8 @@ def create_vision_agent(ollama_url: str, model_id: str = "qwen3:8b") -> CodeAgen
     Returns:
         CodeAgent pour utilisation dans le manager
     """
-    from tools import TOOLS
     from models import get_model
+    from tools import TOOLS
 
     # Filtrer uniquement l'outil analyze_image
     vision_tools = [t for t in TOOLS if t.name == "analyze_image"]
