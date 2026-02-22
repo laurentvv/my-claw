@@ -241,13 +241,19 @@ async def get_or_build_agent(model_id: str | None = None) -> CodeAgent:
     if model_id is None:
         model_id = get_default_model()
     
-    # Vérifier si l'agent est déjà en cache
-    async with _cache_lock:
-        if model_id not in _agent_cache:
-            logger.info(f"Construction du système multi-agent pour modèle {model_id}")
-            _agent_cache[model_id] = build_multi_agent_system(model_id)
-        else:
-            logger.info(f"Utilisation du cache pour modèle {model_id}")
+    # Vérifier si l'agent est déjà en cache (lecture sans lock)
+    if model_id not in _agent_cache:
+        logger.info(f"Construction du système multi-agent pour modèle {model_id}")
+        # Construire l'agent hors du lock (appel bloquant)
+        new_agent = build_multi_agent_system(model_id)
+        # Acquérir le lock uniquement pour mettre à jour le cache
+        async with _cache_lock:
+            if model_id not in _agent_cache:
+                _agent_cache[model_id] = new_agent
+            else:
+                logger.info(f"Utilisation du cache pour modèle {model_id}")
+    else:
+        logger.info(f"Utilisation du cache pour modèle {model_id}")
     
     return _agent_cache[model_id]
 
@@ -275,7 +281,7 @@ async def run(req: RunRequest):
     try:
         agent = await get_or_build_agent(req.model)  # Utilise le cache
         prompt = build_prompt_with_history(req.message, req.history)
-        result = agent.run(prompt)
+        result = agent.run(prompt, reset=True)
         return {"response": str(result)}
     except Exception as e:
         logger.error(f"Agent error: {type(e).__name__}: {e}")

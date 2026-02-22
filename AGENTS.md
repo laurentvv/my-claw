@@ -74,7 +74,7 @@ Exemples de configuration dans `agent/.env` :
 DEFAULT_MODEL=reason
 
 # Utiliser glm-4.7-flash pour le coding rapide
-DEFAULT_MODEL=coding
+DEFAULT_MODEL=code
 
 # Forcer le modèle local (gratuit)
 DEFAULT_MODEL=main

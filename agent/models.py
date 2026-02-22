@@ -9,7 +9,6 @@ import os
 import logging
 import re
 import requests
-from pathlib import Path
 from smolagents import LiteLLMModel
 
 logger = logging.getLogger(__name__)
@@ -192,7 +191,7 @@ def get_default_model() -> str:
     3. "main" (qwen3:8b local) en fallback
 
     Returns:
-        str: Identifiant du modèle par défaut (main, coding, reason, smart, fast, vision)
+        str: Identifiant du modèle par défaut (main, code, reason, smart, fast, vision)
     """
     # Priorité 1 : variable d'environnement
     env_default = os.environ.get("DEFAULT_MODEL")

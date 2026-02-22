@@ -8,7 +8,6 @@ Rôle : Analyser des images, extraire du texte, diagnostiquer des erreurs
 NOTE : L'outil analyze_image utilise qwen3-vl:8b en interne pour la vision.
 """
 
-import os
 import logging
 from smolagents import CodeAgent
 
