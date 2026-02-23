@@ -133,7 +133,6 @@ def get_agent_status() -> str:
         resp.raise_for_status()
         data = resp.json()
         tools = data.get("tools", {})
-        agents = data.get("agents", {})
         chrome = tools.get("chrome_mcp", 0)
         web_ready = tools.get("web_agent_ready", False)
         web_ddg = tools.get("web_search_ddg", False)
@@ -144,7 +143,7 @@ def get_agent_status() -> str:
             f"Web Search: {'✅' if web_ready else '❌'} "
             f"(DDG: {'✅' if web_ddg else '❌'}, Visit: {'✅' if web_visit else '❌'})"
         )
-    except requests.ConnectionError as e:
+    except requests.ConnectionError:
         return f"❌ Agent non accessible sur {AGENT_URL} — démarrer: `uv run uvicorn main:app --reload`"
     except requests.Timeout:
         return f"❌ Timeout vérifiant {AGENT_URL}/health — serveur lent ?"
