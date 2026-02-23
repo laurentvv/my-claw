@@ -5,6 +5,7 @@ Allows executing PowerShell commands with timeout and capturing stdout/stderr.
 
 import logging
 import subprocess
+import sys
 from typing import Optional
 
 from smolagents import Tool
@@ -74,7 +75,7 @@ prefixed with 'ERROR:'."""
                 ["powershell", "-Command", command],
                 capture_output=True,
                 text=True,
-                encoding="cp1252",  # Windows Western European encoding
+                encoding="cp1252" if sys.platform == "win32" else "utf-8",  # Windows vs Linux/macOS
                 errors="replace",  # Replace undecodable characters
                 timeout=timeout,
                 shell=False,
