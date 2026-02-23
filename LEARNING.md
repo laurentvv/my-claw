@@ -51,7 +51,7 @@ class MyTool(Tool):
 - `instructions` ajoutées à la fin du system prompt (ne remplace pas, complète)
 - Skills dans `agent/skills.txt` chargés au démarrage — patterns de code copiés par l'agent
 - `final_answer()` obligatoire dans les skills sinon erreur de parsing au step 2
-- `max_steps=5` pour tâches simples, `8` pour search+visit, `10+` pour pilotage PC
+- `max_steps=5` pour tâches simples, `10+` pour pilotage PC
 
 ### FastAPI lifespan — pattern MCP
 ```python
@@ -120,7 +120,7 @@ Manager (glm-4.7 / qwen3:8b)
 ├── pc_control_agent  → qwen3-vl:2b  (screenshot, mouse_keyboard, ui_grounding)
 ├── vision_agent      → qwen3:8b LLM + qwen3-vl:2b interne pour analyze_image
 ├── browser_agent     → Nanbeige4.1-3B + 26 tools Chrome DevTools MCP
-└── web_agent         → Nanbeige4.1-3B + DuckDuckGoSearchTool + VisitWebpageTool
+└── web_agent         → Nanbeige4.1-3B + DuckDuckGoSearchTool
 ```
 
 ### Règles d'architecture
