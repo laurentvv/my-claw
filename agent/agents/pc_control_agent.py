@@ -9,6 +9,7 @@ NOTE : ui_grounding utilise qwen3-vl en interne pour le GUI grounding.
 """
 
 import logging
+
 from smolagents import CodeAgent
 
 logger = logging.getLogger(__name__)
@@ -51,8 +52,8 @@ def create_pc_control_agent(ollama_url: str, model_id: str = "qwen3:8b") -> Code
     Returns:
         CodeAgent pour utilisation dans le manager
     """
-    from tools import TOOLS
     from models import get_model
+    from tools import TOOLS
 
     # Filtrer uniquement les tools pertinents pour le pilotage PC (sans analyze_image)
     pc_tools_names = {"screenshot", "ui_grounding", "mouse_keyboard"}
@@ -70,7 +71,7 @@ def create_pc_control_agent(ollama_url: str, model_id: str = "qwen3:8b") -> Code
     agent = CodeAgent(
         tools=pc_tools,
         model=model,
-        max_steps=15,           # Plus d'étapes car workflow screenshot→grounding→action
+        max_steps=15,  # Plus d'étapes car workflow screenshot→grounding→action
         verbosity_level=1,
         additional_authorized_imports=["json", "re", "time", "os"],
         executor_kwargs={"timeout_seconds": 300},
@@ -78,8 +79,8 @@ def create_pc_control_agent(ollama_url: str, model_id: str = "qwen3:8b") -> Code
         name="pc_control",
         description=(
             "Agent spécialisé pour piloter l'interface graphique Windows. "
-            "Peut prendre des screenshots, localiser précisément les éléments UI (qwen3-vl grounding), "
-            "et interagir avec la souris et le clavier. "
+            "Peut prendre des screenshots, localiser précisément les éléments UI "
+            "(qwen3-vl grounding), et interagir avec la souris et le clavier. "
             "Utilise-le pour : ouvrir des applications, cliquer sur des boutons, "
             "remplir des formulaires, naviguer dans Windows. "
             "Pour analyser des images, délègue au sous-agent vision_agent."

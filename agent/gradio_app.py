@@ -3,9 +3,10 @@ Gradio 6.6.0 — Interface de développement my-claw multi-agent.
 Compatible Gradio 6.x (type="messages" obligatoire).
 """
 
+import os
+
 import gradio as gr
 import requests
-import os
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -15,7 +16,7 @@ AGENT_URL = os.environ.get("AGENT_URL", "http://localhost:8000")
 
 def get_available_models() -> list[tuple[str, str]]:
     """Récupère les modèles disponibles depuis l'agent.
-    
+
     Returns:
         Liste de tuples (label, model_id) pour Gradio Dropdown
     """
@@ -23,61 +24,65 @@ def get_available_models() -> list[tuple[str, str]]:
         resp = requests.get(f"{AGENT_URL}/models", timeout=5)
         resp.raise_for_status()
         data = resp.json()
-        
+
         # Récupérer d'abord les modèles par catégorie (avec métadonnées)
         category_models = data.get("models", {})
-        
+
         # Récupérer tous les modèles Ollama disponibles
         ollama_models = data.get("ollama_models", [])
         default_model = data.get("default_model", "main")
-        
+
         # Créer des labels plus descriptifs pour chaque modèle Ollama
         model_choices = []
         for model_id in ollama_models:
             # Ignorer les modèles d'embedding (non adaptés pour le chat)
             if "embedding" in model_id.lower() or "nomic-embed" in model_id:
                 continue
-            
+
             # Vérifier si ce modèle est utilisé par une catégorie
             is_default = False
             model_type = "local"
-            
+
             for cat_id, cat_info in category_models.items():
                 cat_name = cat_info.get("full_name", "")
                 if model_id in cat_name:
                     model_type = cat_info.get("type", "local")
-                    is_default = (cat_id == default_model)
+                    is_default = cat_id == default_model
                     break
-            
+
             # Créer un label descriptif
             if is_default:
                 label = f"{model_id} ({model_type}) ⭐"
             else:
                 label = f"{model_id} ({model_type})"
-            
+
             # Tuple (label, value) pour Gradio Dropdown
             model_choices.append((label, model_id))
-        
+
         # Ajouter les modèles cloud si disponibles
         for cat_id, cat_info in category_models.items():
             cat_type = cat_info.get("type", "unknown")
             if cat_type == "cloud":
                 model_name = cat_info.get("name", cat_id)
-                is_default = (cat_id == default_model)
+                is_default = cat_id == default_model
                 if is_default:
                     label = f"{model_name} (cloud) ⭐"
                 else:
                     label = f"{model_name} (cloud)"
                 model_choices.append((label, cat_id))
-        
-        return model_choices if model_choices else [
-            ("fast", "fast"),
-            ("smart", "smart"),
-            ("main", "main"),
-            ("vision", "vision"),
-            ("code", "code"),
-            ("reason", "reason"),
-        ]
+
+        return (
+            model_choices
+            if model_choices
+            else [
+                ("fast", "fast"),
+                ("smart", "smart"),
+                ("main", "main"),
+                ("vision", "vision"),
+                ("code", "code"),
+                ("reason", "reason"),
+            ]
+        )
     except Exception:
         return [
             ("fast", "fast"),
@@ -127,11 +132,7 @@ def get_agent_status() -> str:
         data = resp.json()
         chrome = data.get("chrome_mcp", 0)
         web = data.get("web_mcp", 0)
-        return (
-            f"✅ Agent en ligne | "
-            f"Chrome DevTools: {chrome} tools | "
-            f"Web MCP: {web} tools"
-        )
+        return f"✅ Agent en ligne | Chrome DevTools: {chrome} tools | Web MCP: {web} tools"
     except Exception:
         return "❌ Agent hors ligne — démarrer: `uv run uvicorn main:app --reload`"
 
@@ -170,7 +171,7 @@ with gr.Blocks(title="my-claw — Dev Interface") as demo:
                     break
             if default_model == "smart" and AVAILABLE_MODELS:
                 default_model = AVAILABLE_MODELS[0][1]
-        
+
         model_dropdown = gr.Dropdown(
             choices=AVAILABLE_MODELS,
             value=default_model,
@@ -191,7 +192,7 @@ with gr.Blocks(title="my-claw — Dev Interface") as demo:
             ["Ouvre Notepad et tape 'Bonjour depuis my-claw !'"],
             ["Prends un screenshot, localise le bouton Démarrer, et clique dessus"],
         ],
-        title=None,               # Titre géré par le Blocks parent
+        title=None,  # Titre géré par le Blocks parent
     )
 
 

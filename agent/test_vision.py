@@ -6,11 +6,12 @@ Teste :
 2. L'outil analyze_image fonctionne avec un screenshot existant
 """
 
+import base64
 import os
 import sys
-import base64
-import requests
 from pathlib import Path
+
+import requests
 
 # Configuration
 OLLAMA_URL = os.environ.get("OLLAMA_BASE_URL", "http://localhost:11434")
@@ -27,18 +28,18 @@ def test_ollama_connection():
         response = requests.get(f"{OLLAMA_URL}/api/tags", timeout=5)
         response.raise_for_status()
         models = response.json().get("models", [])
-        print(f"✓ Ollama accessible")
+        print("✓ Ollama accessible")
         print(f"  Modèles disponibles: {[m['name'] for m in models]}")
 
         # Vérifier que qwen3-vl:8b est installé
-        vision_models = [m['name'] for m in models if 'vl' in m['name'].lower()]
+        vision_models = [m["name"] for m in models if "vl" in m["name"].lower()]
         print(f"  Modèles vision: {vision_models}")
 
-        if 'qwen3-vl:8b' in vision_models:
-            print(f"  ✓ qwen3-vl:8b installé")
+        if "qwen3-vl:8b" in vision_models:
+            print("  ✓ qwen3-vl:8b installé")
             return True
         else:
-            print(f"  ✗ qwen3-vl:8b NON installé")
+            print("  ✗ qwen3-vl:8b NON installé")
             return False
 
     except Exception as e:
@@ -71,7 +72,7 @@ def test_vision_model():
 
     # Tester le modèle vision
     try:
-        print(f"  → Envoi à Ollama avec modèle qwen3-vl:8b...")
+        print("  → Envoi à Ollama avec modèle qwen3-vl:8b...")
         response = requests.post(
             f"{OLLAMA_URL}/api/chat",
             json={
@@ -93,16 +94,16 @@ def test_vision_model():
 
         if analysis:
             print(f"  ✓ Réponse reçue ({len(analysis)} caractères)")
-            print(f"\n  --- Analyse de l'image ---")
+            print("\n  --- Analyse de l'image ---")
             print(analysis)
-            print(f"  --- Fin de l'analyse ---\n")
+            print("  --- Fin de l'analyse ---\n")
             return True
         else:
-            print(f"  ✗ Réponse vide")
+            print("  ✗ Réponse vide")
             return False
 
     except requests.Timeout:
-        print(f"  ✗ Timeout (>180s)")
+        print("  ✗ Timeout (>180s)")
         return False
     except requests.RequestException as e:
         print(f"  ✗ Erreur de communication: {e}")
@@ -110,6 +111,7 @@ def test_vision_model():
     except Exception as e:
         print(f"  ✗ Erreur: {e}")
         import traceback
+
         traceback.print_exc()
         return False
 
@@ -124,26 +126,24 @@ def test_vision_tool():
         from tools.vision import VisionTool
 
         tool = VisionTool()
-        print(f"  ✓ Outil VisionTool créé")
+        print("  ✓ Outil VisionTool créé")
 
-        result = tool.forward(
-            image_path=SCREENSHOT_PATH,
-            prompt="Décris cette image en détail"
-        )
+        result = tool.forward(image_path=SCREENSHOT_PATH, prompt="Décris cette image en détail")
 
         if result.startswith("ERROR:"):
             print(f"  ✗ Erreur: {result}")
             return False
         else:
             print(f"  ✓ Réponse reçue ({len(result)} caractères)")
-            print(f"\n  --- Analyse de l'image ---")
+            print("\n  --- Analyse de l'image ---")
             print(result)
-            print(f"  --- Fin de l'analyse ---\n")
+            print("  --- Fin de l'analyse ---\n")
             return True
 
     except Exception as e:
         print(f"  ✗ Erreur: {e}")
         import traceback
+
         traceback.print_exc()
         return False
 

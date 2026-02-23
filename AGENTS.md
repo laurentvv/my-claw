@@ -27,11 +27,11 @@
 |--------|-------------|---------|-------|
 | Gateway | Next.js | 16+ | App Router obligatoire |
 | ORM | Prisma | 7+ | SQLite local |
-| Runtime JS | Node.js | 24+ | |
+| Runtime JS | Node.js | 25+ | |
 | Gestionnaire Python | uv | latest | Jamais pip |
-| Agent LLM | smolagents | 1.9+ | CodeAgent |
-| API serveur Python | FastAPI | 0.115+ | |
-| UI dev | Gradio | 5+ | |
+| Agent LLM | smolagents | 1.24+ | CodeAgent |
+| API serveur Python | FastAPI | 0.131+ | |
+| UI dev | Gradio | 6+ | |
 | LLM local | Ollama | latest | Port 11434 |
 | LLM cloud | Z.ai GLM-4.7 | — | OpenAI-compatible |
 | Language | TypeScript | 5+ | strict: true |
@@ -526,7 +526,7 @@ Voir [`agent/SKILLS.md`](agent/SKILLS.md) pour la documentation complète des sk
 ## CONVENTIONS DE CODE
 
 ### Python
-- Python 3.11+, type hints partout
+- Python 3.14+, type hints partout
 - pyproject.toml + uv.lock — jamais requirements.txt
 - uv add <pkg> pour ajouter une dépendance
 - uv run <cmd> pour exécuter

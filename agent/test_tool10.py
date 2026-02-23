@@ -5,11 +5,13 @@ Ce script teste la connexion MCP et le chargement des outils
 sans demarrer le serveur FastAPI complet.
 """
 
-from smolagents import ToolCollection
-from mcp import StdioServerParameters
 import os
 import sys
+
 import requests
+from mcp import StdioServerParameters
+from smolagents import ToolCollection
+
 
 def check_prerequisites():
     """Vérifie les prérequis pour TOOL-10."""
@@ -27,6 +29,7 @@ def check_prerequisites():
     # Check Node.js
     try:
         import subprocess
+
         result = subprocess.run(["node", "--version"], capture_output=True, text=True, timeout=5)
         if result.returncode == 0:
             checks["Node.js"] = True
@@ -65,7 +68,7 @@ def check_prerequisites():
         result = subprocess.run(["where", "chrome"], capture_output=True, text=True, timeout=5)
         if result.returncode == 0:
             checks["Chrome/Edge"] = True
-            print(f"[OK] Chrome/Edge: installe")
+            print("[OK] Chrome/Edge: installe")
         else:
             print("[WARN] Chrome/Edge: non trouve (MCP peut le telecharger)")
     except Exception as e:
@@ -83,9 +86,7 @@ def test_mcp_connection():
 
     # Configuration
     chrome_devtools_params = StdioServerParameters(
-        command="npx",
-        args=["-y", "chrome-devtools-mcp@latest"],
-        env={**os.environ}
+        command="npx", args=["-y", "chrome-devtools-mcp@latest"], env={**os.environ}
     )
 
     mcp_context = None
@@ -93,10 +94,7 @@ def test_mcp_connection():
 
     try:
         print("\n[1/5] Initialisation du contexte MCP...")
-        mcp_context = ToolCollection.from_mcp(
-            chrome_devtools_params,
-            trust_remote_code=True
-        )
+        mcp_context = ToolCollection.from_mcp(chrome_devtools_params, trust_remote_code=True)
         print("[OK] Contexte MCP cree")
 
         print("\n[2/5] Entree dans le contexte (chargement des outils)...")
@@ -121,21 +119,43 @@ def test_mcp_connection():
 
         for tool in tools:
             name = tool.name
-            if name in ["click", "drag", "fill", "fill_form", "handle_dialog",
-                       "hover", "press_key", "upload_file"]:
+            if name in [
+                "click",
+                "drag",
+                "fill",
+                "fill_form",
+                "handle_dialog",
+                "hover",
+                "press_key",
+                "upload_file",
+            ]:
                 categories["Input automation"].append(name)
-            elif name in ["close_page", "list_pages", "navigate_page",
-                         "new_page", "select_page", "wait_for"]:
+            elif name in [
+                "close_page",
+                "list_pages",
+                "navigate_page",
+                "new_page",
+                "select_page",
+                "wait_for",
+            ]:
                 categories["Navigation"].append(name)
             elif name in ["emulate", "resize_page"]:
                 categories["Emulation"].append(name)
-            elif name in ["performance_analyze_insight", "performance_start_trace",
-                         "performance_stop_trace"]:
+            elif name in [
+                "performance_analyze_insight",
+                "performance_start_trace",
+                "performance_stop_trace",
+            ]:
                 categories["Performance"].append(name)
             elif name in ["get_network_request", "list_network_requests"]:
                 categories["Network"].append(name)
-            elif name in ["evaluate_script", "get_console_message",
-                         "list_console_messages", "take_screenshot", "take_snapshot"]:
+            elif name in [
+                "evaluate_script",
+                "get_console_message",
+                "list_console_messages",
+                "take_screenshot",
+                "take_snapshot",
+            ]:
                 categories["Debugging"].append(name)
 
         for category, tool_names in categories.items():
@@ -155,7 +175,7 @@ def test_mcp_connection():
         if mcp_context is not None:
             try:
                 mcp_context.__exit__(None, None, None)
-            except:
+            except Exception:
                 pass
         return False
 
@@ -169,6 +189,7 @@ def test_main_py_integration():
     try:
         # Importer main.py pour vérifier que le code est correct
         import importlib.util
+
         spec = importlib.util.spec_from_file_location("main", "main.py")
         main_module = importlib.util.module_from_spec(spec)
 
@@ -177,12 +198,12 @@ def test_main_py_integration():
         print("[OK] main.py chargé sans erreur")
 
         print("\n[2/3] Vérification des variables globales...")
-        assert hasattr(main_module, '_mcp_context'), "_mcp_context non trouvé"
-        assert hasattr(main_module, '_mcp_tools'), "_mcp_tools non trouvé"
+        assert hasattr(main_module, "_mcp_context"), "_mcp_context non trouvé"
+        assert hasattr(main_module, "_mcp_tools"), "_mcp_tools non trouvé"
         print("[OK] Variables globales MCP présentes")
 
         print("\n[3/3] Vérification de la fonction lifespan...")
-        assert hasattr(main_module, 'lifespan'), "lifespan non trouvé"
+        assert hasattr(main_module, "lifespan"), "lifespan non trouvé"
         print("[OK] Fonction lifespan présente")
 
         print("\n" + "=" * 60)
@@ -193,6 +214,7 @@ def test_main_py_integration():
     except Exception as e:
         print(f"\n[ERROR] {type(e).__name__}: {e}")
         import traceback
+
         traceback.print_exc()
         return False
 

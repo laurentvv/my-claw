@@ -1,23 +1,25 @@
-import os
 import asyncio
 import logging
-from pathlib import Path
+import os
 from contextlib import asynccontextmanager
+from pathlib import Path
+
+from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
+from mcp import StdioServerParameters
 from pydantic import BaseModel
 from smolagents import CodeAgent, ToolCollection
-from mcp import StdioServerParameters
-from dotenv import load_dotenv
+
+from models import get_default_model, get_model, get_models, get_ollama_models, is_cloud_model
 from tools import TOOLS
-from models import get_model, get_default_model, get_models, get_ollama_models, is_cloud_model
 
 load_dotenv()
 
 # ─── Logging ────────────────────────────────────────────────────────────────
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    datefmt='%H:%M:%S'
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    datefmt="%H:%M:%S",
 )
 logger = logging.getLogger(__name__)
 logging.getLogger("smolagents").setLevel(logging.DEBUG)
@@ -25,8 +27,6 @@ logging.getLogger("LiteLLM").setLevel(logging.INFO)
 
 # Ignorer le FutureWarning de smolagents concernant structured_output
 # Ce warning est interne à smolagents et sera corrigé dans une future version
-import warnings
-warnings.filterwarnings("ignore", message="Parameter 'structured_output' was not specified", category=FutureWarning)
 
 
 # ─── Skills ─────────────────────────────────────────────────────────────────
@@ -43,6 +43,7 @@ def load_skills() -> str:
     except Exception as e:
         logger.error(f"✗ Erreur chargement skills: {e}")
         return ""
+
 
 SKILLS = load_skills()
 
@@ -82,7 +83,7 @@ async def lifespan(app: FastAPI):
         _chrome_mcp_context = None
         _chrome_mcp_tools = []
 
-    # ── Web Search MCP Z.ai (TOOL-4) ─────────────────────────────────────────
+        # ── Web Search MCP Z.ai (TOOL-4) ──────────────────────────────────
     # IMPORTANT : décommenter quand ZAI_API_KEY configuré et TOOL-4 implémenté
     # logger.info("Initialisation Web Search MCP Z.ai...")
     # try:
@@ -92,7 +93,9 @@ async def lifespan(app: FastAPI):
     #             "type": "streamable-http",
     #             "headers": {"Authorization": f"Bearer {os.environ['ZAI_API_KEY']}"}
     #         }
-    #         _web_search_context = ToolCollection.from_mcp(web_search_params, trust_remote_code=True)
+        #         _web_search_context = ToolCollection.from_mcp(
+        #             web_search_params, trust_remote_code=True
+        #         )
     #         tool_collection = _web_search_context.__enter__()
     #         _web_search_tools = list(tool_collection.tools)
     #         logger.info(f"✓ Web Search MCP Z.ai: {len(_web_search_tools)} outils")
@@ -127,6 +130,7 @@ app = FastAPI(title="my-claw agent", version="0.2.0", lifespan=lifespan)
 # Les tools vision/screenshot/mouse sont dans pc_control_agent
 MANAGER_TOOLS_NAMES = {"file_system", "os_exec", "clipboard"}
 
+
 def get_manager_tools() -> list:
     """Tools directs du manager (fichiers, OS, clipboard uniquement)."""
     return [t for t in TOOLS if t.name in MANAGER_TOOLS_NAMES]
@@ -153,9 +157,9 @@ def build_multi_agent_system(model_id: str | None = None) -> CodeAgent:
     Returns:
         CodeAgent: Le manager avec ses sous-agents
     """
+    from agents.browser_agent import create_browser_agent
     from agents.pc_control_agent import create_pc_control_agent
     from agents.vision_agent import create_vision_agent
-    from agents.browser_agent import create_browser_agent
     from agents.web_agent import create_web_agent
 
     ollama_url = os.environ.get("OLLAMA_BASE_URL", "http://localhost:11434")
@@ -188,7 +192,10 @@ def build_multi_agent_system(model_id: str | None = None) -> CodeAgent:
         try:
             browser_agent = create_browser_agent(ollama_url, _chrome_mcp_tools, model_id=model_id)
             managed_agents.append(browser_agent)
-            logger.info(f"✓ browser_agent créé ({len(_chrome_mcp_tools)} tools Chrome DevTools) avec modèle {model_id}")
+            logger.info(
+                f"✓ browser_agent créé ({len(_chrome_mcp_tools)} tools Chrome DevTools) "
+                f"avec modèle {model_id}"
+            )
         except Exception as e:
             logger.warning(f"✗ browser_agent non disponible: {e}")
     else:
@@ -200,7 +207,9 @@ def build_multi_agent_system(model_id: str | None = None) -> CodeAgent:
             web_agent = create_web_agent(ollama_url, _web_search_tools, model_id=model_id)
             if web_agent:
                 managed_agents.append(web_agent)
-                logger.info(f"✓ web_agent créé ({len(_web_search_tools)} tools Z.ai) avec modèle {model_id}")
+                logger.info(
+                    f"✓ web_agent créé ({len(_web_search_tools)} tools Z.ai) avec modèle {model_id}"
+                )
         except Exception as e:
             logger.warning(f"✗ web_agent non disponible: {e}")
     else:
@@ -218,7 +227,13 @@ def build_multi_agent_system(model_id: str | None = None) -> CodeAgent:
         max_steps=10,
         verbosity_level=2,
         additional_authorized_imports=[
-            "requests", "urllib", "json", "csv", "pathlib", "os", "subprocess",
+            "requests",
+            "urllib",
+            "json",
+            "csv",
+            "pathlib",
+            "os",
+            "subprocess",
         ],
         executor_kwargs={"timeout_seconds": 240},
         instructions=SKILLS,
@@ -231,31 +246,29 @@ def build_multi_agent_system(model_id: str | None = None) -> CodeAgent:
 async def get_or_build_agent(model_id: str | None = None) -> CodeAgent:
     """
     Récupère l'agent depuis le cache ou le construit si nécessaire.
-    
+
     Thread-safe : empêche le double-build avec un lock global.
-    
+
     Args:
         model_id: Identifiant du modèle (optionnel, utilise le défaut sinon)
-    
+
     Returns:
         CodeAgent: L'agent manager avec ses sous-agents
     """
     if model_id is None:
         model_id = get_default_model()
-    
+
     # Acquérir le lock AVANT le check pour empêcher le double-build
     async with _cache_lock:
         if model_id not in _agent_cache:
             logger.info(f"Construction du système multi-agent pour modèle {model_id}")
             # Construire l'agent dans un thread séparé (appel bloquant)
-            loop = asyncio.get_event_loop()
-            new_agent = await loop.run_in_executor(
-                None, build_multi_agent_system, model_id
-            )
+            loop = asyncio.get_running_loop()
+            new_agent = await loop.run_in_executor(None, build_multi_agent_system, model_id)
             _agent_cache[model_id] = new_agent
         else:
             logger.info(f"Utilisation du cache pour modèle {model_id}")
-    
+
     return _agent_cache[model_id]
 
 
@@ -263,26 +276,27 @@ async def get_or_build_agent(model_id: str | None = None) -> CodeAgent:
 def validate_model_id(model_id: str | None) -> str:
     """
     Valide l'identifiant du modèle avant construction.
-    
+
     Cette fonction utilise la même logique de validation que get_model() :
-    - Si le modèle n'est pas trouvé, elle fait un fallback sur "main" ou le premier modèle disponible
+    - Si le modèle n'est pas trouvé, elle fait un fallback sur "main"
+      ou le premier modèle disponible
     - Elle valide que les modèles cloud ont leur clé API configurée
-    
+
     Note: Contrairement à get_model() qui lève RuntimeError (contexte interne),
     cette fonction lève HTTPException (contexte API endpoint).
-    
+
     Args:
         model_id: Identifiant du modèle à valider
-        
+
     Returns:
         str: Identifiant du modèle validé (peut être différent de l'entrée en cas de fallback)
-        
+
     Raises:
         HTTPException: Si aucun modèle n'est disponible ou si la clé API est manquante
     """
     if model_id is None:
         model_id = get_default_model()
-    
+
     # Vérifier que le modèle existe (même logique que get_model)
     models = get_models()
     if model_id not in models:
@@ -291,23 +305,23 @@ def validate_model_id(model_id: str | None) -> str:
         if model_id not in ollama_models:
             # Fallback sur main ou le premier modèle disponible (comme get_model)
             if not models:
-                raise HTTPException(
-                    status_code=400,
-                    detail="Aucun modèle disponible"
-                )
+                raise HTTPException(status_code=400, detail="Aucun modèle disponible")
             # Utiliser le fallback
             fallback_model = "main" if "main" in models else next(iter(models.keys()))
             logger.warning(f"Modèle '{model_id}' non trouvé, fallback sur {fallback_model}")
             model_id = fallback_model
-    
+
     # Vérifier que les modèles cloud ont leur clé API
     if is_cloud_model(model_id, models):
         if not os.environ.get("ZAI_API_KEY"):
             raise HTTPException(
                 status_code=400,
-                detail=f"Modèle cloud '{model_id}' requiert ZAI_API_KEY. Configurez-le dans agent/.env"
+                detail=(
+                    f"Modèle cloud '{model_id}' requiert ZAI_API_KEY. "
+                    "Configurez-le dans agent/.env"
+                ),
             )
-    
+
     return model_id
 
 
@@ -315,8 +329,7 @@ def build_prompt_with_history(message: str, history: list[dict]) -> str:
     if not history:
         return message
     lines = [
-        f"{'User' if m['role'] == 'user' else 'Assistant'}: {m['content']}"
-        for m in history[-10:]
+        f"{'User' if m['role'] == 'user' else 'Assistant'}: {m['content']}" for m in history[-10:]
     ]
     return f"Previous conversation:\n{chr(10).join(lines)}\n\nCurrent message: {message}"
 
@@ -336,7 +349,7 @@ async def run(req: RunRequest):
         agent = await get_or_build_agent(validated_model)  # Utilise le cache
         prompt = build_prompt_with_history(req.message, req.history)
         # Exécuter l'agent dans un thread séparé pour ne pas bloquer l'event loop
-        loop = asyncio.get_event_loop()
+        loop = asyncio.get_running_loop()
         result = await loop.run_in_executor(None, lambda: agent.run(prompt, reset=True))
         return {"response": str(result)}
     except HTTPException:

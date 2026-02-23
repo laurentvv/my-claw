@@ -7,6 +7,7 @@ Rôle : Recherche web temps réel, lecture d'articles, exploration de repos GitH
 """
 
 import logging
+
 from smolagents import CodeAgent
 
 logger = logging.getLogger(__name__)
@@ -47,7 +48,7 @@ def create_web_agent(
     Returns:
         CodeAgent ou None si pas de tools disponibles
     """
-    from models import get_model, get_default_model
+    from models import get_default_model, get_model
 
     if not web_search_tools:
         logger.warning("web_agent: aucun tool web MCP disponible (ZAI_API_KEY manquant?)")

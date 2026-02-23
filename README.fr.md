@@ -21,8 +21,9 @@ Un assistant personnel minimaliste, auto-hébergé et respectueux de la vie priv
 
 ### Prérequis
 
-- **Node.js** : 24.x ou supérieur
+- **Node.js** : 25.x ou supérieur
 - **uv** : [Gestionnaire de paquets Python](https://docs.astral.sh/uv/)
+- **Python** : 3.14.x ou supérieur
 - **Ollama** : Pour l'accélération locale des LLM
 - **Windows OS** : Recommandé (pour le support natif des outils)
 
@@ -151,7 +152,7 @@ Pour des informations plus détaillées, veuillez vous référer aux fichiers su
 - **Base de données** : SQLite avec Prisma 7
 - **Framework Agent** : [smolagents](https://github.com/huggingface/smolagents)
 - **API** : FastAPI (Python)
-- **Environnement** : Node.js 24+, Python 3.11+ (via `uv`)
+- **Environnement** : Node.js 25+, Python 3.14+ (via `uv`)
 - **LLM** : Ollama (Local), Z.ai (Cloud/Optionnel)
 
 ---

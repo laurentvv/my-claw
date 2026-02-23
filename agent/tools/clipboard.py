@@ -25,7 +25,9 @@ class ClipboardTool(Tool):
         },
         "content": {
             "type": "string",
-            "description": "Le texte à écrire dans le presse-papier (requis pour operation='write')",
+            "description": (
+                "Le texte à écrire dans le presse-papier (requis pour operation='write')"
+            ),
             "nullable": True,
         },
     }

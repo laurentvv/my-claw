@@ -5,6 +5,32 @@
 
 ---
 
+## Upgrade Python 3.14 & Node 25 (2026-02-21)
+
+### Nouveautés Python 3.14 intégrées
+
+**pathlib.Path — Nouvelles méthodes move() et copy()** :
+- Python 3.14 ajoute des méthodes natives pour déplacer et copier des fichiers/répertoires directement sur l'objet `Path`.
+- Utilisé dans `FileSystemTool` pour remplacer `rename()` (moins robuste) et éviter l'usage direct de `shutil`.
+- `Path.move(target)` gère les déplacements entre différents systèmes de fichiers.
+- `Path.copy(target)` permet une copie récursive native.
+
+**asyncio — get_running_loop() vs get_event_loop()** :
+- Dans Python 3.14, `asyncio.get_event_loop()` ne crée plus automatiquement de boucle si aucune n'est active et lève une `RuntimeError`.
+- **Bonne pratique** : Toujours utiliser `asyncio.get_running_loop()` dans les fonctions asynchrones ou `asyncio.run()` au point d'entrée.
+- Mise à jour effectuée dans `agent/main.py`.
+
+### Dépendances et Environnement
+
+**Node.js 25** :
+- Le projet a été validé sur Node.js v25.6.1.
+- Attention : Certains plugins ESLint (comme `eslint-plugin-react`) peuvent avoir des problèmes de compatibilité avec ESLint 10. Le projet reste en **ESLint 9** pour la Gateway.
+
+**Pinning des dépendances Frontend** :
+- Pour éviter des changements cassants lors des mises à jour automatiques, les dépendances critiques comme `next`, `react` et `prisma` sont désormais fixées sur des versions exactes dans `package.json`.
+
+---
+
 ## TOOL-10 — MCP Chrome DevTools (2026-02-20)
 
 ### Test de validation (2026-02-20)

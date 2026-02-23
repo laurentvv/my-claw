@@ -5,9 +5,10 @@ Ce module centralise la logique de création de modèles pour éviter les import
 circulaires entre main.py et les agents.
 """
 
-import os
 import logging
+import os
 import re
+
 import requests
 from smolagents import LiteLLMModel
 
@@ -16,15 +17,21 @@ logger = logging.getLogger(__name__)
 
 # ─── Détection modèles Ollama ────────────────────────────────────────────────
 MODEL_PREFERENCES: dict[str, list[str]] = {
-    "fast":   ["hf.co/tantk/Nanbeige4.1-3B-GGUF:Q4_K_M", "qwen3:4b", "gemma3:latest"],
-    "smart":  ["qwen3:14b", "qwen3:8b", "qwen3:4b", "hf.co/tantk/Nanbeige4.1-3B-GGUF:Q4_K_M"],
-    "main":   ["qwen3:14b", "qwen3:8b", "qwen3:4b", "hf.co/tantk/Nanbeige4.1-3B-GGUF:Q4_K_M"],
+    "fast": ["hf.co/tantk/Nanbeige4.1-3B-GGUF:Q4_K_M", "qwen3:4b", "gemma3:latest"],
+    "smart": ["qwen3:14b", "qwen3:8b", "qwen3:4b", "hf.co/tantk/Nanbeige4.1-3B-GGUF:Q4_K_M"],
+    "main": ["qwen3:14b", "qwen3:8b", "qwen3:4b", "hf.co/tantk/Nanbeige4.1-3B-GGUF:Q4_K_M"],
     "vision": ["qwen3-vl:8b", "qwen3-vl:2b", "qwen3-vl:4b", "llama3.2-vision"],
 }
 
 CLOUD_MODELS: dict[str, tuple[str, str]] = {
-    "code":   ("openai/glm-4.7-flash", os.environ.get("ZAI_BASE_URL", "https://api.z.ai/api/coding/paas/v4")),
-    "reason": ("openai/glm-4.7",       os.environ.get("ZAI_BASE_URL", "https://api.z.ai/api/coding/paas/v4")),
+    "code": (
+        "openai/glm-4.7-flash",
+        os.environ.get("ZAI_BASE_URL", "https://api.z.ai/api/coding/paas/v4"),
+    ),
+    "reason": (
+        "openai/glm-4.7",
+        os.environ.get("ZAI_BASE_URL", "https://api.z.ai/api/coding/paas/v4"),
+    ),
 }
 
 _detected_models: dict[str, tuple[str, str]] | None = None
@@ -67,7 +74,7 @@ def _detect_models_impl() -> dict[str, tuple[str, str]]:
     if vision_models:
         logger.info(f"✓ qwen3-vl détecté pour pc_control_agent grounding: {vision_models}")
     else:
-        logger.warning(f"✗ qwen3-vl non trouvé — installer avec: ollama pull qwen3-vl:2b")
+        logger.warning("✗ qwen3-vl non trouvé — installer avec: ollama pull qwen3-vl:2b")
 
     detected.update(CLOUD_MODELS)
     _detected_models = detected
@@ -77,10 +84,10 @@ def _detect_models_impl() -> dict[str, tuple[str, str]]:
 def get_models() -> dict[str, tuple[str, str]]:
     """
     Retourne les modèles détectés avec cache lazy.
-    
+
     La détection est faite à la première utilisation, pas à l'import.
     Cela permet au serveur de démarrer même si Ollama est down.
-    
+
     Returns:
         dict: Mapping {category: (model_name, base_url)}
     """
@@ -96,20 +103,23 @@ def clean_glm_response(text: str) -> str:
     """Nettoie les balises </code parasites générées par GLM-4.7."""
     if not text:
         return text
-    text = re.sub(r'</code>?\s*(\n|$)', r'\1', text)
-    text = re.sub(r'</s>\s*(\n|$)', r'\1', text)
-    text = re.sub(r'</code>\s*$', '', text)
-    text = re.sub(r'</code\s*$', '', text)
-    text = re.sub(r'</s>\s*$', '', text)
+    text = re.sub(r"</code>?\s*(\n|$)", r"\1", text)
+    text = re.sub(r"</s>\s*(\n|$)", r"\1", text)
+    text = re.sub(r"</code>\s*$", "", text)
+    text = re.sub(r"</code\s*$", "", text)
+    text = re.sub(r"</s>\s*$", "", text)
     return text
 
 
 class CleanedLiteLLMModel(LiteLLMModel):
     """Wrapper LiteLLMModel qui nettoie les balises parasites de GLM-4.7."""
-    def generate(self, messages, stop_sequences=None, response_format=None,
-                 tools_to_call_from=None, **kwargs):
-        chat_message = super().generate(messages, stop_sequences, response_format,
-                                        tools_to_call_from, **kwargs)
+
+    def generate(
+        self, messages, stop_sequences=None, response_format=None, tools_to_call_from=None, **kwargs
+    ):
+        chat_message = super().generate(
+            messages, stop_sequences, response_format, tools_to_call_from, **kwargs
+        )
         if chat_message.content:
             original_len = len(chat_message.content)
             chat_message.content = clean_glm_response(chat_message.content)
@@ -153,7 +163,7 @@ def get_model(model_id: str = "main") -> LiteLLMModel:
         RuntimeError: Si aucun modèle n'est disponible
     """
     models = get_models()
-    
+
     # Vérifier si c'est une catégorie
     if model_id in models:
         model_name, base_url = models[model_id]
@@ -186,7 +196,7 @@ def get_model(model_id: str = "main") -> LiteLLMModel:
                 "ZAI_API_KEY est requis pour les modèles cloud (code, reason). "
                 "Configurez-le dans agent/.env ou utilisez un modèle local (main, smart, fast)."
             )
-        
+
         return CleanedLiteLLMModel(
             model_id=model_name,
             api_base=base_url,

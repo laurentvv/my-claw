@@ -10,6 +10,7 @@ os_exec(command="...")
 
 import re
 
+
 def clean_glm_response(text: str) -> str:
     """
     Nettoie les balises de fermeture problématiques générées par GLM-4.7.
@@ -18,15 +19,15 @@ def clean_glm_response(text: str) -> str:
         return text
 
     # Pattern principal: retire </code ou </code> suivi de whitespace optionnel et fin de ligne
-    text = re.sub(r'</code>?\s*(\n|$)', r'\1', text)
+    text = re.sub(r"</code>?\s*(\n|$)", r"\1", text)
 
     # Pattern pour </s>
-    text = re.sub(r'</s>\s*(\n|$)', r'\1', text)
+    text = re.sub(r"</s>\s*(\n|$)", r"\1", text)
 
     # Nettoyage de sécurité: retirer tout </code restant en fin de texte
-    text = re.sub(r'</code>\s*$', '', text)
-    text = re.sub(r'</code\s*$', '', text)
-    text = re.sub(r'</s>\s*$', '', text)
+    text = re.sub(r"</code>\s*$", "", text)
+    text = re.sub(r"</code\s*$", "", text)
+    text = re.sub(r"</s>\s*$", "", text)
 
     return text
 

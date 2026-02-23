@@ -6,17 +6,19 @@ Teste :
 2. Le modèle peut trouver des éléments UI et donner leurs coordonnées
 """
 
+import base64
 import os
 import sys
-import base64
-import requests
 from pathlib import Path
+
+import requests
 
 # Configurer l'encodage UTF-8 pour la sortie standard (Windows)
 if sys.platform == "win32":
     import io
-    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
-    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8')
+
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8")
+    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8")
 
 # Configuration
 OLLAMA_URL = os.environ.get("OLLAMA_BASE_URL", "http://localhost:11434")
@@ -41,7 +43,7 @@ def test_ollama_connection():
         response = requests.get(f"{OLLAMA_URL}/api/tags", timeout=5)
         response.raise_for_status()
         models = response.json().get("models", [])
-        print(f"[OK] Ollama accessible")
+        print("[OK] Ollama accessible")
         print(f"  Modèles disponibles: {[m['name'] for m in models]}")
         return True
 
@@ -62,15 +64,15 @@ def test_qwen_vl_installed():
         models = response.json().get("models", [])
 
         # Chercher le modèle qwen3-vl
-        qwen_vl_models = [m['name'] for m in models if m['name'].startswith('qwen3-vl')]
+        qwen_vl_models = [m["name"] for m in models if m["name"].startswith("qwen3-vl")]
         print(f"  Modèles qwen3-vl trouvés: {qwen_vl_models}")
 
         if qwen_vl_models:
-            print(f"  [OK] qwen3-vl installé")
+            print("  [OK] qwen3-vl installé")
             return True
         else:
-            print(f"  [FAIL] qwen3-vl NON installé")
-            print(f"  → Commande d'installation: ollama pull qwen3-vl:2b")
+            print("  [FAIL] qwen3-vl NON installé")
+            print("  → Commande d'installation: ollama pull qwen3-vl:2b")
             return False
 
     except Exception as e:
@@ -89,10 +91,10 @@ def test_qwen_vl_grounding():
         response = requests.get(f"{OLLAMA_URL}/api/tags", timeout=5)
         response.raise_for_status()
         models = response.json().get("models", [])
-        qwen_vl_models = [m['name'] for m in models if m['name'].startswith('qwen3-vl')]
+        qwen_vl_models = [m["name"] for m in models if m["name"].startswith("qwen3-vl")]
 
         if not qwen_vl_models:
-            print(f"  [FAIL] Aucun modèle qwen3-vl installé")
+            print("  [FAIL] Aucun modèle qwen3-vl installé")
             return False
 
         # Utiliser le premier modèle qwen3-vl disponible
@@ -133,11 +135,11 @@ def test_qwen_vl_grounding():
                     {
                         "role": "user",
                         "content": f"{GROUNDING_SYSTEM}\n\nFind this element: {element}",
-                        "images": [image_b64]
+                        "images": [image_b64],
                     }
                 ],
                 "stream": False,
-                "options": {"temperature": 0.0}
+                "options": {"temperature": 0.0},
             },
             timeout=180,
         )
@@ -147,16 +149,16 @@ def test_qwen_vl_grounding():
 
         if response_text:
             print(f"  [OK] Réponse reçue ({len(response_text)} caractères)")
-            print(f"\n  --- Réponse du modèle ---")
+            print("\n  --- Réponse du modèle ---")
             print(response_text)
-            print(f"  --- Fin de la réponse ---\n")
+            print("  --- Fin de la réponse ---\n")
             return True
         else:
-            print(f"  [FAIL] Réponse vide")
+            print("  [FAIL] Réponse vide")
             return False
 
     except requests.Timeout:
-        print(f"  [FAIL] Timeout (>180s)")
+        print("  [FAIL] Timeout (>180s)")
         return False
     except requests.RequestException as e:
         print(f"  [FAIL] Erreur de communication: {e}")
@@ -164,6 +166,7 @@ def test_qwen_vl_grounding():
     except Exception as e:
         print(f"  [FAIL] Erreur: {e}")
         import traceback
+
         traceback.print_exc()
         return False
 
@@ -178,26 +181,24 @@ def test_qwen_grounding_tool():
         from tools.grounding import QwenGroundingTool
 
         tool = QwenGroundingTool()
-        print(f"  [OK] Outil QwenGroundingTool créé")
+        print("  [OK] Outil QwenGroundingTool créé")
 
-        result = tool.forward(
-            image_path=SCREENSHOT_PATH,
-            element="Windows Start button"
-        )
+        result = tool.forward(image_path=SCREENSHOT_PATH, element="Windows Start button")
 
         if result.startswith("ERROR:"):
             print(f"  [FAIL] Erreur: {result}")
             return False
         else:
             print(f"  [OK] Réponse reçue ({len(result)} caractères)")
-            print(f"\n  --- Résultat de l'outil ---")
+            print("\n  --- Résultat de l'outil ---")
             print(result)
-            print(f"  --- Fin du résultat ---\n")
+            print("  --- Fin du résultat ---\n")
             return True
 
     except Exception as e:
         print(f"  [FAIL] Erreur: {e}")
         import traceback
+
         traceback.print_exc()
         return False
 
