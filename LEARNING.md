@@ -138,6 +138,37 @@ Manager (glm-4.7 / qwen3:8b)
 
 ---
 
+## Architecture Multi-Agent — Cache par modèle (2026-02-23)
+
+### Problème : Singleton web_search_agent incompatible avec cache multi-modèles
+
+Le `_web_search_agent` était initialisé comme singleton dans `lifespan()` avec le modèle par défaut (`model_id=None`), mais les autres sous-agents (pc_control, vision, browser) étaient créés dans `build_multi_agent_system()` avec le `model_id` spécifié.
+
+**Incohérence :** Quand un utilisateur demandait un modèle non-défaut (ex: "fast"), tous les autres sous-agents utilisaient ce modèle, mais `_web_search_agent` restait avec le modèle par défaut du démarrage.
+
+### Solution : Création dynamique dans `build_multi_agent_system()`
+
+```python
+# ❌ Avant (singleton dans lifespan)
+_web_search_agent = create_web_search_agent(model_id=None)  # modèle par défaut
+
+# ✅ Après (création dynamique)
+web_agent = create_web_search_agent(model_id=model_id)  # modèle spécifique
+managed_agents.append(web_agent)
+```
+
+### Impact
+
+- **Consistance :** Tous les sous-agents utilisent maintenant le même `model_id` que le manager
+- **Cache par modèle :** Le système de cache `_agent_cache[model_id]` fonctionne correctement pour tous les agents
+- **Health endpoint :** Utilise `diagnose_web_search()["available"]` au lieu de `_web_search_agent is not None`
+
+### Règle d'architecture
+
+**Tous les sous-agents doivent être créés dans `build_multi_agent_system(model_id)`**, pas dans `lifespan()`, pour garantir la cohérence avec le cache par modèle.
+
+---
+
 ## TOOL-10 — MCP Chrome DevTools
 
 ### Pattern d'intégration

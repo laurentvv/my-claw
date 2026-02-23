@@ -55,8 +55,6 @@ SKILLS = load_skills()
 _chrome_mcp_context: ToolCollection | None = None
 _chrome_mcp_tools: list = []
 
-# TOOL-4 — Web Search (DuckDuckGoSearchTool built-in)
-_web_search_agent: CodeAgent | None = None
 
 # Cache des agents par modèle pour éviter de reconstruire à chaque requête
 _agent_cache: dict[str, CodeAgent] = {}
@@ -66,7 +64,6 @@ _cache_lock = asyncio.Lock()
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     global _chrome_mcp_context, _chrome_mcp_tools
-    global _web_search_agent
 
     # ── Chrome DevTools MCP ──────────────────────────────────────────────────
     logger.info("Initialisation Chrome DevTools MCP...")
@@ -84,23 +81,6 @@ async def lifespan(app: FastAPI):
         logger.warning(f"✗ Chrome DevTools MCP: {e}")
         _chrome_mcp_context = None
         _chrome_mcp_tools = []
-
-    # ── TOOL-4 : Web Search (DuckDuckGoSearchTool built-in) ──────────────────────
-    logger.info("Initialisation TOOL-4 : Web Search (DuckDuckGoSearchTool)...")
-    try:
-        managed_web = create_web_search_agent(
-            model_id=None,  # Utilise le modèle par défaut du système
-            max_results=5,
-            rate_limit=1.0,
-        )
-        if managed_web is not None:
-            _web_search_agent = managed_web
-            logger.info("✓ TOOL-4 web_search_agent créé avec succès")
-        else:
-            logger.warning("✗ TOOL-4 web_search_agent non disponible (voir logs)")
-    except Exception as e:
-        logger.error(f"✗ TOOL-4 échec init : {e}")
-        _web_search_agent = None
 
     yield
 
@@ -192,11 +172,13 @@ def build_multi_agent_system(model_id: str | None = None) -> CodeAgent:
         logger.warning("✗ browser_agent ignoré (Chrome DevTools MCP non disponible)")
 
     # ── Sous-agent web search (TOOL-4) ────────────────────────────────────────
-    if _web_search_agent is not None:
-        managed_agents.append(_web_search_agent)
-        logger.info("✓ web_search_agent ajouté aux ManagedAgents")
-    else:
-        logger.info("✗ web_search_agent non disponible (DuckDuckGoSearchTool)")
+    try:
+        web_agent = create_web_search_agent(model_id=model_id, max_results=5, rate_limit=1.0)
+        if web_agent is not None:
+            managed_agents.append(web_agent)
+            logger.info(f"✓ web_search_agent créé avec modèle {model_id}")
+    except Exception as e:
+        logger.warning(f"✗ web_search_agent non disponible: {e}")
 
     # ── Manager ───────────────────────────────────────────────────────────────
     manager_tools = get_manager_tools()
@@ -358,7 +340,7 @@ async def health():
             "pc_control": True,  # Toujours disponible (tools locaux)
             "vision": True,     # Toujours disponible (tools locaux)
             "browser": len(_chrome_mcp_tools) > 0,
-            "web_search_agent": _web_search_agent is not None,
+            "web_search_agent": web_diag["available"],
         },
         "tools": {
             "chrome_mcp": len(_chrome_mcp_tools),
