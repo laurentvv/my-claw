@@ -74,7 +74,8 @@ prefixed with 'ERROR:'."""
                 ["powershell", "-Command", command],
                 capture_output=True,
                 text=True,
-                encoding="utf-8",
+                encoding="cp1252",  # Windows Western European encoding
+                errors="replace",  # Replace undecodable characters
                 timeout=timeout,
                 shell=False,
             )

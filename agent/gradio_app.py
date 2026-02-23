@@ -113,12 +113,12 @@ def chat(
         resp = requests.post(
             f"{AGENT_URL}/run",
             json={"message": message, "history": history_dicts, "model": model_choice},
-            timeout=360,  # 6 minutes pour les tâches complexes multi-agent
+            timeout=320,  # 5:20 - slightly more than executor timeout (5min) for error handling
         )
         resp.raise_for_status()
         return resp.json()["response"]
     except requests.Timeout:
-        return "⏱️ Timeout (6min) — tâche trop longue ou modèle surchargé."
+        return "⏱️ Timeout (5min) — tâche trop longue ou modèle surchargé."
     except requests.ConnectionError:
         return "❌ Agent non accessible sur http://localhost:8000 — démarrer l'agent d'abord."
     except Exception as e:
@@ -128,13 +128,28 @@ def chat(
 def get_agent_status() -> str:
     """Vérifie le statut de l'agent et des sous-agents."""
     try:
-        resp = requests.get(f"{AGENT_URL}/health", timeout=3)
+        url = f"{AGENT_URL}/health"
+        resp = requests.get(url, timeout=280)  # 4:40 - slightly less than executor timeout
+        resp.raise_for_status()
         data = resp.json()
-        chrome = data.get("chrome_mcp", 0)
-        web = data.get("web_mcp", 0)
-        return f"✅ Agent en ligne | Chrome DevTools: {chrome} tools | Web MCP: {web} tools"
-    except Exception:
-        return "❌ Agent hors ligne — démarrer: `uv run uvicorn main:app --reload`"
+        tools = data.get("tools", {})
+        agents = data.get("agents", {})
+        chrome = tools.get("chrome_mcp", 0)
+        web_ready = tools.get("web_agent_ready", False)
+        web_ddg = tools.get("web_search_ddg", False)
+        web_visit = tools.get("web_visit", False)
+        return (
+            f"✅ Agent en ligne ({AGENT_URL}) | "
+            f"Chrome DevTools: {chrome} tools | "
+            f"Web Search: {'✅' if web_ready else '❌'} "
+            f"(DDG: {'✅' if web_ddg else '❌'}, Visit: {'✅' if web_visit else '❌'})"
+        )
+    except requests.ConnectionError as e:
+        return f"❌ Agent non accessible sur {AGENT_URL} — démarrer: `uv run uvicorn main:app --reload`"
+    except requests.Timeout:
+        return f"❌ Timeout vérifiant {AGENT_URL}/health — serveur lent ?"
+    except Exception as e:
+        return f"❌ Erreur: {e}"
 
 
 # ── Interface Gradio 6.6.0 ───────────────────────────────────────────────────
