@@ -98,3 +98,71 @@ def create_vision_agent(ollama_url: str, model_id: str = "qwen3:8b") -> CodeAgen
 
     logger.info(f"✓ vision_agent créé avec modèle LLM: {model_id} (vision interne: qwen3-vl:8b)")
     return agent
+
+
+# ── Diagnostic autonome ───────────────────────────────────────────────────────
+
+def diagnose_vision() -> dict[str, bool | str | None]:
+    """
+    Diagnostique la disponibilité du vision_agent.
+
+    Vérifie les dépendances :
+    - qwen3-vl modèle de vision (pour analyze_image)
+
+    Returns:
+        dict avec les clés : available, tool_name, vision_model, error
+    """
+    try:
+        # Vérifier qu'un modèle de vision est disponible
+        import requests
+        import os
+
+        ollama_url = os.environ.get("OLLAMA_BASE_URL", "http://localhost:11434")
+        response = requests.get(f"{ollama_url}/api/tags", timeout=5)
+        response.raise_for_status()
+        available_models = [m["name"] for m in response.json().get("models", [])]
+
+        # Chercher les modèles de vision (qwen3-vl ou autres)
+        vision_models = [
+            m
+            for m in available_models
+            if any(
+                keyword in m.lower()
+                for keyword in ["vision", "vl", "llava", "minicpm", "bakllava"]
+            )
+        ]
+
+        if not vision_models:
+            return {
+                "available": False,
+                "tool_name": "analyze_image",
+                "vision_model": None,
+                "error": "Aucun modèle de vision trouvé",
+                "fix": "ollama pull qwen3-vl:2b",
+            }
+
+        # Préférences : qwen3-vl:8b, qwen3-vl:2b, qwen3-vl:4b
+        vision_preferences = ["qwen3-vl:8b", "qwen3-vl:2b", "qwen3-vl:4b"]
+        vision_model = None
+        for pref in vision_preferences:
+            if pref in vision_models:
+                vision_model = pref
+                break
+        if vision_model is None:
+            vision_model = vision_models[0]
+
+        return {
+            "available": True,
+            "tool_name": "analyze_image",
+            "vision_model": vision_model,
+            "error": None,
+        }
+
+    except Exception as e:
+        return {
+            "available": False,
+            "tool_name": "analyze_image",
+            "vision_model": None,
+            "error": f"Impossible de vérifier les modèles Ollama: {e}",
+            "fix": "Vérifiez qu'Ollama est accessible et qu'un modèle de vision est installé",
+        }

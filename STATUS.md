@@ -1,6 +1,6 @@
 # STATUS — Vue rapide my-claw
 
-> Dernière mise à jour : 2026-02-22
+> Dernière mise à jour : 2026-02-23
 > Repo : https://github.com/laurentvv/my-claw
 
 ---
@@ -20,7 +20,7 @@ Architecture : Next.js 16 (gateway) + Python smolagents (agent) + Gradio (UI dev
 | **1 — Agent** | ✅ DONE | smolagents + FastAPI + Gradio + GLM-4.7 fix + skills |
 | **2 — Mémoire** | ✅ DONE | Prisma 7 + SQLite + historique conversations |
 | **3 — WebChat** | ✅ DONE | UI React + SSE streaming + auth Bearer |
-| **Tools** | 🔄 **6/10** | TOOL-1,2,3,7,8,10 DONE / TOOL-9 EN COURS / TOOL-4,5,6 TODO |
+| **Tools** | 🔄 **8/10** | TOOL-1,2,3,4,7,8,9,10,11 DONE / TOOL-5,6 TODO |
 | **4 — Nextcloud Talk** | ⏳ TODO | Bot HMAC-SHA256 |
 | **5 — Cron** | ⏳ TODO | Tâches proactives |
 | **6 — Z.ai + Health** | ⏳ TODO | GLM-4.7 + monitoring |
@@ -37,16 +37,20 @@ Architecture : Next.js 16 (gateway) + Python smolagents (agent) + Gradio (UI dev
 | **TOOL-3** | ✅ | Presse-papier Windows |
 | **TOOL-7** | ✅ | Vision locale (Ollama qwen3-vl:2b) - 100% local |
 | **TOOL-8** | ✅ | Screenshot Windows |
-| **TOOL-9** | 🔄 | Souris/Clavier (en cours - nécessite orchestration) |
+| **TOOL-9** | ✅ | Souris/Clavier (contrôle direct OS via pyautogui) |
+| **TOOL-11** | ✅ | GUI Grounding (qwen3-vl:2b pour localisation UI) |
 | **TOOL-10** | ✅ | MCP Chrome DevTools (26 outils Puppeteer) - TESTÉ & VALIDÉ |
-| **TOOL-4** | ⏳ | MCP Web Search Z.ai |
+| **TOOL-4** | ✅ | DuckDuckGoSearchTool (built-in smolagents, illimité) |
 | **TOOL-5** | ⏳ | MCP Web Reader Z.ai |
 | **TOOL-6** | ⏳ | MCP Zread GitHub |
 
 ---
 
-## 🚀 Améliorations récentes (2026-02-20)
+## 🚀 Améliorations récentes (2026-02-23)
 
+- ✅ **TOOL-9 Mouse & Keyboard** : Contrôle souris/clavier (pyautogui) - Validé
+- ✅ **TOOL-4 Web Search** : DuckDuckGoSearchTool (built-in smolagents, illimité)
+- ✅ **TOOL-11 GUI Grounding** : QwenGroundingTool (qwen3-vl:2b pour localisation UI)
 - ✅ **Fix GLM-4.7** : Nettoyage automatique des balises `</code` (SyntaxError résolu)
 - ✅ **Timeouts augmentés** : Gateway 6min, Agent 4min (GLM-4.7 screenshot+vision)
 - ✅ **Guidage agent** : `instructions` + `additional_authorized_imports` (Python natif)
@@ -108,7 +112,8 @@ my-claw/
 
 ## 🎯 Prochain objectif
 
-**TOOL-4** : MCP Web Search Z.ai (recherche web via Z.ai)
+**TOOL-5** : MCP Web Reader Z.ai (lecture de pages web via Z.ai)
+**TOOL-6** : MCP Zread GitHub (lecture de repos GitHub via Z.ai)
 
 ---
 

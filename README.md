@@ -9,7 +9,7 @@ A minimalist, self-hosted, and privacy-first personal assistant designed for Win
 ## ✨ Key Features
 
 - 🛡️ **Privacy-First**: Designed to run 100% locally with Ollama.
-- 🪟 **Deep Windows Integration**: Full access to the file system, PowerShell, clipboard, and screen.
+- 🪟 **Deep Windows Integration**: Full access to file system, PowerShell, clipboard, and screen.
 - 🧠 **Hybrid Brain**: Uses `smolagents` for intelligent tool use and code execution.
 - 🌐 **Modern Web Interface**: Clean, responsive UI built with Next.js 16 and Tailwind CSS.
 - 🔌 **Extensible Tools**: Supports custom Python tools and Model Context Protocol (MCP) integrations.
@@ -36,16 +36,16 @@ The project includes an automatic setup script for convenience:
 ```
 
 This script will:
-1. Initialize the Gateway (Next.js) environment and dependencies.
-2. Setup the Agent (Python) environment using `uv`.
-3. Configure the Prisma 7 SQLite database.
+1. Initialize Gateway (Next.js) environment and dependencies.
+2. Setup Agent (Python) environment using `uv`.
+3. Configure Prisma 7 SQLite database.
 4. Prepare your `.env` files.
 
 ---
 
 ## 🏗️ Architecture
 
-The system is split into two main components: the **Gateway** (handling UI and memory) and the **Agent** (handling reasoning and tools).
+The system is split into two main components: **Gateway** (handling UI and memory) and **Agent** (handling reasoning and tools).
 
 ```mermaid
 graph TD
@@ -135,18 +135,19 @@ Sans clé API, le système utilise automatiquement les modèles locaux (qwen3:8b
 
 ## 🛠️ Tool Capabilities
 
-Current status: **6/10 core tools implemented**
+Current status: **8/10 core tools implemented**
 
 | Tool | Status | Description |
 |------|--------|-------------|
 | **File System** | ✅ | Read, write, move, delete, and search files on Windows. |
 | **OS Exec** | ✅ | Execute PowerShell commands and scripts. |
-| **Clipboard** | ✅ | Access and modify the Windows clipboard. |
+| **Clipboard** | ✅ | Access and modify Windows clipboard. |
+| **Web Search** | ✅ | Real-time web search via DuckDuckGo (built-in smolagents, unlimited). |
 | **Vision** | ✅ | Local image analysis and OCR via `qwen3-vl:2b`. |
 | **Screenshot** | ✅ | Capture full screen or specific regions. |
+| **Mouse & Keyboard**| ✅ | Direct OS input control via pyautogui. |
+| **GUI Grounding** | ✅ | UI element localization with qwen3-vl:2b. |
 | **Chrome DevTools**| ✅ | Full browser automation via MCP (Puppeteer). |
-| **Mouse & Keyboard**| 🔄 | Direct OS input control (In Progress). |
-| **Web Search** | ⏳ | Real-time web search (Roadmap). |
 | **Web Reader** | ⏳ | Content extraction from URLs (Roadmap). |
 | **GitHub** | ⏳ | Repository analysis and file reading (Roadmap). |
 
@@ -179,7 +180,7 @@ Current status: **6/10 core tools implemented**
 
 ## 📚 Documentation
 
-For more detailed information, please refer to the following files:
+For more detailed information, please refer to following files:
 
 - 📊 [STATUS.md](STATUS.md) — Quick project overview.
 - 📋 [PROGRESS.md](PROGRESS.md) — Detailed development checkpoints.
@@ -202,7 +203,7 @@ For more detailed information, please refer to the following files:
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under MIT License - see the [LICENSE](LICENSE) file for details.
 
 ---
 

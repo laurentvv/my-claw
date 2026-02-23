@@ -13,6 +13,11 @@ from smolagents import CodeAgent, ToolCollection
 from models import get_default_model, get_model, get_models, get_ollama_models, is_cloud_model
 from tools import TOOLS
 
+# Imports agents spécialisés
+from agents.web_agent import create_web_search_agent, diagnose_web_search
+from agents.pc_control_agent import diagnose_pc_control
+from agents.vision_agent import diagnose_vision
+
 load_dotenv()
 
 # ─── Logging ────────────────────────────────────────────────────────────────
@@ -52,9 +57,6 @@ SKILLS = load_skills()
 _chrome_mcp_context: ToolCollection | None = None
 _chrome_mcp_tools: list = []
 
-# MCP Z.ai (web search, web reader, zread) — chargés dans lifespan
-_web_search_context: ToolCollection | None = None
-_web_search_tools: list = []
 
 # Cache des agents par modèle pour éviter de reconstruire à chaque requête
 _agent_cache: dict[str, CodeAgent] = {}
@@ -64,7 +66,6 @@ _cache_lock = asyncio.Lock()
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     global _chrome_mcp_context, _chrome_mcp_tools
-    global _web_search_context, _web_search_tools
 
     # ── Chrome DevTools MCP ──────────────────────────────────────────────────
     logger.info("Initialisation Chrome DevTools MCP...")
@@ -83,27 +84,6 @@ async def lifespan(app: FastAPI):
         _chrome_mcp_context = None
         _chrome_mcp_tools = []
 
-        # ── Web Search MCP Z.ai (TOOL-4) ──────────────────────────────────
-    # IMPORTANT : décommenter quand ZAI_API_KEY configuré et TOOL-4 implémenté
-    # logger.info("Initialisation Web Search MCP Z.ai...")
-    # try:
-    #     if os.environ.get("ZAI_API_KEY"):
-    #         web_search_params = {
-    #             "url": "https://api.z.ai/api/mcp/web_search_prime/mcp",
-    #             "type": "streamable-http",
-    #             "headers": {"Authorization": f"Bearer {os.environ['ZAI_API_KEY']}"}
-    #         }
-        #         _web_search_context = ToolCollection.from_mcp(
-        #             web_search_params, trust_remote_code=True
-        #         )
-    #         tool_collection = _web_search_context.__enter__()
-    #         _web_search_tools = list(tool_collection.tools)
-    #         logger.info(f"✓ Web Search MCP Z.ai: {len(_web_search_tools)} outils")
-    #     else:
-    #         logger.warning("✗ ZAI_API_KEY absent, Web Search MCP désactivé")
-    # except Exception as e:
-    #     logger.warning(f"✗ Web Search MCP Z.ai: {e}")
-
     yield
 
     # ── Shutdown ─────────────────────────────────────────────────────────────
@@ -113,13 +93,6 @@ async def lifespan(app: FastAPI):
             logger.info("✓ Chrome DevTools MCP fermé")
         except Exception as e:
             logger.error(f"✗ Fermeture Chrome MCP: {e}")
-
-    if _web_search_context is not None:
-        try:
-            _web_search_context.__exit__(None, None, None)
-            logger.info("✓ Web Search MCP Z.ai fermé")
-        except Exception as e:
-            logger.error(f"✗ Fermeture Web Search MCP: {e}")
 
 
 app = FastAPI(title="my-claw agent", version="0.2.0", lifespan=lifespan)
@@ -146,7 +119,7 @@ def build_multi_agent_system(model_id: str | None = None) -> CodeAgent:
     - pc_control : modèle par défaut + screenshot, ui_grounding, mouse_keyboard
     - vision : modèle par défaut + analyze_image
     - browser : modèle par défaut + Chrome DevTools MCP (si disponible)
-    - web_search : modèle par défaut + MCP Z.ai (si ZAI_API_KEY configuré)
+    - web_search_agent : modèle par défaut + DuckDuckGoSearchTool (illimité)
 
     NOTE : Tous les agents utilisent le même modèle LLM par défaut.
     Les outils spécialisés (ui_grounding, analyze_image) utilisent leurs propres modèles internes.
@@ -160,7 +133,6 @@ def build_multi_agent_system(model_id: str | None = None) -> CodeAgent:
     from agents.browser_agent import create_browser_agent
     from agents.pc_control_agent import create_pc_control_agent
     from agents.vision_agent import create_vision_agent
-    from agents.web_agent import create_web_agent
 
     ollama_url = os.environ.get("OLLAMA_BASE_URL", "http://localhost:11434")
     managed_agents = []
@@ -201,19 +173,14 @@ def build_multi_agent_system(model_id: str | None = None) -> CodeAgent:
     else:
         logger.warning("✗ browser_agent ignoré (Chrome DevTools MCP non disponible)")
 
-    # ── Sous-agent web search Z.ai ────────────────────────────────────────────
-    if _web_search_tools:
-        try:
-            web_agent = create_web_agent(ollama_url, _web_search_tools, model_id=model_id)
-            if web_agent:
-                managed_agents.append(web_agent)
-                logger.info(
-                    f"✓ web_agent créé ({len(_web_search_tools)} tools Z.ai) avec modèle {model_id}"
-                )
-        except Exception as e:
-            logger.warning(f"✗ web_agent non disponible: {e}")
-    else:
-        logger.info("✗ web_agent ignoré (aucun tool MCP Z.ai)")
+    # ── Sous-agent web search (TOOL-4) ────────────────────────────────────────
+    try:
+        web_agent = create_web_search_agent(model_id=model_id, max_results=5, rate_limit=1.0)
+        if web_agent is not None:
+            managed_agents.append(web_agent)
+            logger.info(f"✓ web_search_agent créé avec modèle {model_id}")
+    except Exception as e:
+        logger.warning(f"✗ web_search_agent non disponible: {e}")
 
     # ── Manager ───────────────────────────────────────────────────────────────
     manager_tools = get_manager_tools()
@@ -367,11 +334,43 @@ async def run(req: RunRequest):
 
 @app.get("/health")
 async def health():
+    web_diag = diagnose_web_search()
+    pc_diag = diagnose_pc_control()
+    vision_diag = diagnose_vision()
+
     return {
         "status": "ok",
         "module": "2-multi-agent",
-        "chrome_mcp": len(_chrome_mcp_tools),
-        "web_mcp": len(_web_search_tools),
+        "agents": {
+            "pc_control": pc_diag["available"],
+            "vision": vision_diag["available"],
+            "browser": len(_chrome_mcp_tools) > 0,
+            "web_search_agent": web_diag["available"],
+        },
+        "tools": {
+            "chrome_mcp": len(_chrome_mcp_tools),
+            "web_search": "DuckDuckGoSearchTool (illimité)" if web_diag["available"] else "indisponible",
+        },
+        "diagnostics": {
+            "pc_control": {
+                "available": pc_diag["available"],
+                "tools": pc_diag.get("tools", []),
+                "dependencies": pc_diag.get("dependencies", {}),
+                "error": pc_diag.get("error"),
+            },
+            "vision": {
+                "available": vision_diag["available"],
+                "tool_name": vision_diag.get("tool_name"),
+                "vision_model": vision_diag.get("vision_model"),
+                "error": vision_diag.get("error"),
+            },
+            "web_search": {
+                "available": web_diag["available"],
+                "tool_name": web_diag.get("tool_name"),
+                "backend": web_diag.get("backend"),
+                "error": web_diag.get("error"),
+            },
+        },
     }
 
 
@@ -398,6 +397,6 @@ async def list_models():
             "pc_control": f"{default_model} + qwen3-vl (interne)",
             "vision": f"{default_model} + analyze_image (qwen3-vl interne)",
             "browser": f"{default_model} + {len(_chrome_mcp_tools)} tools Chrome DevTools",
-            "web_search": f"{default_model} + {len(_web_search_tools)} tools Z.ai MCP",
+            "web_search_agent": f"{default_model} + DuckDuckGoSearchTool (illimité)",
         },
     }

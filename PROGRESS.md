@@ -117,21 +117,31 @@ Checkpoint :
 - ✅ "Lis le contenu du presse-papier" → retourne "Hello World"
 - ✅ Commit : feat: tool-3 — clipboard
 
-### TOOL-4 — MCP Web Search Z.ai
-**Statut : A FAIRE**
+### TOOL-4 — Web Search (DuckDuckGoSearchTool built-in)
+**Statut : ✅ DONE**
+
+Décision : built-in smolagents plutôt que MCP Z.ai.
+- 0 quota (économise les 100 calls/mois pour TOOL-6 Zread)
+- 0 config (duckduckgo-search>=8.1.1 déjà installé via smolagents[toolkit])
+- Même interface CodeAgent que les autres sub-agents
 
 Intégration :
-- MCPClient HTTP streamable vers https://api.z.ai/api/mcp/web_search_prime/mcp
-- Header Authorization: Bearer {ZAI_API_KEY}
-- Outil exposé : webSearchPrime
-- Initialisation dans agent/main.py au démarrage
-- Ajouter à TOOLS
+- agent/agents/web_agent.py → create_web_search_agent()
+- DuckDuckGoSearchTool(max_results=5, rate_limit=1.0)
+- Modèle : modèle par défaut du système (glm-4.7 ou qwen3:8b)
+- Ajouté dans managed_agents[] dans lifespan main.py
+- Skills ajoutés dans skills.txt (SKILL 11-13)
 
-Checkpoint :
-- ZAI_API_KEY configuré dans agent/.env
-- "Quelle est la météo à Paris aujourd'hui ?" → résultats temps réel
-- Vérifier dans les logs que webSearchPrime a bien été appelé
-- Commit : feat: tool-4 — mcp web search zai
+Checkpoints validés :
+- ✅ ddgs installé (duckduckgo-search==8.1.1), import OK
+- ✅ Logs startup : "✓ web_search_agent (CodeAgent) créé avec succès"
+- ✅ "Quelles sont les dernières nouveautés de smolagents ?" → résultats temps réel
+- ✅ "Quelle est la syntaxe des f-strings imbriquées en Python 3.14 ?" → réponse correcte
+- ✅ Délégation Manager → web_search correcte
+- ✅ /health retourne "web_search": true
+- ✅ Commit : feat: tool-4 — DuckDuckGoSearchTool validé
+
+Note : La lecture de pages web sera implémentée dans TOOL-5 (VisitWebpageTool).
 
 ### TOOL-5 — MCP Web Reader Z.ai
 **Statut : A FAIRE**
