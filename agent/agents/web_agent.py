@@ -12,9 +12,6 @@ from typing import TYPE_CHECKING
 
 from smolagents import CodeAgent, DuckDuckGoSearchTool
 
-if TYPE_CHECKING:
-    pass
-
 logger = logging.getLogger(__name__)
 
 # ── Instructions système du web_agent ────────────────────────────────────────
@@ -150,7 +147,7 @@ def create_web_search_agent(
 
 # ── Diagnostic autonome ───────────────────────────────────────────────────────
 
-def diagnose_web_search() -> dict[str, bool | str]:
+def diagnose_web_search() -> dict[str, bool | str | None]:
     """
     Diagnostique la disponibilité de DuckDuckGoSearchTool.
     Utilisé par /health et /models endpoints.
