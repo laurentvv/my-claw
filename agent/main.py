@@ -188,29 +188,34 @@ def build_multi_agent_system(model_id: str | None = None) -> CodeAgent:
         from tools import WebSearchTool, WebVisitTool
 
         # Créer les instances des outils avec les paramètres par défaut
-        search_tool = WebSearchTool()
-        visit_tool = WebVisitTool()
+        # Vérifier si les outils sont disponibles (None si dépendances manquantes)
+        if WebSearchTool is not None:
+            search_tool = WebSearchTool()
+            web_tools.append(search_tool)
+            logger.info("✓ TOOL-4 DuckDuckGoSearchTool configuré")
+        else:
+            logger.warning("✗ TOOL-4 DuckDuckGoSearchTool non disponible (ddgs manquant)")
+            logger.warning("  → uv add 'ddgs>=9.0.0' pour DuckDuckGoSearchTool")
 
-        logger.info("✓ TOOL-4 DuckDuckGoSearchTool configuré")
-        logger.info("✓ TOOL-5 VisitWebpageTool configuré")
+        if WebVisitTool is not None:
+            visit_tool = WebVisitTool()
+            web_tools.append(visit_tool)
+            logger.info("✓ TOOL-5 VisitWebpageTool configuré")
+        else:
+            logger.warning("✗ TOOL-5 VisitWebpageTool non disponible (markdownify manquant)")
+            logger.warning("  → uv add 'markdownify>=0.14.1' pour VisitWebpageTool")
 
-        # Passer les outils web search directement au manager
-        web_tools = [search_tool, visit_tool]
+        if web_tools:
+            logger.info(f"✓ Outils web search ajoutés au manager : {[t.name for t in web_tools]}")
 
-        logger.info(f"✓ Outils web search ajoutés au manager : {[t.name for t in web_tools]}")
     except ImportError as e:
         logger.warning(f"✗ Outils web search non disponibles: {e}")
-        if "markdownify" in str(e):
-            logger.warning("  → uv add 'markdownify>=0.14.1' pour VisitWebpageTool")
-        elif "ddgs" in str(e) or "duckduckgo" in str(e):
-            logger.warning("  → uv add 'ddgs>=9.0.0' pour DuckDuckGoSearchTool")
-        else:
-            logger.warning("  → uv add 'smolagents[toolkit]' pour tous les built-in tools")
+        logger.warning("  → uv add 'smolagents[toolkit]' pour tous les built-in tools")
 
     # ── Manager ───────────────────────────────────────────────────────────────
     manager_tools_list = get_manager_tools()
     all_manager_tools = manager_tools_list + web_tools
-    
+
     logger.info(f"Manager tools: {[t.name for t in all_manager_tools]}")
     logger.info(f"Sous-agents disponibles: {[m.name for m in managed_agents]}")
 
