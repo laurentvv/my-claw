@@ -82,7 +82,6 @@ else:
 # ── Factory function ──────────────────────────────────────────────────────────
 
 def create_web_search_agent(
-    ollama_url: str,
     model_id: str | None = None,
     max_results: int = 5,
     rate_limit: float = 1.0,
@@ -91,7 +90,6 @@ def create_web_search_agent(
     Crée le CodeAgent de recherche web avec DuckDuckGoSearchTool.
 
     Args:
-        ollama_url: URL du serveur Ollama (ex: http://localhost:11434)
         model_id: Modèle à utiliser (défaut: modèle par défaut du système)
         max_results: Nombre max de résultats par recherche (défaut: 5)
         rate_limit: Limite de requêtes par seconde (défaut: 1.0)

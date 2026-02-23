@@ -55,10 +55,6 @@ SKILLS = load_skills()
 _chrome_mcp_context: ToolCollection | None = None
 _chrome_mcp_tools: list = []
 
-# MCP Z.ai (web search, web reader, zread) — chargés dans lifespan
-_web_search_context: ToolCollection | None = None
-_web_search_tools: list = []
-
 # TOOL-4 — Web Search (DuckDuckGoSearchTool built-in)
 _web_search_agent: CodeAgent | None = None
 
@@ -70,7 +66,6 @@ _cache_lock = asyncio.Lock()
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     global _chrome_mcp_context, _chrome_mcp_tools
-    global _web_search_context, _web_search_tools
     global _web_search_agent
 
     # ── Chrome DevTools MCP ──────────────────────────────────────────────────
@@ -93,9 +88,7 @@ async def lifespan(app: FastAPI):
     # ── TOOL-4 : Web Search (DuckDuckGoSearchTool built-in) ──────────────────────
     logger.info("Initialisation TOOL-4 : Web Search (DuckDuckGoSearchTool)...")
     try:
-        ollama_url = os.environ.get("OLLAMA_BASE_URL", "http://localhost:11434")
         managed_web = create_web_search_agent(
-            ollama_url=ollama_url,
             model_id=None,  # Utilise le modèle par défaut du système
             max_results=5,
             rate_limit=1.0,
@@ -144,7 +137,7 @@ def build_multi_agent_system(model_id: str | None = None) -> CodeAgent:
     - pc_control : modèle par défaut + screenshot, ui_grounding, mouse_keyboard
     - vision : modèle par défaut + analyze_image
     - browser : modèle par défaut + Chrome DevTools MCP (si disponible)
-    - web_search : modèle par défaut + MCP Z.ai (si ZAI_API_KEY configuré)
+    - web_search_agent : modèle par défaut + DuckDuckGoSearchTool (illimité)
 
     NOTE : Tous les agents utilisent le même modèle LLM par défaut.
     Les outils spécialisés (ui_grounding, analyze_image) utilisent leurs propres modèles internes.
@@ -365,7 +358,7 @@ async def health():
             "pc_control": True,  # Toujours disponible (tools locaux)
             "vision": True,     # Toujours disponible (tools locaux)
             "browser": len(_chrome_mcp_tools) > 0,
-            "web_search": _web_search_agent is not None,
+            "web_search_agent": _web_search_agent is not None,
         },
         "tools": {
             "chrome_mcp": len(_chrome_mcp_tools),
@@ -397,6 +390,6 @@ async def list_models():
             "pc_control": f"{default_model} + qwen3-vl (interne)",
             "vision": f"{default_model} + analyze_image (qwen3-vl interne)",
             "browser": f"{default_model} + {len(_chrome_mcp_tools)} tools Chrome DevTools",
-            "web_search": f"{default_model} + DuckDuckGoSearchTool (illimité)",
+            "web_search_agent": f"{default_model} + DuckDuckGoSearchTool (illimité)",
         },
     }
