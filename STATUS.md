@@ -1,6 +1,6 @@
 # STATUS — Vue rapide my-claw
 
-> Dernière mise à jour : 2026-02-23
+> Dernière mise à jour : 2026-02-24
 > Repo : https://github.com/laurentvv/my-claw
 
 ---
@@ -8,7 +8,7 @@
 ## 🎯 Vision
 
 Assistant personnel hybride 100% local (Ollama) avec capacités cloud optionnelles (Z.ai).
-Architecture : Next.js 16 (gateway) + Python smolagents (agent) + Gradio (UI dev).
+Architecture : Next.js 16.1 (gateway) + Python smolagents (agent) + Gradio (UI dev).
 
 ---
 
@@ -16,11 +16,11 @@ Architecture : Next.js 16 (gateway) + Python smolagents (agent) + Gradio (UI dev
 
 | Module | Statut | Commentaire |
 |--------|--------|-------------|
-| **0 — Socle** | ✅ DONE | Structure, Next.js 16, Python uv, Ollama |
+| **0 — Socle** | ✅ DONE | Structure, Next.js 16.1, Python uv, Ollama |
 | **1 — Agent** | ✅ DONE | smolagents + FastAPI + Gradio + GLM-4.7 fix + skills |
-| **2 — Mémoire** | ✅ DONE | Prisma 7 + SQLite + historique conversations |
-| **3 — WebChat** | ✅ DONE | UI React + SSE streaming + auth Bearer |
-| **Tools** | ✅ **8/10** | TOOL-1,2,3,4,5,7,8,9,10,11 DONE / TOOL-6 TODO |
+| **2 — Mémoire** | ✅ DONE | Prisma 7.4 + SQLite + historique conversations |
+| **3 — WebChat** | ✅ DONE | UI React 19 + SSE streaming + auth Bearer |
+| **Tools** | ✅ **10/11** | TOOL-1,2,3,4,5,7,8,9,10,11 DONE / TOOL-6 TODO |
 | **4 — Nextcloud Talk** | ⏳ TODO | Bot HMAC-SHA256 |
 | **5 — Cron** | ⏳ TODO | Tâches proactives |
 | **6 — Z.ai + Health** | ⏳ TODO | GLM-4.7 + monitoring |
@@ -28,7 +28,7 @@ Architecture : Next.js 16 (gateway) + Python smolagents (agent) + Gradio (UI dev
 
 ---
 
-## 🛠️ Outils smolagents (8/10)
+## 🛠️ Outils smolagents (10/11)
 
 | Tool | Statut | Description | Tests |
 |------|--------|-------------|-------|

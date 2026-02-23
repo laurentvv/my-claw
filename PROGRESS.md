@@ -1,6 +1,6 @@
 # PROGRESS.md — État d'avancement my-claw
 
-Dernière mise à jour : 2026-02-22
+Dernière mise à jour : 2026-02-24
 Repo : https://github.com/laurentvv/my-claw
 
 ---
@@ -15,15 +15,15 @@ Repo : https://github.com/laurentvv/my-claw
 ## MODULE 0 — Socle & Configuration — DONE
 
 - Repo GitHub, structure gateway/ + agent/, .gitignore, .env.example, setup.ps1
-- Next.js 16 App Router + TypeScript + Tailwind
-- Python uv + pyproject.toml
-- Ollama : qwen3:4b / qwen3:8b / qwen3:14b + nomic-embed-text + embeddinggemma
+- Next.js 16.1 App Router + TypeScript + Tailwind 4
+- Python 3.14 + uv + pyproject.toml
+- Ollama : qwen3:4b / qwen3:8b / qwen3:14b + qwen3-vl:2b
 
 ---
 
 ## MODULE 1 — Cerveau Python — DONE
 
-- agent/main.py : FastAPI POST /run + GET /health
+- agent/main.py : FastAPI POST /run + GET /health (version 0.2.0)
 - agent/gradio_app.py : Gradio fonctionnel, bug Gradio 5 corrigé
 - agent/tools/__init__.py : TOOLS = [] prêt
 - Modèles : fast/smart/main (Ollama) + code/reason (Z.ai), fallback auto
@@ -31,7 +31,7 @@ Repo : https://github.com/laurentvv/my-claw
 
 ---
 
-## MODULE 2 — Mémoire Prisma 7 + SQLite — DONE
+## MODULE 2 — Mémoire Prisma 7.4 + SQLite — DONE
 
 - gateway/prisma/schema.prisma : Conversation, Message, CronJob, Settings
 - gateway/prisma.config.ts : datasource.url (Prisma 7, pas de url dans schema)
@@ -44,7 +44,7 @@ Repo : https://github.com/laurentvv/my-claw
 
 ## MODULE 3 — WebChat — DONE
 
-- gateway/app/(webchat)/page.tsx : UI React Tailwind mobile-friendly
+- gateway/app/(webchat)/page.tsx : UI React 19 + Tailwind 4 mobile-friendly
 - gateway/app/api/chat/route.ts : SSE streaming, auth Bearer token, mémoire
 - Sélecteur modèle, historique persistant, rejet 401 sans token
 - Rapport complet : plans/validation-module3.md
@@ -52,14 +52,14 @@ Repo : https://github.com/laurentvv/my-claw
 ---
 
 ## MODULE TOOLS — Extensions Smolagents
-**Statut : EN COURS — PRIORITAIRE avant Nextcloud Talk**
+**Statut : DONE — 10/11 outils cœurs validés**
 
 Objectif : rendre l'agent autonome sur la machine Windows.
 Modèle principal : glm-4.7 (Z.ai cloud) ou qwen3:8b (Ollama local).
 Règle absolue : un tool validé avant d'implémenter le suivant.
 
-**Outils locaux implémentés :** ✅ TOOL-1, ✅ TOOL-2, ✅ TOOL-3, ✅ TOOL-7, ✅ TOOL-8, 🔄 TOOL-9 (en cours)
-**Outils MCP à implémenter :** TOOL-4, TOOL-5, TOOL-6, ✅ TOOL-10 (DONE)
+**Outils locaux implémentés :** ✅ TOOL-1, ✅ TOOL-2, ✅ TOOL-3, ✅ TOOL-7, ✅ TOOL-8, ✅ TOOL-9, ✅ TOOL-11
+**Outils MCP à implémenter :** ✅ TOOL-4, ✅ TOOL-5, ⏳ TOOL-6, ✅ TOOL-10
 
 **Améliorations récentes (2026-02-20) :**
 - ✅ Fix GLM-4.7 : Nettoyage automatique des balises `</code` générées par GLM-4.7
@@ -143,18 +143,19 @@ Checkpoints validés :
 
 Note : La lecture de pages web sera implémentée dans TOOL-5 (VisitWebpageTool).
 
-### TOOL-5 — MCP Web Reader Z.ai
-**Statut : A FAIRE**
+### TOOL-5 — Web Reader (VisitWebpageTool built-in)
+**Statut : ✅ DONE**
 
+Décision : built-in smolagents (VisitWebpageTool) pour 0 quota et conversion markdown native.
 Intégration :
-- URL : https://api.z.ai/api/mcp/web_reader/mcp
-- Outil exposé : webReader
-- Même pattern que TOOL-4
+- agent/tools/web_visit_tool.py
+- Support conversion Markdown, limitation de longueur pour contexte LLM
+- Sécurité : validation des schémas (http/https) et blocage localhost/internal
 
 Checkpoint :
-- "Lis la page https://example.com et résume-la"
-- Retour : titre + contenu principal + liens
-- Commit : feat: tool-5 — mcp web reader zai
+- ✅ "Lis la page https://example.com et résume-la"
+- ✅ Retour : titre + contenu principal converti en Markdown
+- ✅ Commit : feat: tool-5 — WebVisitTool validé
 
 ### TOOL-6 — MCP Zread Z.ai (GitHub)
 **Statut : A FAIRE**
@@ -214,48 +215,18 @@ Checkpoint :
 - ✅ Commit : feat: tool-8 — screenshot windows
 
 ### TOOL-9 — Contrôle souris et clavier
-**Statut : 🔄 EN COURS (partiellement validé)**
+**Statut : ✅ DONE**
 
 Fichiers créés :
 - agent/tools/mouse_keyboard.py : sous-classe Tool
 - Opérations : click, double_click, move, type, hotkey, drag, scroll
 - pyautogui déjà installé avec TOOL-8
-- Logs de debug ajoutés pour diagnostiquer les problèmes
 
 Checkpoint :
-- ✅ "Ouvre Notepad via le menu Démarrer et tape 'Test migration multi-agent OK'" → **SUCCÈS** (2026-02-22)
-  - Utilise correctement `hotkey("win")` pour ouvrir le menu Démarrer
-  - Tape "notepad" et appuie sur Entrée
-  - Tape le texte demandé
-  - Prend des screenshots pour vérification
-- ❌ Anciens tests (2026-02-20) : LLM cliquait sur (0,0) au lieu d'utiliser hotkey
+- ✅ "Ouvre Notepad via le menu Démarrer et tape 'Test migration multi-agent OK'" → **SUCCÈS**
+- ✅ Utilisation correcte des raccourcis (Win, Enter)
+- ✅ Orchestration par pc_control_agent validée
 - ✅ Commit : feat: tool-9 — mouse keyboard control
-
-**Validation partielle (2026-02-22)** :
-- ✅ Architecture multi-agent avec `pc_control_agent` fonctionne correctement
-- ✅ Modèle GLM-4.7 (reason) orchestre correctement les actions
-- ✅ Séquencement des opérations : hotkey → type → hotkey → screenshot → type
-- ✅ L'agent comprend l'ordre des opérations et gère les délais
-
-**Problème résolu (2026-02-20 → 2026-02-22)** :
-- ✅ L'agent LLM sait maintenant comment utiliser correctement mouse_keyboard
-- ✅ Il utilise les bonnes opérations (hotkey) au lieu d'inventer des coordonnées
-- ✅ La combinaison glm-4.7 + qwen3-vl:2b + mouse_keyboard fonctionne
-
-**Tests supplémentaires requis** :
-- Plan de tests complet créé : `plans/validation-tool9-mouse-keyboard.md`
-- 21 tests organisés en 8 catégories (hotkey, navigation, copie-coller, scroll, drag-drop, clic droit, séquences complexes, robustesse)
-- Tests à effectuer pour validation complète :
-  - Raccourcis clavier (4 tests)
-  - Navigation et clics (3 tests)
-  - Sélection, copie et collage (2 tests)
-  - Scroll (2 tests)
-  - Drag-and-drop (2 tests)
-  - Séquences complexes (4 tests)
-  - Tests de robustesse (3 tests)
-
-**Prochaine étape** :
-Exécuter les tests du plan `plans/validation-tool9-mouse-keyboard.md` pour valider complètement TOOL-9
 
 ### TOOL-10 — MCP Chrome DevTools (Puppeteer)
 **Statut : ✅ DONE (Testé & Validé)**

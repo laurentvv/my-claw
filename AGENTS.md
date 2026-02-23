@@ -438,6 +438,7 @@ Voir [`agent/SKILLS.md`](agent/SKILLS.md) pour la documentation complète des sk
 - **QwenGroundingTool** (TOOL-11) : GUI grounding avec qwen3-vl
 - **MouseKeyboardTool** (TOOL-9) : contrôle souris/clavier (pyautogui)
 - **ChromeDevTools MCP** (TOOL-10) : pilotage Chrome via Puppeteer (26 outils)
+- **VisitWebpageTool** (TOOL-5) : lecture URL et conversion en markdown (built-in smolagents)
 
 **26 outils Chrome DevTools MCP organisés en 6 catégories :**
 
@@ -480,7 +481,6 @@ Voir [`agent/SKILLS.md`](agent/SKILLS.md) pour la documentation complète des sk
 - `take_snapshot` : prendre un snapshot textuel de la page (verbose?)
 
 ### V1 — Roadmap (À venir)
-- **Web Reader MCP** (TOOL-5) : ⏳ lecture URL Z.ai
 - **Zread MCP** (TOOL-6) : ⏳ lecture GitHub Z.ai
 
 ### V2 — Bloqués, ne pas implémenter
