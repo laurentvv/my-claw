@@ -275,16 +275,14 @@ agent = CodeAgent(
 
 **Fichier :** [`agent/agents/web_agent.py`](agent/agents/web_agent.py)
 
-**Rôle :** Recherche web et lecture de contenu via MCP Z.ai
+**Rôle :** Recherche web en temps réel via DuckDuckGoSearchTool
 
-**Outils :** (si ZAI_API_KEY configuré)
-- `webSearchPrime` : Recherche web temps réel
-- `webReader` : Lecture de pages web
-- `zread` : Lecture de repos GitHub
+**Outils :**
+- `DuckDuckGoSearchTool` : Recherche web temps réel (built-in smolagents)
 
 **Modèle :** Par défaut (glm-4.7 ou qwen3:8b)
 
-**Note :** Retourne `None` si aucun tool MCP Z.ai n'est disponible
+**Note :** Utilise DuckDuckGoSearchTool (built-in smolagents) — 0 quota, 0 configuration
 
 ### Délégation automatique
 
@@ -294,7 +292,7 @@ Le Manager délègue automatiquement les tâches aux sous-agents appropriés sel
 - "Ouvre Notepad" → Délégué à `pc_control_agent`
 - "Analyse cette image" → Délégué à `vision_agent`
 - "Ouvre https://example.com" → Délégué à `browser_agent`
-- "Recherche des infos sur smolagents" → Délégué à `web_agent` (si disponible)
+- "Recherche des infos sur smolagents" → Délégué à `web_agent`
 
 ---
 
@@ -434,9 +432,11 @@ Voir [`agent/SKILLS.md`](agent/SKILLS.md) pour la documentation complète des sk
 - **FileSystemTool** (TOOL-1) : read/write/create/delete/list/move/search
 - **OsExecTool** (TOOL-2) : exécution PowerShell
 - **ClipboardTool** (TOOL-3) : lecture/écriture presse-papier
+- **DuckDuckGoSearchTool** (TOOL-4) : recherche web temps réel (built-in smolagents, illimité)
 - **ScreenshotTool** (TOOL-8) : capture d'écran Windows
 - **VisionTool** (TOOL-7) : analyse d'images locale avec qwen3-vl (100% local, 0 donnée sortante)
 - **QwenGroundingTool** (TOOL-11) : GUI grounding avec qwen3-vl
+- **MouseKeyboardTool** (TOOL-9) : contrôle souris/clavier (pyautogui)
 - **ChromeDevTools MCP** (TOOL-10) : pilotage Chrome via Puppeteer (26 outils)
 
 **26 outils Chrome DevTools MCP organisés en 6 catégories :**
@@ -479,11 +479,7 @@ Voir [`agent/SKILLS.md`](agent/SKILLS.md) pour la documentation complète des sk
 - `take_screenshot` : prendre un screenshot (format, fullPage?, quality?, uid?)
 - `take_snapshot` : prendre un snapshot textuel de la page (verbose?)
 
-### V1 — En cours (non validé)
-- **MouseKeyboardTool** (TOOL-9) : 🔄 contrôle souris/clavier (nécessite orchestration)
-
 ### V1 — Roadmap (À venir)
-- **Web Search MCP** (TOOL-4) : ⏳ recherche web Z.ai
 - **Web Reader MCP** (TOOL-5) : ⏳ lecture URL Z.ai
 - **Zread MCP** (TOOL-6) : ⏳ lecture GitHub Z.ai
 

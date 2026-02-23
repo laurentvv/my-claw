@@ -92,18 +92,19 @@ graph TD
 
 ## 🛠️ Capacités des Outils
 
-Statut actuel : **6/10 outils cœurs implémentés**
+Statut actuel : **8/10 outils cœurs implémentés**
 
 | Outil | Statut | Description |
 |-------|--------|-------------|
 | **Système de fichiers** | ✅ | Lire, écrire, déplacer, supprimer et rechercher des fichiers sur Windows. |
 | **Exécution OS** | ✅ | Exécuter des commandes et des scripts PowerShell. |
 | **Presse-papier** | ✅ | Accéder et modifier le presse-papier Windows. |
+| **Recherche Web** | ✅ | Recherche web en temps réel via DuckDuckGo (built-in smolagents, illimité). |
 | **Vision** | ✅ | Analyse d'images locale et OCR via `qwen3-vl:2b`. |
 | **Capture d'écran** | ✅ | Capturer l'écran entier ou des régions spécifiques. |
+| **Souris & Clavier** | ✅ | Contrôle direct des entrées OS via pyautogui. |
+| **Grounding GUI** | ✅ | Localisation d'éléments UI avec qwen3-vl:2b. |
 | **Chrome DevTools** | ✅ | Automatisation complète du navigateur via MCP (Puppeteer). |
-| **Souris & Clavier** | 🔄 | Contrôle direct des entrées OS (En cours). |
-| **Recherche Web** | ⏳ | Recherche web en temps réel (Roadmap). |
 | **Lecteur Web** | ⏳ | Extraction de contenu depuis des URLs (Roadmap). |
 | **GitHub** | ⏳ | Analyse de dépôts et lecture de fichiers (Roadmap). |
 

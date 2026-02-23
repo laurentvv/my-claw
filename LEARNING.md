@@ -2225,3 +2225,63 @@ if is_glm:
 ### Références
 
 - Plan détaillé : [`plans/correction-code-review-issues-v3.md`](plans/correction-code-review-issues-v3.md)
+
+---
+
+## TOOL-4 — Web Search built-in vs MCP Z.ai (2026-02-23)
+
+### Pourquoi built-in plutôt que MCP
+
+Le plan initial (implementation-tool4-mcp-web-search-zai.md) utilisait
+webSearchPrime via MCP HTTP streamable Z.ai (100 calls/mois partagés).
+
+Après discovery des built-in tools smolagents, décision révisée :
+- DuckDuckGoSearchTool : 0 quota, 0 config, déjà dans smolagents
+- Les 100 calls Z.ai économisés pour TOOL-6 (Zread GitHub), sans équivalent gratuit
+
+### DuckDuckGoSearchTool — paramètres clés
+
+```python
+from smolagents import DuckDuckGoSearchTool
+
+tool = DuckDuckGoSearchTool(
+    max_results=5,      # nombre de résultats retournés
+    rate_limit=1.0,     # max 1 requête/seconde (évite blocage DDG)
+)
+results = tool("smolagents latest release")
+```
+
+### Pattern CodeAgent pour web_search
+
+```python
+from smolagents import CodeAgent, DuckDuckGoSearchTool
+
+model = get_model(model_id)  # Utilise le modèle par défaut du système
+web_agent = CodeAgent(
+    tools=[DuckDuckGoSearchTool()],
+    model=model,
+    name="web_search_agent",  # Évite conflit avec le tool "web_search"
+    description="Effectue des recherches web en temps réel via DuckDuckGo...",
+    instructions=_WEB_SEARCH_INSTRUCTIONS,
+    max_steps=5,
+    verbosity_level=1,
+)
+```
+
+### Pas de shutdown pour DuckDuckGoSearchTool
+
+Contrairement aux MCP (TOOL-10 Chrome DevTools, futur TOOL-6 Zread) qui
+nécessitent __exit__() dans le shutdown du lifespan, DuckDuckGoSearchTool
+n'est pas un context manager → pas de cleanup nécessaire.
+
+### Python 3.14 — annotations
+
+Utiliser `X | None` plutôt que `Optional[X]` (PEP 604, disponible depuis 3.10).
+En 3.14, les f-strings imbriquées sont supportées nativement.
+
+### Décision architecture
+
+Le web_search_agent utilise le même modèle LLM que le Manager (glm-4.7 ou qwen3:8b)
+pour garantir la cohérence et éviter les incohérences dans les délégations.
+
+Le tool DuckDuckGoSearchTool est un tool smolagents built-in, pas un wrapper MCP.
