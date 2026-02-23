@@ -30,6 +30,7 @@ WebVisitTool = None
 
 try:
     from .web_search_tool import WebSearchTool  # noqa: F401
+
     logger.info("✓ WebSearchTool (DuckDuckGo) disponible")
 except ImportError as e:
     logger.warning(f"✗ WebSearchTool indisponible: {e}")
@@ -38,6 +39,7 @@ except ImportError as e:
 
 try:
     from .web_visit_tool import WebVisitTool  # noqa: F401
+
     logger.info("✓ WebVisitTool (web reader) disponible")
 except ImportError as e:
     logger.warning(f"✗ WebVisitTool indisponible: {e}")
@@ -57,7 +59,7 @@ __all__ = [
     "WebVisitTool",
 ]
 
-# ── Tool list with conditional web tools ─────────────────────────────────────
+# ── Tool list (local tools only) ─────────────────────────────────────────────
 TOOLS = [
     FileSystemTool(),
     OsExecTool(),
@@ -67,11 +69,5 @@ TOOLS = [
     QwenGroundingTool(),
     MouseKeyboardTool(),
 ]
-
-# Add web tools only if dependencies are available
-if WebSearchTool is not None:
-    TOOLS.append(WebSearchTool())
-if WebVisitTool is not None:
-    TOOLS.append(WebVisitTool())
 
 logger.info(f"✓ {len(TOOLS)} outils chargés : {[t.name for t in TOOLS]}")
