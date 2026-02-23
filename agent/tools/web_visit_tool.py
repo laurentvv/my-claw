@@ -75,7 +75,7 @@ class WebVisitTool(VisitWebpageTool):
             # Bloquer si privé, loopback, ou link-local
             return addr.is_private or addr.is_loopback or addr.is_link_local
 
-    def __call__(self, url: str, **kwargs) -> str:
+    def forward(self, url: str) -> str:
         """Valider l'URL avant de lire la page.
 
         Args:
