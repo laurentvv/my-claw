@@ -15,6 +15,8 @@ from tools import TOOLS
 
 # Imports agents spécialisés
 from agents.web_agent import create_web_search_agent, diagnose_web_search
+from agents.pc_control_agent import diagnose_pc_control
+from agents.vision_agent import diagnose_vision
 
 load_dotenv()
 
@@ -333,18 +335,41 @@ async def run(req: RunRequest):
 @app.get("/health")
 async def health():
     web_diag = diagnose_web_search()
+    pc_diag = diagnose_pc_control()
+    vision_diag = diagnose_vision()
+
     return {
         "status": "ok",
         "module": "2-multi-agent",
         "agents": {
-            "pc_control": True,  # Toujours disponible (tools locaux)
-            "vision": True,     # Toujours disponible (tools locaux)
+            "pc_control": pc_diag["available"],
+            "vision": vision_diag["available"],
             "browser": len(_chrome_mcp_tools) > 0,
             "web_search_agent": web_diag["available"],
         },
         "tools": {
             "chrome_mcp": len(_chrome_mcp_tools),
             "web_search": "DuckDuckGoSearchTool (illimité)" if web_diag["available"] else "indisponible",
+        },
+        "diagnostics": {
+            "pc_control": {
+                "available": pc_diag["available"],
+                "tools": pc_diag.get("tools", []),
+                "dependencies": pc_diag.get("dependencies", {}),
+                "error": pc_diag.get("error"),
+            },
+            "vision": {
+                "available": vision_diag["available"],
+                "tool_name": vision_diag.get("tool_name"),
+                "vision_model": vision_diag.get("vision_model"),
+                "error": vision_diag.get("error"),
+            },
+            "web_search": {
+                "available": web_diag["available"],
+                "tool_name": web_diag.get("tool_name"),
+                "backend": web_diag.get("backend"),
+                "error": web_diag.get("error"),
+            },
         },
     }
 
