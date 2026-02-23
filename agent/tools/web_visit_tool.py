@@ -93,8 +93,12 @@ class WebVisitTool(VisitWebpageTool):
             if parsed.scheme not in self.ALLOWED_SCHEMES:
                 return f"ERROR: Invalid URL scheme '{parsed.scheme}'. Only http/https allowed."
 
+            # Vérifier la présence d'un hostname
+            if not parsed.hostname:
+                return "ERROR: URL has no hostname."
+
             # Vérifier l'hôte
-            if parsed.hostname and self._is_blocked_host(parsed.hostname):
+            if self._is_blocked_host(parsed.hostname):
                 # Déterminer le motif du blocage pour le message d'erreur
                 try:
                     addr = ipaddress.ip_address(parsed.hostname)
