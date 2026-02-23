@@ -1,6 +1,7 @@
 import asyncio
 import logging
 import os
+import sys
 from contextlib import asynccontextmanager
 from pathlib import Path
 
@@ -22,7 +23,6 @@ load_dotenv()
 
 # ─── Logging ────────────────────────────────────────────────────────────────
 # Fix encoding for Windows console
-import sys
 if sys.platform == "win32":
     sys.stdout.reconfigure(encoding="utf-8")
     sys.stderr.reconfigure(encoding="utf-8")
