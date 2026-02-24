@@ -135,9 +135,11 @@ class WebVisitTool(VisitWebpageTool):
         return super().__call__(url)
 
     def forward(self, url: str) -> str:
-        """Méthode forward déléguée à la classe parent.
+        """Méthode forward déléguée à __call__() pour garantir la validation SSRF.
 
-        La validation SSRF est effectuée dans __call__(), qui est appelée par smolagents.
+        NOTE: smolagents' CodeAgent executor peut appeler self.forward() directement,
+        donc nous déléguons à __call__() pour garantir que la validation SSRF est toujours
+        exécutée, quel que soit le point d'entrée utilisé.
 
         Args:
             url: URL de la page web à lire.
@@ -146,4 +148,4 @@ class WebVisitTool(VisitWebpageTool):
             Contenu de la page ou message d'erreur.
 
         """
-        return super().forward(url)
+        return self.__call__(url)
