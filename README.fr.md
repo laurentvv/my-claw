@@ -23,7 +23,7 @@ Un assistant personnel minimaliste, auto-hébergé et respectueux de la vie priv
 
 - **Node.js** : 25.x ou supérieur
 - **uv** : [Gestionnaire de paquets Python](https://docs.astral.sh/uv/)
-- **Python** : 3.14.2
+- **Python** : 3.14.x ou supérieur
 - **Ollama** : Pour l'accélération locale des LLM
 - **Windows OS** : Recommandé (pour le support natif des outils)
 
