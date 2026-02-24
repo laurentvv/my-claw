@@ -131,8 +131,8 @@ class WebVisitTool(VisitWebpageTool):
         except (ValueError, TypeError) as e:
             return f"ERROR: Invalid URL format: {e}"
 
-        # Déléguer au parent
-        return super().__call__(url)
+        # Déléguer au parent en contournant Tool.__call__() pour éviter la récursion infinie
+        return super().forward(url)
 
     def forward(self, url: str) -> str:
         """Méthode forward déléguée à __call__() pour garantir la validation SSRF.
