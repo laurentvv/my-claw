@@ -129,7 +129,7 @@ def get_agent_status() -> str:
     """Vérifie le statut de l'agent et des sous-agents."""
     try:
         url = f"{AGENT_URL}/health"
-        resp = requests.get(url, timeout=10)  # Health check should be fast
+        resp = requests.get(url, timeout=3)  # Health check rapide
         resp.raise_for_status()
         data = resp.json()
         tools = data.get("tools", {})

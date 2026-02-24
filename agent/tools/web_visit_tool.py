@@ -53,6 +53,7 @@ class WebVisitTool(VisitWebpageTool):
         - IP link-local (169.254.x.x, fe80::/10)
         - IP réservées (AWS/GCP metadata: 169.254.169.254)
         - IPv4-mapped IPv6 (::ffff:127.0.0.1)
+        - IP multicast (224.0.0.0/4, ff00::/8)
 
         Args:
             hostname: Nom d'hôte ou adresse IP à vérifier
@@ -72,15 +73,23 @@ class WebVisitTool(VisitWebpageTool):
             # Pas une adresse IP, c'est un hostname — autorisé
             return False
         else:
-            # Bloquer si privé, loopback, ou link-local
-            return addr.is_private or addr.is_loopback or addr.is_link_local
+            # Bloquer si privé, loopback, link-local, réservé, ou multicast
+            return (
+                addr.is_private
+                or addr.is_loopback
+                or addr.is_link_local
+                or addr.is_reserved  # Ajouté pour IP réservées (metadata endpoints)
+                or addr.is_multicast  # Ajouté pour IP multicast
+            )
 
-    def forward(self, url: str) -> str:
-        """Valider l'URL avant de lire la page.
+    def __call__(self, url: str) -> str:
+        """Valider l'URL avant de déléguer au parent.
+
+        NOTE: urlparse.hostname extrait correctement le hostname même avec des credentials.
+        Exemple: urlparse("http://user:pass@evil.com").hostname → "evil.com"
 
         Args:
             url: URL de la page web à lire.
-            **kwargs: Arguments supplémentaires passés au parent.
 
         Returns:
             Contenu de la page ou message d'erreur.
@@ -108,6 +117,10 @@ class WebVisitTool(VisitWebpageTool):
                         reason = "loopback IP"
                     elif addr.is_link_local:
                         reason = "link-local IP"
+                    elif addr.is_reserved:
+                        reason = "reserved IP"
+                    elif addr.is_multicast:
+                        reason = "multicast IP"
                     else:
                         reason = "restricted IP"
                 except ValueError:
@@ -118,4 +131,19 @@ class WebVisitTool(VisitWebpageTool):
         except (ValueError, TypeError) as e:
             return f"ERROR: Invalid URL format: {e}"
 
-        return super().__call__(url, **kwargs)
+        # Déléguer au parent
+        return super().__call__(url)
+
+    def forward(self, url: str) -> str:
+        """Méthode forward déléguée à la classe parent.
+
+        La validation SSRF est effectuée dans __call__(), qui est appelée par smolagents.
+
+        Args:
+            url: URL de la page web à lire.
+
+        Returns:
+            Contenu de la page ou message d'erreur.
+
+        """
+        return super().forward(url)

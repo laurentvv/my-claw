@@ -190,17 +190,25 @@ def build_multi_agent_system(model_id: str | None = None) -> CodeAgent:
         # Créer les instances des outils avec les paramètres par défaut
         # Vérifier si les outils sont disponibles (None si dépendances manquantes)
         if WebSearchTool is not None:
-            search_tool = WebSearchTool()
-            web_tools.append(search_tool)
-            logger.info("✓ TOOL-4 DuckDuckGoSearchTool configuré")
+            try:
+                search_tool = WebSearchTool()
+                web_tools.append(search_tool)
+                logger.info("✓ TOOL-4 DuckDuckGoSearchTool configuré")
+            except (TypeError, ValueError, Exception) as e:
+                logger.warning(f"✗ TOOL-4 DuckDuckGoSearchTool erreur d'initialisation: {e}")
+                logger.warning("  → Vérifiez que ddgs>=9.0.0 est installé")
         else:
             logger.warning("✗ TOOL-4 DuckDuckGoSearchTool non disponible (ddgs manquant)")
             logger.warning("  → uv add 'ddgs>=9.0.0' pour DuckDuckGoSearchTool")
 
         if WebVisitTool is not None:
-            visit_tool = WebVisitTool()
-            web_tools.append(visit_tool)
-            logger.info("✓ TOOL-5 VisitWebpageTool configuré")
+            try:
+                visit_tool = WebVisitTool()
+                web_tools.append(visit_tool)
+                logger.info("✓ TOOL-5 VisitWebpageTool configuré")
+            except (TypeError, ValueError, Exception) as e:
+                logger.warning(f"✗ TOOL-5 VisitWebpageTool erreur d'initialisation: {e}")
+                logger.warning("  → Vérifiez que markdownify>=0.14.1 est installé")
         else:
             logger.warning("✗ TOOL-5 VisitWebpageTool non disponible (markdownify manquant)")
             logger.warning("  → uv add 'markdownify>=0.14.1' pour VisitWebpageTool")

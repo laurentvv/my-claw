@@ -71,15 +71,38 @@ prefixed with 'ERROR:'."""
                     "Replaced 'curl' with 'curl.exe' to use native curl instead of PowerShell alias"
                 )
 
-            result = subprocess.run(
-                ["powershell", "-Command", command],
-                capture_output=True,
-                text=True,
-                encoding="cp1252" if sys.platform == "win32" else "utf-8",  # Windows vs Linux/macOS
-                errors="replace",  # Replace undecodable characters
-                timeout=timeout,
-                shell=False,
-            )
+            # Pour Windows, essayer cp1252 d'abord, puis utf-8 en cas d'erreur
+            if sys.platform == "win32":
+                try:
+                    result = subprocess.run(
+                        ["powershell", "-Command", command],
+                        capture_output=True,
+                        text=True,
+                        encoding="cp1252",
+                        timeout=timeout,
+                        shell=False,
+                    )
+                except UnicodeDecodeError:
+                    # Fallback sur utf-8 si cp1252 échoue
+                    result = subprocess.run(
+                        ["powershell", "-Command", command],
+                        capture_output=True,
+                        text=True,
+                        encoding="utf-8",
+                        errors="replace",  # Remplacer seulement en fallback
+                        timeout=timeout,
+                        shell=False,
+                    )
+                    logger.warning("Fallback sur utf-8 pour encoding PowerShell")
+            else:
+                result = subprocess.run(
+                    ["powershell", "-Command", command],
+                    capture_output=True,
+                    text=True,
+                    encoding="utf-8",
+                    timeout=timeout,
+                    shell=False,
+                )
 
             stdout = result.stdout.strip() if result.stdout else ""
             stderr = result.stderr.strip() if result.stderr else ""

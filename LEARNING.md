@@ -488,6 +488,231 @@ Fix : lazy init ou try/except au démarrage.
 
 ---
 
+## Code Review v4 - 2025-02-24
+
+### Surcharge de Tool dans smolagents
+
+**Problème :** Surcharger `__call__()` vs `forward()` dans les outils smolagents.
+
+**Leçon :**
+- `Tool.__call__()` appelle `self.forward()`, donc surcharger `__call__()` est nécessaire pour intercepter les appels avant validation
+- Ne JAMAIS appeler `super().__call__()` depuis `forward()` car cela crée une récursion infinie
+- Utiliser `super().forward()` pour déléguer au parent
+
+**Exemple incorrect (récursion infinie) :**
+```python
+def forward(self, url: str) -> str:
+    # Validation...
+    return super().__call__(url)  # ❌ Récursion infinie !
+```
+
+**Exemple correct :**
+```python
+def __call__(self, url: str) -> str:
+    """Valider l'URL avant de déléguer au parent."""
+    # Validation SSRF...
+    return super().__call__(url)
+
+def forward(self, url: str) -> str:
+    # Implémentation...
+    return super().forward(url)  # ✅ Appel direct à forward()
+```
+
+---
+
+### Validation SSRF dans les outils web
+
+**Problème :** La validation SSRF doit être dans `__call__()` car smolagents n'appelle jamais `forward()` directement via l'agent executor.
+
+**Leçon :**
+- `urlparse.hostname` extrait correctement le hostname même avec des credentials (`http://user:pass@host.com`)
+- Utiliser `ipaddress.is_reserved` et `ipaddress.is_multicast` pour bloquer les IP réservées et multicast
+- Vérifier `parsed.hostname` n'est pas None avant de l'utiliser
+
+**Exemple de validation SSRF complète :**
+```python
+ALLOWED_SCHEMES = {"http", "https"}
+BLOCKED_HOSTS = {"localhost", "127.0.0.1", "::1"}
+
+def __call__(self, url: str) -> str:
+    """Valider l'URL avant de déléguer au parent."""
+    try:
+        parsed = urlparse(url)
+
+        if parsed.scheme not in self.ALLOWED_SCHEMES:
+            return f"ERROR: Invalid URL scheme '{parsed.scheme}'. Only http/https allowed."
+
+        if not parsed.hostname:
+            return "ERROR: URL has no hostname."
+
+        # urlparse.hostname extrait correctement même avec credentials
+        hostname = parsed.hostname
+        if self._is_blocked_host(hostname):
+            return f"ERROR: Access to '{hostname}' is blocked for security reasons."
+
+    except (ValueError, TypeError) as e:
+        return f"ERROR: Invalid URL format: {e}"
+
+    return super().__call__(url)
+
+@staticmethod
+def _is_blocked_host(hostname: str) -> bool:
+    """Vérifier si un hôte doit être bloqué pour prévenir les attaques SSRF."""
+    if hostname.lower() in WebVisitTool.BLOCKED_HOSTS:
+        return True
+
+    try:
+        addr = ipaddress.ip_address(hostname)
+    except ValueError:
+        return False  # Pas une adresse IP, c'est un hostname — autorisé
+
+    # Bloquer si privé, loopback, link-local, réservé ou multicast
+    return (
+        addr.is_private
+        or addr.is_loopback
+        or addr.is_link_local
+        or addr.is_reserved
+        or addr.is_multicast
+    )
+```
+
+---
+
+### Gestion des exceptions lors de l'instanciation d'outils
+
+**Problème :** Les APIs externes peuvent changer de signature et lever des erreurs inattendues.
+
+**Leçon :**
+- Toujours capturer `TypeError` et `ValueError` en plus de `Exception` lors de l'instanciation d'outils
+- Logger un warning informatif pour aider au diagnostic
+
+**Exemple :**
+```python
+# Dans main.py
+if WebSearchTool is not None:
+    try:
+        search_tool = WebSearchTool()
+        web_tools.append(search_tool)
+        logger.info("✓ TOOL-4 DuckDuckGoSearchTool configuré")
+    except (TypeError, ValueError, Exception) as e:
+        logger.warning(f"✗ TOOL-4 DuckDuckGoSearchTool erreur d'initialisation: {e}")
+        logger.warning("  → Vérifiez que ddgs>=9.0.0 est installé")
+```
+
+---
+
+### Encoding PowerShell sur Windows
+
+**Problème :** `cp1252` est l'encoding par défaut de PowerShell sur Windows, mais peut échouer.
+
+**Leçon :**
+- Implémenter un fallback `cp1252 → utf-8` avec `errors="replace"` seulement en fallback
+- Logger un warning lors du fallback pour diagnostiquer les problèmes
+
+**Exemple :**
+```python
+# Dans os_exec.py
+if sys.platform == "win32":
+    try:
+        result = subprocess.run(
+            ["powershell", "-Command", command],
+            capture_output=True,
+            text=True,
+            encoding="cp1252",
+            timeout=timeout,
+            shell=False,
+        )
+    except UnicodeDecodeError:
+        # Fallback sur utf-8 si cp1252 échoue
+        result = subprocess.run(
+            ["powershell", "-Command", command],
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",  # Remplacer seulement en fallback
+            timeout=timeout,
+            shell=False,
+        )
+        logger.warning("Fallback sur utf-8 pour encoding PowerShell")
+else:
+    result = subprocess.run(
+        ["powershell", "-Command", command],
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        timeout=timeout,
+        shell=False,
+    )
+```
+
+---
+
+### Architecture des outils multi-agent
+
+**Problème :** Comprendre la séparation entre outils locaux et outils web.
+
+**Leçon :**
+- Les outils locaux sont instanciés dans `TOOLS` (pour les sous-agents)
+- Les outils web sont instanciés séparément dans `main.py` et ajoutés uniquement au manager
+- Cette séparation est intentionnelle pour éviter que les sous-agents aient accès aux outils web
+
+**Exemple :**
+```python
+# Dans tools/__init__.py
+# ── Tool list (local tools only) ─────────────────────────────────────────────
+# NOTE: Les outils web (WebSearchTool, WebVisitTool) sont instanciés
+# séparément dans main.py et ajoutés uniquement au manager, pas aux sous-agents.
+# Les sous-agents utilisent uniquement les outils locaux.
+TOOLS = [
+    FileSystemTool(),
+    OsExecTool(),
+    ClipboardTool(),
+    ScreenshotTool(),
+    VisionTool(),
+    QwenGroundingTool(),
+    MouseKeyboardTool(),
+]
+
+# Dans main.py
+# Outils web pour le manager uniquement
+web_tools = []
+if WebSearchTool is not None:
+    try:
+        search_tool = WebSearchTool()
+        web_tools.append(search_tool)
+    except (TypeError, ValueError, Exception) as e:
+        logger.warning(f"✗ TOOL-4 DuckDuckGoSearchTool erreur: {e}")
+
+if WebVisitTool is not None:
+    try:
+        visit_tool = WebVisitTool()
+        web_tools.append(visit_tool)
+    except (TypeError, ValueError, Exception) as e:
+        logger.warning(f"✗ TOOL-5 WebVisitTool erreur: {e}")
+
+# Manager reçoit TOOLS + web_tools
+manager_tools_list = get_manager_tools()
+all_manager_tools = manager_tools_list + web_tools
+```
+
+---
+
+### Timeouts pour les health checks
+
+**Problème :** Un health check doit être rapide pour ne pas bloquer l'interface utilisateur.
+
+**Leçon :**
+- Utiliser `timeout=3` pour les requêtes de health check
+- Un timeout de 10s est trop long et bloque l'interface utilisateur
+
+**Exemple :**
+```python
+# Dans gradio_app.py
+resp = requests.get(url, timeout=3)  # Health check rapide (< 3s)
+```
+
+---
+
 ## Références
 
 - smolagents built-in tools : https://huggingface.co/docs/smolagents/reference/default_tools

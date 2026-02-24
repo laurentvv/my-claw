@@ -60,6 +60,9 @@ __all__ = [
 ]
 
 # ── Tool list (local tools only) ─────────────────────────────────────────────
+# NOTE: Les outils web (WebSearchTool, WebVisitTool) sont instanciés
+# séparément dans main.py et ajoutés uniquement au manager, pas aux sous-agents.
+# Les sous-agents utilisent uniquement les outils locaux.
 TOOLS = [
     FileSystemTool(),
     OsExecTool(),
