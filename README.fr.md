@@ -106,7 +106,7 @@ Vous pouvez changer le modèle par défaut en définissant la variable d'environ
 DEFAULT_MODEL=reason
 
 # Utiliser glm-4.7-flash (plus rapide)
-DEFAULT_MODEL=coding
+DEFAULT_MODEL=code
 
 # Utiliser qwen3:8b (local, gratuit)
 DEFAULT_MODEL=main
