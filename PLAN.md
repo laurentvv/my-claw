@@ -17,20 +17,20 @@ Pas de cloud obligatoire — local-first par défaut, cloud optionnel via Z.ai G
 │                      Machine dédiée Windows                  │
 │                                                             │
 │  ┌─────────────────────────────────────────────────────┐   │
-│  │  Next.js 16 — Gateway & Mémoire (:3000)             │   │
-│  │  Webhooks canaux, Prisma SQLite, WebChat UI         │   │
+│  │  Next.js 16.1 — Gateway & Mémoire (:3000)           │   │
+│  │  Webhooks canaux, Prisma 7.4, WebChat UI            │   │
 │  └──────────────────┬──────────────────────────────────┘   │
 │                     │ HTTP interne                          │
 │  ┌──────────────────▼──────────────────────────────────┐   │
-│  │  Python smolagents — Cerveau (:8000)                │   │
-│  │  CodeAgent + 10 tools + MCP Z.ai                    │   │
+│  │  Python 3.14 — Cerveau (:8000)                      │   │
+│  │  smolagents + 10 tools + Chrome MCP                 │   │
 │  └─────────────────────────────────────────────────────┘   │
 │                                                             │
 │  ┌─────────────────────────────────────────────────────┐   │
-│  │  Gradio — UI dev/test (:7860)                       │   │
+│  │  Gradio 6 — UI dev/test (:7860)                     │   │
 │  └─────────────────────────────────────────────────────┘   │
 │                                                             │
-│  Ollama :11434 — qwen3:4b / 8b / 14b                        │
+│  Ollama :11434 — qwen3:8b / 14b / vl:2b                │
 │  SQLite  — mémoire conversations                            │
 └─────────────────────────────────────────────────────────────┘
          │
@@ -42,16 +42,16 @@ Pas de cloud obligatoire — local-first par défaut, cloud optionnel via Z.ai G
 ## PLAN V1 — MODULES GATEWAY
 
 ### MODULE 0 — Socle & Configuration — DONE
-Structure dossiers, Next.js 16, Python uv, Ollama opérationnel.
+Structure dossiers, Next.js 16.1, Python 3.14, uv, Ollama opérationnel.
 
 ### MODULE 1 — Cerveau Python — DONE
-FastAPI /run, Gradio, factory modèles Ollama + Z.ai, sans outil.
+FastAPI /run, Gradio 6, factory modèles Ollama + Z.ai, architecture multi-agent.
 
-### MODULE 2 — Mémoire Prisma 7 + SQLite — DONE
+### MODULE 2 — Mémoire Prisma 7.4 + SQLite — DONE
 4 tables, singleton PrismaClient, helpers memory.ts, migration init.
 
 ### MODULE 3 — WebChat — DONE
-UI React Tailwind, SSE streaming, auth token, historique persistant.
+UI React 19 + Tailwind 4, SSE streaming, auth token, historique persistant.
 
 ### MODULE 4 — Canal Nextcloud Talk — A FAIRE (après module tools)
 Webhook HMAC-SHA256, envoi OCS API, enregistrement bot admin NC.
@@ -106,23 +106,23 @@ Fondamental pour injecter du texte dans des applications tierces.
 
 Checkpoint : écrire du texte dans le clipboard, le lire, vérifier la cohérence.
 
-### TOOL-4 — MCP Web Search Z.ai
-Priorité : 4 | Quota : oui (100 calls/mois partagés) | Dépendance : ZAI_API_KEY
+### TOOL-4 — Web Search (DuckDuckGoSearchTool built-in)
+Priorité : 4 | Quota : 0 | Dépendance : duckduckgo-search
 
-Intégration via MCPClient HTTP streamable.
-URL : https://api.z.ai/api/mcp/web_search_prime/mcp
-Header : Authorization: Bearer {ZAI_API_KEY}
-Outil exposé : webSearchPrime
+Recherche web en temps réel intégrée directement au manager.
+Basé sur le tool built-in de smolagents. Illimité et gratuit.
 
 Checkpoint : rechercher "météo Paris aujourd'hui", recevoir des résultats frais.
+**Statut : ✅ DONE**
 
-### TOOL-5 — MCP Web Reader Z.ai
-Priorité : 5 | Quota : oui (partagé avec TOOL-4) | Dépendance : ZAI_API_KEY
+### TOOL-5 — Web Reader (VisitWebpageTool built-in)
+Priorité : 5 | Quota : 0 | Dépendance : markdownify
 
-URL : https://api.z.ai/api/mcp/web_reader/mcp
-Outil exposé : webReader — contenu complet d'une URL (titre, body, liens, metadata).
+Lecture de pages web et conversion en Markdown. Intégré au manager.
+Validation SSRF incluse (blocage localhost/internal).
 
-Checkpoint : lire https://example.com, extraire titre et contenu principal.
+Checkpoint : lire https://example.com, extraire titre et contenu principal en MD.
+**Statut : ✅ DONE**
 
 ### TOOL-6 — MCP Zread Z.ai (GitHub)
 Priorité : 6 | Quota : oui (partagé) | Dépendance : ZAI_API_KEY
@@ -165,10 +165,10 @@ Priorité : 9 | Quota : 0 | Dépendance : pyautogui (déjà installé avec TOOL-
 
 Outils : mouse_click(x, y), mouse_move(x, y), mouse_double_click(x, y),
 keyboard_type(text), keyboard_hotkey(*keys), mouse_drag(x1, y1, x2, y2).
-S'appuie sur les coordonnées fournies par TOOL-7 Vision.
+S'appuie sur les coordonnées fournies par TOOL-7 Vision ou TOOL-11 Grounding.
 
 Checkpoint : ouvrir le menu Démarrer (Win), taper "notepad", Entrée, vérifier via screenshot.
-**Statut : 🔄 EN COURS (non validé)** - L'outil fonctionne mais nécessite un orchestrateur plus puissant (glm-4.7) pour coordonner screenshot + vision + actions de manière autonome.
+**Statut : ✅ DONE**
 
 ### TOOL-10 — MCP Chrome DevTools (Puppeteer)
 Priorité : 10 | Quota : 0 | Dépendance : npx chrome-devtools-mcp@latest | **Statut : ✅ DONE**
@@ -255,20 +255,21 @@ User: "Ouvre Notepad et écris un résumé de ma journée"
 
 ```
 MODULE 0   DONE   Socle
-MODULE 1   DONE   Cerveau Python + GLM-4.7 fix + timeouts
-MODULE 2   DONE   Mémoire Prisma
-MODULE 3   DONE   WebChat
+MODULE 1   DONE   Cerveau Python + GLM-4.7 fix + multi-agent
+MODULE 2   DONE   Mémoire Prisma 7.4
+MODULE 3   DONE   WebChat (SSE streaming)
 TOOL-1     DONE   Fichiers Windows
-TOOL-2     DONE   OS PowerShell + fix curl alias
+TOOL-2     DONE   OS PowerShell + fix encodage
 TOOL-3     DONE   Clipboard
-TOOL-7     DONE   Vision locale (qwen3-vl:2b)
+TOOL-7     DONE   Vision locale (qwen3-vl)
 TOOL-8     DONE   Screenshot Windows
 TOOL-10    DONE   MCP Chrome DevTools
-TOOL-9     🔄     Souris/Clavier (en cours)
+TOOL-9     DONE   Souris/Clavier
+TOOL-11    DONE   GUI Grounding
+TOOL-4     DONE   Web Search (DuckDuckGo)
+TOOL-5     DONE   Web Reader (Built-in)
 ─────────────────────────────────── ← On est ici
-TOOL-4     TODO   MCP Web Search Z.ai       ← PROCHAIN
-TOOL-5     TODO   MCP Web Reader Z.ai
-TOOL-6     TODO   MCP Zread GitHub
+TOOL-6     TODO   MCP Zread GitHub          ← PROCHAIN
 ─────────────────────────────────── ← Après tools validés
 MODULE 4   TODO   Nextcloud Talk
 MODULE 5   TODO   Cron

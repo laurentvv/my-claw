@@ -51,104 +51,114 @@ The system is split into two main components: **Gateway** (handling UI and memor
 graph TD
     User([User])
     WebChat[Next.js 16 WebChat]
-    NCTalk[Nextcloud Talk]
+    NCTalk[Nextcloud Talk - Roadmap]
 
-    subgraph "Gateway (Node.js/Next.js)"
+    subgraph Gateway ["Gateway (Next.js 16)"]
         API_Chat[API /api/chat]
-        API_Webhook[API /api/webhook]
+        API_Webhook[API /api/webhook - Roadmap]
         Prisma[Prisma 7 + SQLite]
     end
 
-    subgraph "Agent (Python)"
+    subgraph Agent ["Agent (Python 3.14)"]
         FastAPI[FastAPI Server]
         Smolagents[smolagents CodeAgent]
         Tools[Windows & MCP Tools]
     end
 
-    subgraph "Local Services"
+    subgraph Local ["Local Services"]
         Ollama[Ollama - Qwen3/Gemma3]
     end
 
-    subgraph "External (Optional)"
+    subgraph Cloud ["External (Optional)"]
         ZAI[Z.ai GLM-4.7]
     end
 
     User --> WebChat
-    User --> NCTalk
+    User -.-> NCTalk
     WebChat --> API_Chat
-    NCTalk --> API_Webhook
+    NCTalk -.-> API_Webhook
     API_Chat --> Prisma
     API_Chat --> FastAPI
-    API_Webhook --> FastAPI
+    API_Webhook -.-> FastAPI
     FastAPI --> Smolagents
     Smolagents --> Tools
     Smolagents --> Ollama
     Smolagents --> ZAI
     Tools --> Windows[Windows OS]
     Tools --> Chrome[Chrome DevTools]
-    ```
+
+    style NCTalk stroke-dasharray: 5 5
+    style API_Webhook stroke-dasharray: 5 5
+```
 
 ---
 
-## ⚙️ Configuration des modèles
+## ⚙️ Model Configuration
 
-### Modèle par défaut
+### Default Model
 
-Le modèle par défaut pour le manager et tous les sous-agents est **glm-4.7 (reason)** si `ZAI_API_KEY` est configuré, sinon **qwen3:8b** (local).
+The default model for the manager and all sub-agents is **glm-4.7 (reason)** if `ZAI_API_KEY` is configured, otherwise **qwen3:8b** (local).
 
-Vous pouvez changer le modèle par défaut en définissant la variable d'environnement `DEFAULT_MODEL` dans `agent/.env` :
+You can change the default model by setting the `DEFAULT_MODEL` environment variable in `agent/.env`:
 
 ```bash
-# Utiliser glm-4.7 (recommandé)
+# Use glm-4.7 (recommended)
 DEFAULT_MODEL=reason
 
-# Utiliser glm-4.7-flash (plus rapide)
+# Use glm-4.7-flash (faster)
 DEFAULT_MODEL=coding
 
-# Utiliser qwen3:8b (local, gratuit)
+# Use qwen3:8b (local, free)
 DEFAULT_MODEL=main
 ```
 
-### Modèles disponibles
+### Available Models
 
-| Catégorie | Modèle | Type | Description |
-|-----------|--------|------|-------------|
-| reason | glm-4.7 | Cloud | Raisonnement profond (défaut avec API key) |
-| code | glm-4.7-flash | Cloud | Coding rapide |
-| main | qwen3:8b | Local | Modèle principal (défaut sans API key) |
-| vision | qwen3-vl:8b | Local | Vision locale |
-| smart | qwen3:8b | Local | Usage quotidien |
-| fast | gemma3:latest | Local | Réponses rapides |
+| Category | Model | Type | Description |
+|----------|-------|------|-------------|
+| reason | glm-4.7 | Cloud | Deep reasoning (default with API key) |
+| code | glm-4.7-flash | Cloud | Fast coding |
+| main | qwen3:8b | Local | Main model (default without API key) |
+| vision | qwen3-vl:8b | Local | Local vision |
+| smart | qwen3:14b / 8b | Local | Daily intelligent assistant (14b recommended) |
+| fast | gemma3:4b / latest | Local | Ultra-fast responses |
 
-### Configuration Z.ai (optionnel)
+### Intelligent Model Choice
 
-Pour utiliser les modèles cloud GLM-4.7, configurez votre clé API dans `agent/.env` :
+The system automatically detects your hardware capabilities. For local usage:
+- **High-end (16GB+ VRAM)**: Use `qwen3:14b` for `main` and `smart` tasks.
+- **Mid-range (8GB VRAM)**: Use `qwen3:8b` for a balanced experience.
+- **Low-end / Speed**: Use `gemma3:4b` or `Nanbeige4.1-3B` for near-instant responses.
+
+### Configuration Z.ai (optional)
+
+To use cloud-based GLM-4.7 models, configure your API key in `agent/.env`:
 
 ```bash
 ZAI_API_KEY=sk-your-api-key
 ZAI_BASE_URL=https://api.z.ai/api/coding/paas/v4
 ```
 
-Sans clé API, le système utilise automatiquement les modèles locaux (qwen3:8b, qwen3-vl:8b).
+Without an API key, the system automatically falls back to local models (Qwen3).
 
 ---
 
 ## 🛠️ Tool Capabilities
 
-Current status: **8/10 core tools implemented**
+Current status: **10/11 core tools implemented**
 
 | Tool | Status | Description |
 |------|--------|-------------|
 | **File System** | ✅ | Read, write, move, delete, and search files on Windows. |
 | **OS Exec** | ✅ | Execute PowerShell commands and scripts. |
 | **Clipboard** | ✅ | Access and modify Windows clipboard. |
-| **Web Search** | ✅ | Real-time web search via DuckDuckGo (built-in smolagents, unlimited). |
-| **Vision** | ✅ | Local image analysis and OCR via `qwen3-vl:2b`. |
+| **Web Search** | ✅ | Real-time web search via DuckDuckGo (unlimited). |
+| **Web Reader** | ✅ | Content extraction and markdown conversion from URLs. |
+| **Vision** | ✅ | Local image analysis and OCR via `qwen3-vl`. |
 | **Screenshot** | ✅ | Capture full screen or specific regions. |
 | **Mouse & Keyboard**| ✅ | Direct OS input control via pyautogui. |
-| **GUI Grounding** | ✅ | UI element localization with qwen3-vl:2b. |
+| **GUI Grounding** | ✅ | UI element localization with qwen3-vl. |
 | **Chrome DevTools**| ✅ | Full browser automation via MCP (Puppeteer). |
-| **Web Reader** | ⏳ | Content extraction from URLs (Roadmap). |
 | **GitHub** | ⏳ | Repository analysis and file reading (Roadmap). |
 
 ---
@@ -192,11 +202,11 @@ For more detailed information, please refer to following files:
 
 ## 🛠️ Tech Stack
 
-- **Frontend**: Next.js 16, React, Tailwind CSS
-- **Database**: SQLite with Prisma 7
+- **Frontend**: Next.js 16.1, React 19, Tailwind CSS 4
+- **Database**: SQLite with Prisma 7.4
 - **Agent Framework**: [smolagents](https://github.com/huggingface/smolagents)
 - **API**: FastAPI (Python)
-- **Environment**: Node.js 25+, Python 3.14+ (via `uv`)
+- **Environment**: Node.js 25+, Python 3.14.2 (via `uv`)
 - **LLM**: Ollama (Local), Z.ai (Cloud/Optional)
 
 ---
