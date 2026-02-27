@@ -11,10 +11,10 @@
 
 **Architecture:**
 - **Gateway** (`gateway/`): Next.js 16 + Prisma 7 + SQLite — handles webhooks, memory, WebChat UI
-- **Agent** (`agent/`): Python smolagents + FastAPI — LLM brain with 7 local tools + MCP Chrome DevTools (26 tools)
+- **Agent** (`agent/`): Python smolagents + FastAPI — LLM brain with local tools + MCP Chrome DevTools (26 tools)
 - **UI Dev** (`agent/gradio_app.py`): Gradio for development/testing
 
-**Current Status:** 6/10 tools terminés (TOOL-1,2,3,7,8,10 DONE / TOOL-9 EN COURS / TOOL-4,5,6 TODO)
+**Current Status:** **8/10 core tools implemented** (TOOL-1,2,3,4,7,8,9,10,11 DONE / TOOL-5,6 TODO)
 
 ---
 
@@ -24,10 +24,10 @@
 |------|---------|
 | `README.md` | Getting started guide |
 | `AGENTS.md` | **Critical** — coding rules, architecture, conventions |
+| `LEARNING.md` | Technical discoveries & solutions |
 | `STATUS.md` | Quick progress overview |
 | `PROGRESS.md` | Detailed progress |
 | `PLAN.md` | Global architecture & roadmap |
-| `LEARNING.md` | Technical discoveries & solutions |
 | `IMPLEMENTATION-TOOLS.md` | Tool implementation guide |
 
 ---
@@ -36,14 +36,14 @@
 
 ### Prerequisites
 
-- Node.js 24+
-- [uv](https://docs.astral.sh/uv/getting-started/installation/) (Python package manager)
-- [Ollama](https://ollama.ai) with models:
+- **Node.js**: 25.x or higher
+- **uv**: [Python package manager](https://docs.astral.sh/uv/)
+- **Python**: 3.14.x or higher
+- **Ollama**: For local LLM acceleration
   - `ollama pull qwen3:8b` (5.2GB — main model, recommended)
-  - `ollama pull qwen3-vl:2b` (2.3GB — local vision for TOOL-7)
+  - `ollama pull qwen3-vl:2b` (2.3GB — local vision for TOOL-7, TOOL-11)
   - `ollama pull gemma3:latest` (3.3GB — fast responses)
-- Python 3.11+ (managed by uv)
-- Optional: Z.ai API key for GLM-4.7 cloud (code/reasoning tasks)
+- **Windows OS**: Required (for native tool support)
 
 ### Startup Commands
 
@@ -73,7 +73,7 @@ npm install <package>
 
 ### Critical Rules (from AGENTS.md)
 
-0. **Read LEARNING.md** before any task. Update it after with new discoveries.
+0. **Read LEARNING.md** — before every task. Update it after with new discoveries.
 1. **STOP at every CHECKPOINT** — wait for explicit user validation before continuing
 2. **One module at a time** — never anticipate the next module
 3. **Read the corresponding skill** in `.claude/skills/` before coding anything
@@ -83,12 +83,13 @@ npm install <package>
 7. **No secrets in code** — always use process.env or os.environ
 8. **Webhooks**: respond HTTP 200 immediately, process async
 9. **Validate TypeScript**: `npx tsc --noEmit` must pass before every commit
-10. **max_steps**: 5 for simple tasks, 10 for complex PC control (TOOL-9)
+10. **Never run servers** — ask user to run and report errors
+11. **max_steps**: 5 for simple tasks, 10+ for complex PC control (TOOL-9)
 
 ### Code Style
 
 **Python:**
-- Python 3.11+, type hints everywhere
+- Python 3.14+, type hints everywhere
 - `pyproject.toml` + `uv.lock` — never `requirements.txt`
 - Logging via `logging` module, never `print()`
 - Imports in `forward()` for external libraries (not stdlib)
@@ -119,16 +120,25 @@ my-claw/
 ├── agent/                   # Python smolagents
 │   ├── main.py              # FastAPI server (+400 lines)
 │   ├── gradio_app.py        # Dev UI
+│   ├── models.py            # LLM model management (centralized)
 │   ├── skills.txt           # Code patterns for agent guidance
-│   ├── tools/               # 6 local tools
+│   ├── SKILLS.md            # Skills documentation
+│   ├── tools/               # Local tools
 │   │   ├── __init__.py      # TOOLS list
 │   │   ├── file_system.py   # TOOL-1
 │   │   ├── os_exec.py       # TOOL-2
 │   │   ├── clipboard.py     # TOOL-3
 │   │   ├── screenshot.py    # TOOL-8
 │   │   ├── mouse_keyboard.py# TOOL-9
-│   │   └── vision.py        # TOOL-7
-│   └── pyproject.toml       # Python dependencies
+│   │   ├── vision.py        # TOOL-7
+│   │   ├── grounding.py     # TOOL-11
+│   │   ├── web_search_tool.py  # TOOL-4 (DuckDuckGo)
+│   │   └── web_visit_tool.py   # TOOL-5 (VisitWebpageTool)
+│   └── agents/              # Specialized sub-agents
+│       ├── pc_control_agent.py
+│       ├── vision_agent.py
+│       ├── browser_agent.py
+│       └── web_agent.py
 │
 ├── .claude/                 # Skills documentation
 ├── .crush/                  # Agent config
@@ -143,11 +153,11 @@ my-claw/
 |-------|------------|---------|-------|
 | Gateway | Next.js | 16+ | App Router required |
 | ORM | Prisma | 7+ | SQLite local, config in `prisma.config.ts` |
-| Runtime JS | Node.js | 24+ | |
+| Runtime JS | Node.js | 25+ | |
 | Python Manager | uv | latest | Never pip |
-| Agent | smolagents | 1.9+ | CodeAgent |
-| API Server | FastAPI | 0.115+ | |
-| Dev UI | Gradio | 5+ | |
+| Agent | smolagents | 1.24+ | CodeAgent |
+| API Server | FastAPI | 0.131+ | |
+| Dev UI | Gradio | 6+ | |
 | Local LLM | Ollama | latest | Port 11434 |
 | Cloud LLM | Z.ai GLM-4.7 | optional | OpenAI-compatible |
 | Language | TypeScript | 5+ | strict: true |
@@ -161,28 +171,28 @@ my-claw/
 | ID | Model | Size | Usage |
 |----|-------|------|-------|
 | fast | gemma3:latest | 3.3GB | Fast responses |
-| smart | qwen3:latest (8b) | 5.2GB | Daily use — recommended |
-| main | qwen3:latest (8b) | 5.2GB | Main model — default |
-| vision | qwen3-vl:2b | ~2GB | Local vision (TOOL-7) |
+| smart | qwen3:8b | 5.2GB | Daily use — recommended |
+| main | qwen3:8b | 5.2GB | Main model — default without ZAI_API_KEY |
+| vision | qwen3-vl:2b | ~2.3GB | Local vision (TOOL-7, TOOL-11) |
 
 ### Z.ai (Cloud, optional — data sent to Z.ai)
 
 | ID | Model | Usage |
 |----|-------|-------|
 | code | glm-4.7-flash | Code, technical tasks |
-| reason | glm-4.7 | Deep reasoning |
+| reason | glm-4.7 | Deep reasoning — default with ZAI_API_KEY |
 
 **Model Rules:**
-- Default model: main (qwen3:8b)
+- Default model: `get_default_model()` — env `DEFAULT_MODEL` → "reason" if ZAI_API_KEY → "main" fallback
 - **Auto-detection**: Agent detects installed Ollama models at startup via `GET /api/tags`
 - **Preferences per category**: Each category (fast/smart/main/vision) has preferred models
 - **Smart fallback**: If preferred model not installed, use next in list
 - If ZAI_API_KEY absent: silent fallback to main
 - think: false for agent mode (avoids Qwen3 verbosity)
 - num_ctx: 32768 for all Ollama models
-- max_steps=5 for simple tasks, 10 for complex PC control
+- max_steps=5 for simple tasks, 10+ for complex PC control
 - Ollama Provider: LiteLLMModel with prefix `ollama_chat/`
-- Z.ai Provider: LiteLLMModel with prefix `openai/` (OpenAI-compatible)
+- Z.ai Provider: CleanedLiteLLMModel with prefix `openai/` (OpenAI-compatible, auto-cleanup `</code` tags)
 - **API `/models`**: Endpoint to get available models
 
 ---
@@ -229,25 +239,69 @@ my-claw/
 
 ---
 
-## Implemented Tools (6/10)
+## Implemented Tools (8/10)
 
 | Tool | Status | Description |
 |------|--------|-------------|
 | **TOOL-1** | ✅ | Windows Files (read/write/create/delete/list/move/search) |
-| **TOOL-2** | ✅ | OS Execution (PowerShell + curl alias fix) |
+| **TOOL-2** | ✅ | OS Execution (PowerShell) |
 | **TOOL-3** | ✅ | Windows Clipboard |
+| **TOOL-4** | ✅ | DuckDuckGoSearchTool (built-in smolagents, unlimited, 0 quota) |
+| **TOOL-5** | ✅ | VisitWebpageTool (built-in smolagents, unlimited, 0 quota) |
 | **TOOL-7** | ✅ | Local Vision (Ollama qwen3-vl:2b) - 100% local |
 | **TOOL-8** | ✅ | Windows Screenshot |
-| **TOOL-9** | 🔄 | Mouse/Keyboard Control (en cours - nécessite orchestration) |
-| **TOOL-10** | ✅ | MCP Chrome DevTools (26 Puppeteer tools) - TESTÉ & VALIDÉ |
+| **TOOL-9** | ✅ | Mouse/Keyboard Control (pyautogui) |
+| **TOOL-10** | ✅ | MCP Chrome DevTools (26 Puppeteer tools) - TESTED & VALIDATED |
+| **TOOL-11** | ✅ | GUI Grounding (qwen3-vl:2b for UI element localization) |
 
 ### Pending Tools
 
 | Tool | Priority | Description |
 |------|----------|-------------|
-| **TOOL-4** | TODO | MCP Web Search Z.ai |
-| **TOOL-5** | TODO | MCP Web Reader Z.ai |
-| **TOOL-6** | TODO | MCP Zread GitHub |
+| **TOOL-6** | TODO | MCP Zread GitHub (Z.ai) |
+
+---
+
+## Multi-Agent Architecture
+
+The system uses a **Manager + Specialized Sub-agents** architecture:
+
+### Manager
+- **Role:** Main orchestrator that delegates tasks to specialized sub-agents
+- **Model:** Default (glm-4.7 with ZAI_API_KEY, otherwise qwen3:8b)
+- **Direct Tools:** `file_system`, `os_exec`, `clipboard`, `DuckDuckGoSearchTool`, `VisitWebpageTool`
+
+### Sub-agents
+
+**pc_control_agent:**
+- **File:** `agent/agents/pc_control_agent.py`
+- **Role:** Windows GUI control
+- **Tools:** `screenshot`, `ui_grounding`, `mouse_keyboard`
+- **Model:** Default model
+
+**vision_agent:**
+- **File:** `agent/agents/vision_agent.py`
+- **Role:** Image analysis with coding model
+- **Tools:** `analyze_image` (uses qwen3-vl:2b internally)
+- **Model:** Default model (coding LLM)
+
+**browser_agent:**
+- **File:** `agent/agents/browser_agent.py`
+- **Role:** Chrome automation via DevTools MCP
+- **Tools:** 26 Chrome DevTools MCP tools
+- **Model:** Default model
+
+**web_agent:**
+- **File:** `agent/agents/web_agent.py`
+- **Role:** Web search and page reading
+- **Tools:** `DuckDuckGoSearchTool`, `VisitWebpageTool`
+- **Model:** Default model
+
+### Delegation Examples
+- "Open Notepad" → Delegated to `pc_control_agent`
+- "Analyze this image" → Delegated to `vision_agent`
+- "Open https://example.com" → Delegated to `browser_agent`
+- "Search for smolagents info" → Manager calls `DuckDuckGoSearchTool` directly
 
 ---
 
@@ -260,7 +314,7 @@ DATABASE_URL="file:./prisma/dev.db"
 WEBCHAT_TOKEN=""           # min 32 chars (openssl rand -hex 32)
 CRON_SECRET=""             # min 32 chars
 AGENT_URL="http://localhost:8000"
-NEXTCLOUD_BASE_URL=""      # ex: https://nextcloud.mondomaine.fr
+NEXTCLOUD_BASE_URL=""      # ex: https://nextcloud.example.com
 NEXTCLOUD_BOT_SECRET=""    # HMAC-SHA256 shared secret
 NEXTCLOUD_BOT_ID=""        # Bot ID in Nextcloud
 SCREENSHOT_DIR="C:\tmp\myclawshots"  # Optional, default: C:\tmp\myclawshots
@@ -272,6 +326,7 @@ SCREENSHOT_DIR="C:\tmp\myclawshots"  # Optional, default: C:\tmp\myclawshots
 OLLAMA_BASE_URL="http://localhost:11434"
 ZAI_API_KEY=""             # Optional, for GLM-4.7 cloud
 ZAI_BASE_URL="https://api.z.ai/api/coding/paas/v4"
+DEFAULT_MODEL=""           # Optional: "reason", "code", "main", "fast", "vision"
 SCREENSHOT_DIR="C:\tmp\myclawshots"  # Default
 ```
 
@@ -290,29 +345,30 @@ SCREENSHOT_DIR="C:\tmp\myclawshots"  # Default
 7. Save assistant response to DB
 8. Return response (SSE streaming for webchat, JSON for others)
 
-### PC Control Architecture (TOOL-7 + TOOL-8 + TOOL-9)
+### PC Control Architecture (TOOL-7 + TOOL-8 + TOOL-9 + TOOL-11)
 
 ```
 User: "Open Notepad and write a summary of your day"
          ↓
-    glm-4.7 (orchestrator, max_steps=10 for complex tasks)
+    Manager (glm-4.7 or qwen3:8b, max_steps=10 for complex tasks)
          ↓
-    TOOL-8 screenshot → C:\tmp\myclawshots\screen_001.png
+    pc_control_agent:
+      TOOL-8 screenshot → C:\tmp\myclawshots\screen_001.png
          ↓
-    TOOL-7 vision → "Windows desktop visible, Notepad not open"
+      TOOL-11 grounding → "Notepad icon at [0.3, 0.8]"
          ↓
-    TOOL-9 keyboard → hotkey("win") → type("notepad") → hotkey("enter")
+      TOOL-9 mouse → click(x, y)
          ↓
-    TOOL-8 screenshot → screen_002.png
+      TOOL-8 screenshot → screen_002.png
          ↓
-    TOOL-7 vision → "Notepad open, empty text area, cursor active"
+      TOOL-11 grounding → "Notepad open, text area at [0.5, 0.5]"
          ↓
-    TOOL-9 keyboard → type("Summary of February 20, 2026...")
+      TOOL-9 keyboard → type("Summary of February 20, 2026...")
          ↓
     Done
 ```
 
-**Note:** This architecture requires a powerful orchestrator model (glm-4.7 recommended). qwen3:8b alone is not sufficient for this level of complexity.
+**Note:** This architecture requires a powerful orchestrator model (glm-4.7 recommended). qwen3:8b alone may not be sufficient for this level of complexity.
 
 ---
 
@@ -343,18 +399,23 @@ User: "Open Notepad and write a summary of your day"
 - No pip install or requirements.txt
 - No V2 features without explicit validation
 - No Telegram, Discord, Slack, Signal
-- No PC control without Vision (TOOL-7 required for TOOL-9)
+- No PC control without Vision (TOOL-7/TOOL-11 required for TOOL-9)
 
 ---
 
-## Recent Improvements (2026-02-20)
+## Recent Improvements (2026-02-23)
 
-- ✅ **GLM-4.7 Fix**: Auto-cleanup of `</code` tags generated by GLM-4.7 (SyntaxError resolved)
+- ✅ **TOOL-9 Mouse & Keyboard**: Validated — pyautogui control
+- ✅ **TOOL-4 Web Search**: DuckDuckGoSearchTool (built-in smolagents, unlimited)
+- ✅ **TOOL-5 Web Reader**: VisitWebpageTool (built-in smolagents, unlimited)
+- ✅ **TOOL-11 GUI Grounding**: QwenGroundingTool (qwen3-vl:2b for UI localization)
+- ✅ **GLM-4.7 Fix**: Auto-cleanup of `</code` tags (SyntaxError resolved via CleanedLiteLLMModel)
 - ✅ **Timeouts Increased**: Gateway 6min, Agent 4min (for GLM-4.7 screenshot+vision)
-- ✅ **Agent Guidance**: `instructions` + `additional_authorized_imports` to prefer Python native (requests, urllib, json, etc.)
+- ✅ **Agent Guidance**: `instructions` + `additional_authorized_imports` to prefer Python native
 - ✅ **TOOL-7 Vision**: Ollama qwen3-vl:2b instead of Z.ai MCP (100% local, 0 data sent out)
 - ✅ **Skills Externalized**: `agent/skills.txt` with code patterns + `final_answer()`
 - ✅ **TOOL-10 Chrome DevTools**: MCP loaded with 26 Puppeteer tools - Tests validated
+- ✅ **Multi-Agent Cache**: Per-model caching in `get_or_build_agent()` for consistency
 
 ---
 
@@ -362,6 +423,8 @@ User: "Open Notepad and write a summary of your day"
 
 - **smolagents**: https://huggingface.co/docs/smolagents
 - **smolagents MCP**: https://huggingface.co/docs/smolagents/tutorials/mcp
+- **smolagents built-in tools**: https://huggingface.co/docs/smolagents/reference/default_tools
+- **Building good agents**: https://huggingface.co/docs/smolagents/tutorials/building_good_agents
 - **Prisma 7 Config**: https://pris.ly/d/config-datasource
 - **Z.ai GLM-4.7**: https://open.bigmodel.cn/dev/api
 - **Ollama API**: https://github.com/ollama/ollama/blob/main/docs/api.md
@@ -372,12 +435,13 @@ User: "Open Notepad and write a summary of your day"
 - **FastAPI**: https://fastapi.tiangolo.com
 - **pyautogui**: https://pyautogui.readthedocs.io
 - **Pillow**: https://pillow.readthedocs.io
+- **Chrome DevTools MCP**: https://github.com/ChromeDevTools/chrome-devtools-mcp
 
 ---
 
 ## Next Task
 
-**TOOL-4**: MCP Web Search Z.ai (web search via Z.ai API)
+**TOOL-6**: MCP Zread GitHub (Z.ai) — Read GitHub repositories via Z.ai API
 
 See `IMPLEMENTATION-TOOLS.md` for detailed implementation guide.
 
@@ -385,8 +449,8 @@ See `IMPLEMENTATION-TOOLS.md` for detailed implementation guide.
 
 ## Checkpoints
 
-Current checkpoint: **TOOL-10 DONE** (MCP Chrome DevTools validé)
+Current checkpoint: **TOOL-11 DONE** (GUI Grounding validated)
 
-Next checkpoint: **TOOL-4** (MCP Web Search Z.ai) — WAITING FOR USER VALIDATION
+Next checkpoint: **TOOL-6** (MCP Zread GitHub) — WAITING FOR USER VALIDATION
 
-**DO NOT proceed to TOOL-4 without explicit user validation.**
+**DO NOT proceed to TOOL-6 without explicit user validation.**

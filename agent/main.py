@@ -1,6 +1,7 @@
 import asyncio
 import logging
 import os
+import sys
 from contextlib import asynccontextmanager
 from pathlib import Path
 
@@ -14,17 +15,23 @@ from models import get_default_model, get_model, get_models, get_ollama_models, 
 from tools import TOOLS
 
 # Imports agents spécialisés
-from agents.web_agent import create_web_search_agent, diagnose_web_search
+from agents.web_agent import diagnose_web_tools
 from agents.pc_control_agent import diagnose_pc_control
 from agents.vision_agent import diagnose_vision
 
 load_dotenv()
 
 # ─── Logging ────────────────────────────────────────────────────────────────
+# Fix encoding for Windows console
+if sys.platform == "win32":
+    sys.stdout.reconfigure(encoding="utf-8")
+    sys.stderr.reconfigure(encoding="utf-8")
+
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     datefmt="%H:%M:%S",
+    handlers=[logging.StreamHandler(sys.stdout)]
 )
 logger = logging.getLogger(__name__)
 logging.getLogger("smolagents").setLevel(logging.DEBUG)
@@ -173,22 +180,55 @@ def build_multi_agent_system(model_id: str | None = None) -> CodeAgent:
     else:
         logger.warning("✗ browser_agent ignoré (Chrome DevTools MCP non disponible)")
 
-    # ── Sous-agent web search (TOOL-4) ────────────────────────────────────────
+    # ── Outils web search (TOOL-4 + TOOL-5) ─────────────────────────────
+    # NOTE: Les outils de recherche web sont passés directement au manager
+    # Le manager peut les appeler directement, évitant les problèmes de délégation
+    web_tools = []
     try:
-        web_agent = create_web_search_agent(model_id=model_id, max_results=5, rate_limit=1.0)
-        if web_agent is not None:
-            managed_agents.append(web_agent)
-            logger.info(f"✓ web_search_agent créé avec modèle {model_id}")
-    except Exception as e:
-        logger.warning(f"✗ web_search_agent non disponible: {e}")
+        from tools import WebSearchTool, WebVisitTool
+
+        # Créer les instances des outils avec les paramètres par défaut
+        # Vérifier si les outils sont disponibles (None si dépendances manquantes)
+        if WebSearchTool is not None:
+            try:
+                search_tool = WebSearchTool()
+                web_tools.append(search_tool)
+                logger.info("✓ TOOL-4 DuckDuckGoSearchTool configuré")
+            except (TypeError, ValueError, Exception) as e:
+                logger.warning(f"✗ TOOL-4 DuckDuckGoSearchTool erreur d'initialisation: {e}")
+                logger.warning("  → Vérifiez que ddgs>=9.0.0 est installé")
+        else:
+            logger.warning("✗ TOOL-4 DuckDuckGoSearchTool non disponible (ddgs manquant)")
+            logger.warning("  → uv add 'ddgs>=9.0.0' pour DuckDuckGoSearchTool")
+
+        if WebVisitTool is not None:
+            try:
+                visit_tool = WebVisitTool()
+                web_tools.append(visit_tool)
+                logger.info("✓ TOOL-5 VisitWebpageTool configuré")
+            except (TypeError, ValueError, Exception) as e:
+                logger.warning(f"✗ TOOL-5 VisitWebpageTool erreur d'initialisation: {e}")
+                logger.warning("  → Vérifiez que markdownify>=0.14.1 est installé")
+        else:
+            logger.warning("✗ TOOL-5 VisitWebpageTool non disponible (markdownify manquant)")
+            logger.warning("  → uv add 'markdownify>=0.14.1' pour VisitWebpageTool")
+
+        if web_tools:
+            logger.info(f"✓ Outils web search ajoutés au manager : {[t.name for t in web_tools]}")
+
+    except ImportError as e:
+        logger.warning(f"✗ Outils web search non disponibles: {e}")
+        logger.warning("  → uv add 'smolagents[toolkit]' pour tous les built-in tools")
 
     # ── Manager ───────────────────────────────────────────────────────────────
-    manager_tools = get_manager_tools()
-    logger.info(f"Manager tools directs: {[t.name for t in manager_tools]}")
+    manager_tools_list = get_manager_tools()
+    all_manager_tools = manager_tools_list + web_tools
+
+    logger.info(f"Manager tools: {[t.name for t in all_manager_tools]}")
     logger.info(f"Sous-agents disponibles: {[m.name for m in managed_agents]}")
 
     manager = CodeAgent(
-        tools=manager_tools,
+        tools=all_manager_tools,
         model=get_model(model_id),
         managed_agents=managed_agents,
         max_steps=10,
@@ -202,7 +242,7 @@ def build_multi_agent_system(model_id: str | None = None) -> CodeAgent:
             "os",
             "subprocess",
         ],
-        executor_kwargs={"timeout_seconds": 240},
+        executor_kwargs={"timeout_seconds": 300},  # 5 minutes
         instructions=SKILLS,
     )
 
@@ -334,7 +374,7 @@ async def run(req: RunRequest):
 
 @app.get("/health")
 async def health():
-    web_diag = diagnose_web_search()
+    web_diag = diagnose_web_tools()
     pc_diag = diagnose_pc_control()
     vision_diag = diagnose_vision()
 
@@ -345,11 +385,13 @@ async def health():
             "pc_control": pc_diag["available"],
             "vision": vision_diag["available"],
             "browser": len(_chrome_mcp_tools) > 0,
-            "web_search_agent": web_diag["available"],
+            "web_search_agent": web_diag.get("web_agent_ready", False),
         },
         "tools": {
             "chrome_mcp": len(_chrome_mcp_tools),
-            "web_search": "DuckDuckGoSearchTool (illimité)" if web_diag["available"] else "indisponible",
+            "web_search_ddg": web_diag.get("tool4_ddg", False),
+            "web_visit": web_diag.get("tool5_visit", False),
+            "web_agent_ready": web_diag.get("web_agent_ready", False),
         },
         "diagnostics": {
             "pc_control": {
@@ -365,10 +407,14 @@ async def health():
                 "error": vision_diag.get("error"),
             },
             "web_search": {
-                "available": web_diag["available"],
-                "tool_name": web_diag.get("tool_name"),
-                "backend": web_diag.get("backend"),
-                "error": web_diag.get("error"),
+                "tool4_ddg": web_diag.get("tool4_ddg", False),
+                "tool4_ddg_name": web_diag.get("tool4_ddg_name"),
+                "tool4_ddg_error": web_diag.get("tool4_ddg_error"),
+                "tool5_visit": web_diag.get("tool5_visit", False),
+                "tool5_visit_name": web_diag.get("tool5_visit_name"),
+                "tool5_visit_error": web_diag.get("tool5_visit_error"),
+                "web_agent_ready": web_diag.get("web_agent_ready", False),
+                "quota": web_diag.get("quota"),
             },
         },
     }
@@ -397,6 +443,6 @@ async def list_models():
             "pc_control": f"{default_model} + qwen3-vl (interne)",
             "vision": f"{default_model} + analyze_image (qwen3-vl interne)",
             "browser": f"{default_model} + {len(_chrome_mcp_tools)} tools Chrome DevTools",
-            "web_search_agent": f"{default_model} + DuckDuckGoSearchTool (illimité)",
+            "web_search_agent": f"{default_model} + DuckDuckGoSearchTool + VisitWebpageTool (illimité)",
         },
     }

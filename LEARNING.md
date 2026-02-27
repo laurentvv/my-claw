@@ -22,32 +22,183 @@
 
 ### Timeouts configurés
 - Gateway → Agent : 360s (6 min)
-- Agent → Code Python : 240s (4 min) via `executor_kwargs`
+- Agent → Code Python : 300s (5 min) via `executor_kwargs`
 - Vision (Ollama) : 180s — qwen3-vl:2b rapide
 - os_exec : 30s par défaut (configurable)
 - Gradio UI : 300s
 
 ---
 
-## Patterns smolagents établis
+## TOOL-4 + TOOL-5 — Web Search & Web Reader (2026-02-23)
 
-### Structure Tool
+### Architecture choisie : Outils directs au manager
+
+**Décision importante :** Les outils web sont passés **directement au manager**, pas via un managed_agent.
+
+**Pourquoi :**
+- Simplifie l'architecture (pas de délégation nécessaire pour des outils simples)
+- Évite les problèmes de contexte entre agents
+- Plus rapide (un seul appel, pas de handover)
+- smolagents 1.24.0 gère parfaitement les outils natifs
+
+**Implémentation :**
 ```python
-class MyTool(Tool):
-    name = "my_tool"          # identifiant Python valide, pas de mot réservé
-    description = "..."
-    inputs = {
-        "param": {"type": "string", "description": "...", "nullable": False}
-    }
-    output_type = "string"    # string | integer | boolean | number | array | object | any | image | audio
+# main.py — build_multi_agent_system()
+web_tools = [WebSearchTool(), WebVisitTool()]
+manager_tools_list = get_manager_tools()
+all_manager_tools = manager_tools_list + web_tools
 
-    def forward(self, param: str) -> str:
-        import external_lib   # ← imports externes DANS forward(), pas au top-level
-        ...
+manager = CodeAgent(
+    tools=all_manager_tools,  # ← Outils web inclus directement
+    model=get_model(model_id),
+    managed_agents=[pc_control, vision, browser],
+)
 ```
 
-### Patterns clés
-- `additional_authorized_imports` pour autoriser des imports dans CodeAgent
+### Graceful degradation pour les dépendances
+
+**Problème :** Si `ddgs` ou `markdownify` ne sont pas installés, l'agent ne doit pas planter.
+
+**Solution :** Imports conditionnels dans `tools/__init__.py`
+
+```python
+# agent/tools/__init__.py
+WebSearchTool = None
+WebVisitTool = None
+
+try:
+    from .web_search_tool import WebSearchTool
+    logger.info("✓ WebSearchTool (DuckDuckGo) disponible")
+except ImportError as e:
+    logger.warning(f"✗ WebSearchTool indisponible: {e}")
+    WebSearchTool = None
+
+try:
+    from .web_visit_tool import WebVisitTool
+    logger.info("✓ WebVisitTool (web reader) disponible")
+except ImportError as e:
+    logger.warning(f"✗ WebVisitTool indisponible: {e}")
+    WebVisitTool = None
+
+# Ajout conditionnel à la liste TOOLS
+TOOLS = [FileSystemTool(), OsExecTool(), ...]
+if WebSearchTool is not None:
+    TOOLS.append(WebSearchTool())
+if WebVisitTool is not None:
+    TOOLS.append(WebVisitTool())
+```
+
+### Wrappers avec configuration par défaut
+
+**Pourquoi :** Les built-in smolagents n'ont pas de configuration par défaut.
+
+**Solution :** Wrappers légers avec valeurs optimisées
+
+```python
+# agent/tools/web_search_tool.py
+class WebSearchTool(DuckDuckGoSearchTool):
+    def __init__(self, max_results: int = 5, rate_limit: float = 1.0):
+        super().__init__(max_results=max_results, rate_limit=rate_limit)
+
+# agent/tools/web_visit_tool.py
+class WebVisitTool(VisitWebpageTool):
+    max_output_length = 8000  # Adapté pour contexte 8192 tokens
+```
+
+### Sécurité URL — Validation SSRF
+
+**Risque :** L'utilisateur pourrait demander de lire `file:///etc/passwd` ou `http://localhost`.
+
+**Solution :** Validation URL dans `WebVisitTool.__call__()`
+
+```python
+ALLOWED_SCHEMES = {"http", "https"}
+BLOCKED_HOSTS = {"localhost", "127.0.0.1", "::1"}
+
+def __call__(self, url: str, **kwargs) -> str:
+    parsed = urlparse(url)
+    if parsed.scheme not in self.ALLOWED_SCHEMES:
+        return f"ERROR: Invalid URL scheme '{parsed.scheme}'"
+    if parsed.hostname in self.BLOCKED_HOSTS:
+        return f"ERROR: Access to internal hosts blocked"
+    return super().__call__(url, **kwargs)
+```
+
+---
+
+## Corrections techniques — Encodage Windows (2026-02-23)
+
+### Problème : UnicodeDecodeError dans os_exec
+
+**Erreur :**
+```
+UnicodeDecodeError: 'utf-8' codec can't decode byte 0x82 in position 12
+```
+
+**Cause :** PowerShell sur Windows utilise cp1252 (Western European), pas UTF-8.
+
+**Solution :** Changer l'encodage dans `subprocess.run()`
+
+```python
+# agent/tools/os_exec.py
+result = subprocess.run(
+    ["powershell", "-Command", command],
+    capture_output=True,
+    text=True,
+    encoding="cp1252",  # ← Windows Western European
+    errors="replace",   # ← Remplace les caractères invalides
+    timeout=timeout,
+    shell=False,
+)
+```
+
+**Résultat :** Les commandes PowerShell avec accents fonctionnent maintenant.
+
+---
+
+## Architecture Multi-Agent — Délégation validée (2026-02-23)
+
+### Workflow Screenshot + Vision
+
+**Test validé :** "Prends un screenshot et décris ce que tu vois"
+
+**Flux de délégation :**
+```
+Manager (glm-4.7)
+  ↓ délègue à pc_control
+pc_control (qwen3:8b)
+  ↓ appelle screenshot()
+ScreenshotTool → C:\tmp\myclawshots\screen_XXX.png
+  ↓ délègue à vision
+vision (qwen3:8b + qwen3-vl:2b interne)
+  ↓ appelle analyze_image()
+VisionTool → Description détaillée (5109 chars)
+  ↓ retourne au manager
+Manager → final_answer()
+```
+
+**Temps total :** ~4min (240s)
+
+**Leçons apprises :**
+1. La délégation automatique fonctionne parfaitement
+2. Les sous-agents ont leurs propres instructions via `final_answer()` structuré
+3. Le manager peut enchaîner plusieurs délégations (pc_control → vision)
+4. Le cache par modèle (`get_or_build_agent()`) évite de reconstruire à chaque requête
+
+### Pattern de délégation dans skills.txt
+
+**Important :** Les skills doivent clarifier quels outils sont directs vs délégation.
+
+```
+## AVAILABLE DIRECT TOOLS (Manager)
+- file_system, os_exec, clipboard, web_search, visit_webpage
+
+## TOOLS REQUIRING DELEGATION
+- screenshot, analyze_image, mouse_keyboard → pc_control
+- click, fill, navigate_page → browser
+```
+
+---
 - `instructions` ajoutées à la fin du system prompt (ne remplace pas, complète)
 - Skills dans `agent/skills.txt` chargés au démarrage — patterns de code copiés par l'agent
 - `final_answer()` obligatoire dans les skills sinon erreur de parsing au step 2
@@ -169,6 +320,65 @@ managed_agents.append(web_agent)
 
 ---
 
+## Erreur ManagedAgent — smolagents 1.24.0 (2026-02-23)
+
+### Problème
+Le code tentait d'importer et d'utiliser `ManagedAgent` depuis `smolagents`, mais cette classe n'existe PAS dans smolagents 1.24.0.
+
+```python
+# ❌ NE PAS FAIRE
+from smolagents import CodeAgent, DuckDuckGoSearchTool, ManagedAgent, VisitWebpageTool
+
+managed_agent = ManagedAgent(
+    agent=web_agent,
+    name="web_search",
+    description="..."
+)
+```
+
+### Solution
+Dans smolagents 1.24.0, on passe directement les `CodeAgent` dans le paramètre `managed_agents` du manager. Le `CodeAgent` doit avoir `name` et `description` configurés.
+
+```python
+# ✅ CORRECT
+from smolagents import CodeAgent, DuckDuckGoSearchTool, VisitWebpageTool
+
+web_agent = CodeAgent(
+    tools=[DuckDuckGoSearchTool(), VisitWebpageTool()],
+    model=model,
+    name="web_search",
+    description="Agent web : recherche et lecture de pages web.",
+    max_steps=8,
+)
+
+# Le manager utilise directement web_agent dans managed_agents
+manager = CodeAgent(
+    tools=[],
+    model=model,
+    managed_agents=[web_agent],  # ← CodeAgent, pas ManagedAgent
+)
+```
+
+### Pourquoi cette erreur ?
+- Documentation obsolète ou confusion avec une version précédente de smolagents
+- `ManagedAgentPromptTemplate` existe (TypedDict), mais PAS `ManagedAgent` (classe)
+- Le pattern a changé dans smolagents 1.24.0
+
+### Vérification
+Pour vérifier si une classe existe dans smolagents :
+```python
+import smolagents
+print([name for name in dir(smolagents) if 'Managed' in name])
+# Résultat : ['ManagedAgentPromptTemplate']  ← PAS de ManagedAgent
+```
+
+### Règle
+**Toujours vérifier la documentation officielle smolagents 1.24.0** :
+- https://huggingface.co/docs/smolagents/tutorials/building_good_agents
+- https://github.com/huggingface/smolagents/blob/main/docs/source/en/examples/multiagents.md
+
+---
+
 ## TOOL-10 — MCP Chrome DevTools
 
 ### Pattern d'intégration
@@ -275,6 +485,231 @@ Fix : lazy init ou try/except au démarrage.
 | Browser | chrome-devtools-mcp (Puppeteer) | 26 outils, MCP officiel Chrome |
 | Grounding | qwen3-vl:2b | Même modèle que vision, plus léger que UI-TARS |
 | Modèles gestion | models.py centralisé | Évite imports circulaires, DRY |
+
+---
+
+## Code Review v4 - 2025-02-24
+
+### Surcharge de Tool dans smolagents
+
+**Problème :** Surcharger `__call__()` vs `forward()` dans les outils smolagents.
+
+**Leçon :**
+- `Tool.__call__()` appelle `self.forward()`, donc surcharger `__call__()` est nécessaire pour intercepter les appels avant validation
+- Ne JAMAIS appeler `super().__call__()` depuis `forward()` car cela crée une récursion infinie
+- Utiliser `super().forward()` pour déléguer au parent
+
+**Exemple incorrect (récursion infinie) :**
+```python
+def forward(self, url: str) -> str:
+    # Validation...
+    return super().__call__(url)  # ❌ Récursion infinie !
+```
+
+**Exemple correct :**
+```python
+def __call__(self, url: str) -> str:
+    """Valider l'URL avant de déléguer au parent."""
+    # Validation SSRF...
+    return super().__call__(url)
+
+def forward(self, url: str) -> str:
+    # Implémentation...
+    return super().forward(url)  # ✅ Appel direct à forward()
+```
+
+---
+
+### Validation SSRF dans les outils web
+
+**Problème :** La validation SSRF doit être dans `__call__()` car smolagents n'appelle jamais `forward()` directement via l'agent executor.
+
+**Leçon :**
+- `urlparse.hostname` extrait correctement le hostname même avec des credentials (`http://user:pass@host.com`)
+- Utiliser `ipaddress.is_reserved` et `ipaddress.is_multicast` pour bloquer les IP réservées et multicast
+- Vérifier `parsed.hostname` n'est pas None avant de l'utiliser
+
+**Exemple de validation SSRF complète :**
+```python
+ALLOWED_SCHEMES = {"http", "https"}
+BLOCKED_HOSTS = {"localhost", "127.0.0.1", "::1"}
+
+def __call__(self, url: str) -> str:
+    """Valider l'URL avant de déléguer au parent."""
+    try:
+        parsed = urlparse(url)
+
+        if parsed.scheme not in self.ALLOWED_SCHEMES:
+            return f"ERROR: Invalid URL scheme '{parsed.scheme}'. Only http/https allowed."
+
+        if not parsed.hostname:
+            return "ERROR: URL has no hostname."
+
+        # urlparse.hostname extrait correctement même avec credentials
+        hostname = parsed.hostname
+        if self._is_blocked_host(hostname):
+            return f"ERROR: Access to '{hostname}' is blocked for security reasons."
+
+    except (ValueError, TypeError) as e:
+        return f"ERROR: Invalid URL format: {e}"
+
+    return super().__call__(url)
+
+@staticmethod
+def _is_blocked_host(hostname: str) -> bool:
+    """Vérifier si un hôte doit être bloqué pour prévenir les attaques SSRF."""
+    if hostname.lower() in WebVisitTool.BLOCKED_HOSTS:
+        return True
+
+    try:
+        addr = ipaddress.ip_address(hostname)
+    except ValueError:
+        return False  # Pas une adresse IP, c'est un hostname — autorisé
+
+    # Bloquer si privé, loopback, link-local, réservé ou multicast
+    return (
+        addr.is_private
+        or addr.is_loopback
+        or addr.is_link_local
+        or addr.is_reserved
+        or addr.is_multicast
+    )
+```
+
+---
+
+### Gestion des exceptions lors de l'instanciation d'outils
+
+**Problème :** Les APIs externes peuvent changer de signature et lever des erreurs inattendues.
+
+**Leçon :**
+- Toujours capturer `TypeError` et `ValueError` en plus de `Exception` lors de l'instanciation d'outils
+- Logger un warning informatif pour aider au diagnostic
+
+**Exemple :**
+```python
+# Dans main.py
+if WebSearchTool is not None:
+    try:
+        search_tool = WebSearchTool()
+        web_tools.append(search_tool)
+        logger.info("✓ TOOL-4 DuckDuckGoSearchTool configuré")
+    except (TypeError, ValueError, Exception) as e:
+        logger.warning(f"✗ TOOL-4 DuckDuckGoSearchTool erreur d'initialisation: {e}")
+        logger.warning("  → Vérifiez que ddgs>=9.0.0 est installé")
+```
+
+---
+
+### Encoding PowerShell sur Windows
+
+**Problème :** `cp1252` est l'encoding par défaut de PowerShell sur Windows, mais peut échouer.
+
+**Leçon :**
+- Implémenter un fallback `cp1252 → utf-8` avec `errors="replace"` seulement en fallback
+- Logger un warning lors du fallback pour diagnostiquer les problèmes
+
+**Exemple :**
+```python
+# Dans os_exec.py
+if sys.platform == "win32":
+    try:
+        result = subprocess.run(
+            ["powershell", "-Command", command],
+            capture_output=True,
+            text=True,
+            encoding="cp1252",
+            timeout=timeout,
+            shell=False,
+        )
+    except UnicodeDecodeError:
+        # Fallback sur utf-8 si cp1252 échoue
+        result = subprocess.run(
+            ["powershell", "-Command", command],
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",  # Remplacer seulement en fallback
+            timeout=timeout,
+            shell=False,
+        )
+        logger.warning("Fallback sur utf-8 pour encoding PowerShell")
+else:
+    result = subprocess.run(
+        ["powershell", "-Command", command],
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        timeout=timeout,
+        shell=False,
+    )
+```
+
+---
+
+### Architecture des outils multi-agent
+
+**Problème :** Comprendre la séparation entre outils locaux et outils web.
+
+**Leçon :**
+- Les outils locaux sont instanciés dans `TOOLS` (pour les sous-agents)
+- Les outils web sont instanciés séparément dans `main.py` et ajoutés uniquement au manager
+- Cette séparation est intentionnelle pour éviter que les sous-agents aient accès aux outils web
+
+**Exemple :**
+```python
+# Dans tools/__init__.py
+# ── Tool list (local tools only) ─────────────────────────────────────────────
+# NOTE: Les outils web (WebSearchTool, WebVisitTool) sont instanciés
+# séparément dans main.py et ajoutés uniquement au manager, pas aux sous-agents.
+# Les sous-agents utilisent uniquement les outils locaux.
+TOOLS = [
+    FileSystemTool(),
+    OsExecTool(),
+    ClipboardTool(),
+    ScreenshotTool(),
+    VisionTool(),
+    QwenGroundingTool(),
+    MouseKeyboardTool(),
+]
+
+# Dans main.py
+# Outils web pour le manager uniquement
+web_tools = []
+if WebSearchTool is not None:
+    try:
+        search_tool = WebSearchTool()
+        web_tools.append(search_tool)
+    except (TypeError, ValueError, Exception) as e:
+        logger.warning(f"✗ TOOL-4 DuckDuckGoSearchTool erreur: {e}")
+
+if WebVisitTool is not None:
+    try:
+        visit_tool = WebVisitTool()
+        web_tools.append(visit_tool)
+    except (TypeError, ValueError, Exception) as e:
+        logger.warning(f"✗ TOOL-5 WebVisitTool erreur: {e}")
+
+# Manager reçoit TOOLS + web_tools
+manager_tools_list = get_manager_tools()
+all_manager_tools = manager_tools_list + web_tools
+```
+
+---
+
+### Timeouts pour les health checks
+
+**Problème :** Un health check doit être rapide pour ne pas bloquer l'interface utilisateur.
+
+**Leçon :**
+- Utiliser `timeout=3` pour les requêtes de health check
+- Un timeout de 10s est trop long et bloque l'interface utilisateur
+
+**Exemple :**
+```python
+# Dans gradio_app.py
+resp = requests.get(url, timeout=3)  # Health check rapide (< 3s)
+```
 
 ---
 

@@ -5,6 +5,7 @@ Allows executing PowerShell commands with timeout and capturing stdout/stderr.
 
 import logging
 import subprocess
+import sys
 from typing import Optional
 
 from smolagents import Tool
@@ -70,17 +71,37 @@ prefixed with 'ERROR:'."""
                     "Replaced 'curl' with 'curl.exe' to use native curl instead of PowerShell alias"
                 )
 
-            result = subprocess.run(
-                ["powershell", "-Command", command],
-                capture_output=True,
-                text=True,
-                encoding="utf-8",
-                timeout=timeout,
-                shell=False,
-            )
+            # Pour Windows, essayer cp1252 d'abord, puis utf-8 en cas d'erreur
+            if sys.platform == "win32":
+                # Exécuter une seule fois en capturant les octets bruts
+                result = subprocess.run(
+                    ["powershell", "-Command", command],
+                    capture_output=True,
+                    timeout=timeout,
+                    shell=False,
+                )
+                try:
+                    stdout = result.stdout.decode("cp1252")
+                    stderr = result.stderr.decode("cp1252")
+                except UnicodeDecodeError:
+                    # Fallback sur utf-8 si cp1252 échoue (sans réexécuter la commande)
+                    stdout = result.stdout.decode("utf-8", errors="replace")
+                    stderr = result.stderr.decode("utf-8", errors="replace")
+                    logger.warning("Fallback sur utf-8 pour encoding PowerShell")
+            else:
+                result = subprocess.run(
+                    ["powershell", "-Command", command],
+                    capture_output=True,
+                    text=True,
+                    encoding="utf-8",
+                    timeout=timeout,
+                    shell=False,
+                )
+                stdout = result.stdout.strip() if result.stdout else ""
+                stderr = result.stderr.strip() if result.stderr else ""
 
-            stdout = result.stdout.strip() if result.stdout else ""
-            stderr = result.stderr.strip() if result.stderr else ""
+            stdout = stdout.strip() if stdout else ""
+            stderr = stderr.strip() if stderr else ""
             returncode = result.returncode
 
             logger.info(f"Command completed with returncode: {returncode}")
