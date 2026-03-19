@@ -721,3 +721,95 @@ resp = requests.get(url, timeout=3)  # Health check rapide (< 3s)
 - Ollama API : https://github.com/ollama/ollama/blob/main/docs/api.md
 - qwen3-vl : https://ollama.com/library/qwen3-vl
 - chrome-devtools-mcp : https://github.com/ChromeDevTools/chrome-devtools-mcp
+
+---
+
+## Module4 — Nextcloud Talk Bot (2026-03-19)
+
+### Architecture
+
+Le module Nextcloud Talk permet de contrôler my-claw depuis une conversation Talk.
+
+```mermaid
+graph LR
+    NC[Nextcloud Talk] -->|Webhook POST| GW[Gateway Next.js]
+    GW -->|Appel HTTP| AG[Agent Python]
+    AG -->|Réponse| GW
+    GW -->|POST /bot/token/message| NC
+```
+
+### Signature HMAC-SHA256
+
+**Points clés :**
+- Signature entrante (webhook) : `HMAC(RANDOM + BODY, SECRET)`
+- Signature sortante (API) : `HMAC(RANDOM + MESSAGE, SECRET)` — **pas le body JSON complet !**
+
+```typescript
+// nc-security.ts - Vérification webhook
+const hmac = createHmac('sha256', secret);
+hmac.update(random);  // Header X-Nextcloud-Talk-Random
+hmac.update(body);    // Corps brut de la requête
+const digest = hmac.digest('hex');
+
+// nc-security.ts - Signature requête sortante
+const hmac = createHmac('sha256', secret);
+hmac.update(random);
+hmac.update(message);  // ← Le message texte uniquement, pas le JSON !
+```
+
+### Upload WebDAV Nextcloud
+
+**Pattern pour afficher les screenshots dans Talk :**
+
+1. **Upload WebDAV** : `PUT /remote.php/dav/files/{username}/Talk/bot-screenshots/xxx.png`
+2. **Partage OCS** : `POST /ocs/v2.php/apps/files_sharing/api/v1/shares` avec `shareType=10`
+
+```typescript
+// nc-upload.ts
+const sharePayload = {
+  shareType: 10,           // Partage vers conversation Talk
+  shareWith: conversationToken,
+  path: filePath,          // Chemin dans Nextcloud
+  referenceId: generateReferenceId(),
+};
+```
+
+### API Bot Nextcloud Talk
+
+| Endpoint | Méthode | Description |
+|----------|---------|-------------|
+| `/bot/{token}/message` | POST | Envoyer un message |
+| `/bot/{token}/reaction/{messageId}` | POST/DELETE | Ajouter/supprimer une réaction |
+
+### Variables d'environnement
+
+```bash
+# gateway/.env.local
+NC_TALK_BASE_URL="https://your-nextcloud.example.com"
+NC_TALK_BOT_SECRET="secret-hmac-min-40-caracteres"
+NC_BOT_USERNAME="my-claw-bot"        # Pour WebDAV
+NC_BOT_PASSWORD="app-password-nc"    # Mot de passe d'application
+```
+
+### Détection des screenshots
+
+Pattern regex pour détecter les chemins de screenshot dans les réponses de l'agent :
+
+```typescript
+const pattern = /[A-Za-z]:\\tmp\\myclawshots\\screen_\d{8}_\d{6}\.png/g;
+```
+
+### Fichiers implémentés
+
+| Fichier | Rôle |
+|---------|------|
+| `gateway/lib/nc-security.ts` | Vérification et signature HMAC |
+| `gateway/lib/nc-client.ts` | Client API OCS (messages, réactions) |
+| `gateway/lib/nc-upload.ts` | Upload WebDAV + partage fichiers |
+| `gateway/app/api/nc-talk/route.ts` | Endpoint webhook + orchestration |
+
+### Références
+
+- Documentation Nextcloud Talk Bots : https://nextcloud-talk.readthedocs.io/en/latest/bots/
+- Documentation OCC : https://nextcloud-talk.readthedocs.io/en/latest/occ/
+- WebDAV Nextcloud : https://docs.nextcloud.com/server/latest/developer_manual/client_apis/WebDAV/

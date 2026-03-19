@@ -212,11 +212,11 @@ Vous devriez recevoir une réponse XML listant les fichiers/dossiers.
 
 ## Checklist d Implémentation
 
-- [ ] Créer/configurer le compte Nextcloud pour le bot
-- [ ] Générer une app-password pour l'authentification WebDAV
-- [ ] Créer le dossier `/Talk/bot-screenshots/` sur Nextcloud
-- [ ] Ajouter les variables d'environnement dans `gateway/.env.local`
-- [ ] Implémenter `gateway/lib/nc-upload.ts`
-- [ ] Modifier `gateway/app/api/nc-talk/route.ts`
-- [ ] Tester le flux complet
-- [ ] Mettre à jour la documentation
+- [x] Créer/configurer le compte Nextcloud pour le bot
+- [x] Générer une app-password pour l'authentification WebDAV
+- [x] Créer le dossier `/Talk/bot-screenshots/` sur Nextcloud
+- [x] Ajouter les variables d'environnement dans `gateway/.env.local`
+- [x] Implémenter `gateway/lib/nc-upload.ts`
+- [x] Modifier `gateway/app/api/nc-talk/route.ts`
+- [x] Tester le flux complet
+- [x] Mettre à jour la documentation
