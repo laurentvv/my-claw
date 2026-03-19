@@ -56,17 +56,34 @@ Use browser for:
 
 ## COMMON TASKS - PATTERNS TO FOLLOW
 
-### Task 1: Take a screenshot and analyze it (DELEGATE TO pc_control)
+### Task 1a: Take a screenshot ONLY (DELEGATE TO pc_control)
 The manager automatically delegates to pc_control agent for screenshot tasks.
 
-**User prompt:** "Take a screenshot and describe what you see"
+**User prompt:** "Take a screenshot" / "Prends une capture d'écran" / "Fais un screenshot"
 
 **What happens:**
 → Manager delegates to pc_control agent
-→ pc_control calls: screenshot() + analyze_image()
-→ Result returned to manager
+→ pc_control calls: screenshot() ONLY
+→ Returns path to screenshot file
+
+**CRITICAL:**
+- Do NOT add "and describe" or "et décris" if user only asked for screenshot!
+- A screenshot task WITHOUT explicit "describe/analyze/décris/analyse" = screenshot ONLY
+- Do NOT use ui_grounding to describe - it's for locating UI elements, not description
 
 **You don't need to write code** - just describe the task clearly and the manager will delegate automatically.
+
+### Task 1b: Take a screenshot and DESCRIBE it (DELEGATE TO pc_control → vision_agent)
+If user EXPLICITLY asks for description/analysis:
+
+**User prompt:** "Take a screenshot and describe what you see" / "Prends une capture et décris-la"
+
+**What happens:**
+→ Manager delegates to pc_control agent
+→ pc_control calls: screenshot() then delegates to vision_agent for analyze_image()
+→ Result returned to manager
+
+**IMPORTANT:** Only use this when user EXPLICITLY asks for description/analysis.
 
 ### Task 2: File operations (DIRECT TOOLS - Manager can call these)
 

@@ -3,6 +3,11 @@ import { verifyNCSignature } from "@/lib/nc-security";
 import { getOrCreateConversation, addMessage, getHistory } from "@/lib/memory";
 import { runAgent } from "@/lib/agent-client";
 import { sendNCMessage } from "@/lib/nc-client";
+import {
+  extractScreenshotPaths,
+  uploadAndShareScreenshot,
+  isWebDAVConfigured
+} from "@/lib/nc-upload";
 
 /**
  * Webhook API pour Nextcloud Talk Bot
@@ -123,9 +128,41 @@ export async function POST(req: NextRequest) {
         // Sauvegarder la réponse assistant
         await addMessage(conversation.id, "assistant", response, dbModel);
         
+        // Détecter les screenshots dans la réponse
+        const screenshotPaths = extractScreenshotPaths(response);
+        let finalMessage = response;
+        
+        // Si des screenshots sont détectés et WebDAV configuré, les uploader et partager
+        if (screenshotPaths.length > 0 && isWebDAVConfigured()) {
+          console.info(`[NC-Webhook] ${screenshotPaths.length} screenshot(s) détecté(s), upload en cours...`);
+          
+          for (const screenshotPath of screenshotPaths) {
+            const uploadResult = await uploadAndShareScreenshot(screenshotPath, conversationToken);
+            
+            if (uploadResult.success) {
+              console.info(`[NC-Webhook] Screenshot uploadé et partagé: ${uploadResult.remotePath}`);
+              // Nettoyer le chemin local du message final (replaceAll pour toutes les occurrences)
+              finalMessage = finalMessage.replaceAll(screenshotPath, '').trim();
+            } else {
+              console.error(`[NC-Webhook] Erreur upload screenshot: ${uploadResult.error}`);
+              // Garder le chemin dans le message si l'upload échoue
+            }
+          }
+          
+          // Nettoyer les lignes vides multiples et les espaces superflus
+          finalMessage = finalMessage
+            .replace(/\n{3,}/g, '\n\n')  // Max 2 sauts de ligne consécutifs
+            .trim();
+          
+          // Si le message est vide après nettoyage, mettre un message par défaut
+          if (!finalMessage) {
+            finalMessage = "📸 Capture d'écran affichée ci-dessus.";
+          }
+        }
+        
         // Envoyer le message à Nextcloud (OCS API) avec retry automatique
         // On peut répondre en citant le message d'origine (replyTo)
-        await sendWithRetry(conversationToken, response, messageId);
+        await sendWithRetry(conversationToken, finalMessage, messageId);
         console.info(`[NC-Webhook] Réponse envoyée à Nextcloud pour: ${conversationToken}`);
       } catch (agentError) {
         console.error("[NC-Webhook] Erreur Agent:", agentError);

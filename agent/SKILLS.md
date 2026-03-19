@@ -20,11 +20,29 @@ En fournissant des **patterns de code concrets** dans `instructions`, l'agent pe
 
 ---
 
-## Skills disponibles (2026-02-20)
+## Skills disponibles (2026-03-19)
 
-### 1. Screenshot + Vision
+### 1a. Screenshot SEUL (sans analyse)
 
-**Usage** : Prendre un screenshot et l'analyser avec qwen3-vl:2b
+**Usage** : Prendre uniquement un screenshot SANS analyse
+
+```python
+screenshot_path = screenshot()
+final_answer(f"Capture d'écran sauvegardée: {screenshot_path}")
+```
+
+**Cas d'usage** :
+- "Prends une capture d'écran"
+- "Take a screenshot"
+- "Fais un screenshot"
+
+**IMPORTANT** : Si l'utilisateur ne demande PAS explicitement de décrire/analyser, ne faire QUE le screenshot !
+
+---
+
+### 1b. Screenshot + Vision (avec analyse explicite)
+
+**Usage** : Prendre un screenshot et l'analyser avec qwen3-vl:2b (uniquement si demandé)
 
 ```python
 screenshot_path = screenshot()
@@ -34,9 +52,14 @@ print(f"Analysis: {analysis}")
 ```
 
 **Cas d'usage** :
-- "Prends un screenshot et décris ce que tu vois"
-- "Qu'est-ce qui est affiché à l'écran ?"
+- "Prends un screenshot ET décris ce que tu vois"
+- "Qu'est-ce qui est affiché à l'écran ?" (question explicite)
 - "Analyse l'écran actuel"
+
+**ATTENTION** :
+- `ui_grounding` NE sait PAS décrire une image !
+- `ui_grounding` sert uniquement à LOCALISER des éléments UI (boutons, menus, etc.)
+- Pour décrire → utiliser `analyze_image` via vision_agent
 
 ---
 

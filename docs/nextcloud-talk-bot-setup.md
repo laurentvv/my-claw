@@ -233,19 +233,88 @@ sudo -u apache php occ talk:bot:state <BOT_ID> <STATE>
 
 ---
 
-## 8. Fichiers Modifiés
+## 8. Affichage des Screenshots dans le Chat
+
+Par défaut, les captures d'écran sont sauvegardées localement et seul le chemin est affiché. Pour afficher les images directement dans Nextcloud Talk, configurez l'upload WebDAV.
+
+### 8.1 Prérequis
+
+- Un compte utilisateur Nextcloud dédié au bot (ex: `my-claw-bot`)
+- Un mot de passe d'application généré pour ce compte
+
+### 8.2 Créer le Compte Bot
+
+1. Connectez-vous à Nextcloud en tant qu'administrateur
+2. Allez dans **Paramètres** → **Utilisateurs**
+3. Créez un utilisateur `my-claw-bot`
+
+### 8.3 Générer un Mot de Passe d'Application
+
+1. Connectez-vous avec le compte `my-claw-bot`
+2. Allez dans **Paramètres personnels** → **Sécurité**
+3. Dans **Mots de passe d'application**, cliquez sur **Créer un nouveau mot de passe**
+4. Nommez-le `my-claw-webdav` et copiez le mot de passe généré
+
+### 8.4 Ajouter le Compte Bot à la Conversation
+
+Le compte utilisateur `my-claw-bot` doit être participant de la conversation pour pouvoir partager des fichiers.
+
+**Via l'interface Nextcloud Talk :**
+1. Ouvrez la conversation
+2. Cliquez sur "Ajouter des participants" (icône personne+)
+3. Recherchez et sélectionnez `my-claw-bot`
+
+**Via OCC (ligne de commande) :**
+```bash
+# Trouver le token de la conversation
+sudo -u apache php occ talk:room:list
+
+# Ajouter le compte bot
+sudo -u apache php occ talk:room:add <token> my-claw-bot
+```
+
+### 8.5 Créer le Dossier de Screenshots
+
+Dans Nextcloud, connectez-vous avec le compte `my-claw-bot` et créez :
+```
+/Talk/bot-screenshots/
+```
+
+### 8.6 Configuration
+
+Ajoutez dans `gateway/.env.local` :
+
+```bash
+# Compte Nextcloud pour upload WebDAV des screenshots
+NC_BOT_USERNAME="my-claw-bot"
+NC_BOT_PASSWORD="le-mot-de-passe-d-application"
+```
+
+### 8.7 Test
+
+Demandez au bot de prendre une capture d'écran :
+```
+Prends une capture d'écran
+```
+
+L'image devrait s'afficher directement dans le chat au lieu du chemin de fichier.
+
+---
+
+## 9. Fichiers Modifiés
 
 | Fichier | Description |
 |---------|-------------|
 | `gateway/lib/nc-security.ts` | Vérification et signature HMAC-SHA256 |
 | `gateway/lib/nc-client.ts` | Client API pour envoyer des messages |
-| `gateway/app/api/nc-talk/route.ts` | Endpoint webhook |
+| `gateway/lib/nc-upload.ts` | Upload WebDAV et partage de fichiers |
+| `gateway/app/api/nc-talk/route.ts` | Endpoint webhook avec détection screenshots |
 | `gateway/.env.example` | Variables d'environnement |
 | `gateway/.env.local` | Configuration locale (à créer) |
 
 ---
 
-## 9. Références
+## 10. Références
 
 - [Documentation Nextcloud Talk Bots](https://nextcloud-talk.readthedocs.io/en/latest/bots/)
 - [Documentation OCC Nextcloud Talk](https://nextcloud-talk.readthedocs.io/en/latest/occ/)
