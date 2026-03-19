@@ -97,13 +97,16 @@ export async function POST(req: NextRequest) {
     // 3. Orchestration my-claw
     // Utilisation du channel "nc-talk" et du token conversation comme channelId
     const channel = "nc-talk";
-    const model = "main"; // Modèle par défaut pour Talk
+    // model: undefined → utilise DEFAULT_MODEL configuré dans agent/.env
+    const model = undefined;
+    // Valeur stockée en base: "main" indique que le modèle par défaut du système est utilisé
+    const dbModel = "main";
 
     // Créer ou récupérer la conversation dans Prisma
-    const conversation = await getOrCreateConversation(channel, conversationToken, model);
+    const conversation = await getOrCreateConversation(channel, conversationToken, dbModel);
 
     // Sauvegarder le message utilisateur
-    await addMessage(conversation.id, "user", messageText, model);
+    await addMessage(conversation.id, "user", messageText, dbModel);
 
     // Récupérer l'historique (10 derniers messages pour le contexte)
     const history = await getHistory(conversation.id, 10);
@@ -118,7 +121,7 @@ export async function POST(req: NextRequest) {
         const response = await runAgent(messageText, history, model);
         
         // Sauvegarder la réponse assistant
-        await addMessage(conversation.id, "assistant", response, model);
+        await addMessage(conversation.id, "assistant", response, dbModel);
         
         // Envoyer le message à Nextcloud (OCS API) avec retry automatique
         // On peut répondre en citant le message d'origine (replyTo)

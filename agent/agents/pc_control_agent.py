@@ -2,7 +2,7 @@
 pc_control_agent — Agent spécialisé pilotage PC Windows.
 
 Outils : screenshot, ui_grounding (qwen3-vl), mouse_keyboard
-Modèle : glm-4.7 ou qwen3:8b (local, 0 quota)
+Modèle : glm-5 ou qwen3:8b (local, 0 quota)
 Rôle : Voir l'écran, localiser les éléments, cliquer, taper
 
 NOTE : ui_grounding utilise qwen3-vl en interne pour le GUI grounding.
@@ -64,7 +64,7 @@ def create_pc_control_agent(ollama_url: str, model_id: str = "qwen3:8b") -> Code
 
     logger.info(f"pc_control_agent tools: {[t.name for t in pc_tools]}")
 
-    # Modèle standard : glm-4.7 ou qwen3:8b (pas besoin de vision pour pilotage PC)
+    # Modèle standard : glm-5 ou qwen3:8b (pas besoin de vision pour pilotage PC)
     # Le modèle LLM orchestre les outils, ui_grounding utilise qwen3-vl en interne
     model = get_model(model_id)
 

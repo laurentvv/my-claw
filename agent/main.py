@@ -301,11 +301,16 @@ def validate_model_id(model_id: str | None) -> str:
     Raises:
         HTTPException: Si aucun modèle n'est disponible ou si la clé API est manquante
     """
+    logger.info(f"validate_model_id appelé avec: {model_id}")
+    
     if model_id is None:
         model_id = get_default_model()
+        logger.info(f"get_default_model() a retourné: {model_id}")
 
     # Vérifier que le modèle existe (même logique que get_model)
     models = get_models()
+    logger.info(f"Modèles disponibles: {list(models.keys())}")
+    
     if model_id not in models:
         # Vérifier si c'est un modèle Ollama direct
         ollama_models = get_ollama_models()
@@ -345,7 +350,7 @@ def build_prompt_with_history(message: str, history: list[dict]) -> str:
 class RunRequest(BaseModel):
     message: str
     history: list[dict] = []
-    model: str = "main"
+    model: str | None = None  # None → utilise DEFAULT_MODEL du .env
 
 
 @app.post("/run")
