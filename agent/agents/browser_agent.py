@@ -52,7 +52,7 @@ def create_browser_agent(
     if not mcp_tools:
         logger.warning("browser_agent: aucun tool MCP Chrome DevTools disponible")
 
-    # Modèle : glm-4.7 ou qwen3:8b local (0 quota, bon pour navigation structurée)
+    # Modèle : glm-5 ou qwen3:8b local (0 quota, bon pour navigation structurée)
     model = get_model(model_id)
 
     agent = CodeAgent(

@@ -2,7 +2,7 @@
 vision_agent — Agent spécialisé analyse d'images avec modèle de codage.
 
 Outils : analyze_image (qwen3-vl:8b interne)
-Modèle LLM : glm-4.7 ou qwen3:8b (codage, 100% local)
+Modèle LLM : glm-5 ou qwen3:8b (codage, 100% local)
 Rôle : Analyser des images, extraire du texte, diagnostiquer des erreurs
 
 NOTE : L'outil analyze_image utilise qwen3-vl:8b en interne pour la vision.
@@ -30,7 +30,7 @@ BONNES PRATIQUES :
 - TOUJOURS exécuter du code Python pour utiliser l'outil
 - TOUJOURS utiliser final_answer() pour retourner le résultat avec les 3 sections requises
 
-MODÈLE LLM : glm-4.7 ou qwen3:8b (codage)
+MODÈLE LLM : glm-5 ou qwen3:8b (codage)
 MODÈLE VISION INTERNE : qwen3-vl:8b (dans l'outil analyze_image)
 
 EXEMPLE :
@@ -73,7 +73,7 @@ def create_vision_agent(ollama_url: str, model_id: str = "qwen3:8b") -> CodeAgen
 
     logger.info(f"vision_agent tools: {[t.name for t in vision_tools]}")
 
-    # Utiliser un modèle de codage (glm-4.7 ou qwen3:8b)
+    # Utiliser un modèle de codage (glm-5 ou qwen3:8b)
     # L'outil analyze_image utilise qwen3-vl:8b en interne pour la vision
     model = get_model(model_id)
 

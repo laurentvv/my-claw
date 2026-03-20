@@ -2,7 +2,7 @@
 pc_control_agent — Agent spécialisé pilotage PC Windows.
 
 Outils : screenshot, ui_grounding (qwen3-vl), mouse_keyboard
-Modèle : glm-4.7 ou qwen3:8b (local, 0 quota)
+Modèle : glm-5 ou qwen3:8b (local, 0 quota)
 Rôle : Voir l'écran, localiser les éléments, cliquer, taper
 
 NOTE : ui_grounding utilise qwen3-vl en interne pour le GUI grounding.
@@ -19,7 +19,25 @@ logger.setLevel(logging.INFO)
 _PC_CONTROL_INSTRUCTIONS = """
 Tu es un agent spécialisé dans le pilotage de l'interface graphique Windows.
 
-Pour localiser un élément et cliquer dessus :
+## Screenshot SEUL (sans analyse)
+Si la tâche demande UNIQUEMENT de prendre un screenshot SANS analyse/description :
+```python
+screenshot_path = screenshot()
+final_answer(f"Capture d'écran sauvegardée: {screenshot_path}")
+```
+
+**CRITICAL - Détecter si analyse demandée:**
+- "Prends une capture d'écran" → screenshot SEUL
+- "Take a screenshot" → screenshot SEUL
+- "Fais un screenshot" → screenshot SEUL
+- "Prends une capture d'écran ET décris ce que tu vois" → screenshot + délégation vision_agent
+- "Take a screenshot and describe it" → screenshot + délégation vision_agent
+
+**NE JAMAIS** utiliser ui_grounding pour décrire une image !
+- ui_grounding sert à LOCALISER un élément (ex: "trouve le bouton OK")
+- ui_grounding NE sait PAS décrire une image
+
+## Localiser un élément et cliquer
 ```python
 screenshot_path = screenshot()
 result = ui_grounding(image_path=screenshot_path, element="description de l'élément")
@@ -30,14 +48,15 @@ else:
     final_answer(f"Élément non trouvé: {result}")
 ```
 
-Pour taper du texte :
+## Taper du texte
 ```python
 mouse_keyboard(operation="type", text="texte à taper")
 ```
 
 IMPORTANT :
-- Pour analyser une image, délègue au sous-agent vision_agent
+- Pour analyser/décrire une image, délègue au sous-agent vision_agent
 - Toujours utiliser final_answer() pour retourner le résultat
+- Un screenshot seul = 1 ligne de code, pas plus !
 """
 
 
@@ -64,7 +83,7 @@ def create_pc_control_agent(ollama_url: str, model_id: str = "qwen3:8b") -> Code
 
     logger.info(f"pc_control_agent tools: {[t.name for t in pc_tools]}")
 
-    # Modèle standard : glm-4.7 ou qwen3:8b (pas besoin de vision pour pilotage PC)
+    # Modèle standard : glm-5 ou qwen3:8b (pas besoin de vision pour pilotage PC)
     # Le modèle LLM orchestre les outils, ui_grounding utilise qwen3-vl en interne
     model = get_model(model_id)
 

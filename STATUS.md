@@ -1,6 +1,6 @@
 # STATUS — Vue rapide my-claw
 
-> Dernière mise à jour : 2026-02-24
+> Dernière mise à jour : 2026-03-19
 > Repo : https://github.com/laurentvv/my-claw
 
 ---
@@ -21,7 +21,7 @@ Architecture : Next.js 16.1 (gateway) + Python smolagents (agent) + Gradio (UI d
 | **2 — Mémoire** | ✅ DONE | Prisma 7.4 + SQLite + historique conversations |
 | **3 — WebChat** | ✅ DONE | UI React 19 + SSE streaming + auth Bearer |
 | **Tools** | ✅ **10/11** | TOOL-1,2,3,4,5,7,8,9,10,11 DONE / TOOL-6 TODO |
-| **4 — Nextcloud Talk** | ⏳ TODO | Bot HMAC-SHA256 |
+| **4 — Nextcloud Talk** | ✅ DONE | Bot HMAC-SHA256 + WebDAV screenshots |
 | **5 — Cron** | ⏳ TODO | Tâches proactives |
 | **6 — Z.ai + Health** | ⏳ TODO | GLM-4.7 + monitoring |
 | **7 — Identity** | ⏳ TODO | Persona + system prompt |

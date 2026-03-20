@@ -25,11 +25,11 @@ MODEL_PREFERENCES: dict[str, list[str]] = {
 
 CLOUD_MODELS: dict[str, tuple[str, str]] = {
     "code": (
-        "openai/glm-4.7-flash",
+        "openai/glm-5-flash",
         os.environ.get("ZAI_BASE_URL", "https://api.z.ai/api/coding/paas/v4"),
     ),
     "reason": (
-        "openai/glm-4.7",
+        "openai/glm-5",
         os.environ.get("ZAI_BASE_URL", "https://api.z.ai/api/coding/paas/v4"),
     ),
 }
@@ -219,21 +219,26 @@ def get_default_model() -> str:
 
     Priorité :
     1. Variable d'environnement DEFAULT_MODEL
-    2. "reason" (glm-4.7) si ZAI_API_KEY configuré
+    2. "reason" (glm-5) si ZAI_API_KEY configuré
     3. "main" (qwen3:8b local) en fallback
 
     Returns:
         str: Identifiant du modèle par défaut (main, code, reason, smart, fast, vision)
     """
+    models = get_models()
+    logger.info(f"Modèles disponibles pour get_default_model: {list(models.keys())}")
+    
     # Priorité 1 : variable d'environnement
     env_default = os.environ.get("DEFAULT_MODEL")
-    if env_default and env_default in get_models():
+    logger.info(f"DEFAULT_MODEL depuis env: {env_default}")
+    
+    if env_default and env_default in models:
         logger.info(f"✓ Modèle par défaut depuis env: {env_default}")
         return env_default
 
-    # Priorité 2 : GLM4.7 si API key configuré
+    # Priorité 2 : GLM-5 si API key configuré
     if os.environ.get("ZAI_API_KEY"):
-        logger.info("✓ Modèle par défaut: reason (glm-4.7)")
+        logger.info("✓ Modèle par défaut: reason (glm-5)")
         return "reason"
 
     # Priorité 3 : fallback local

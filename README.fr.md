@@ -51,11 +51,11 @@ Le système est divisé en deux composants principaux : la **Gateway** (gestion 
 graph TD
     User([Utilisateur])
     WebChat[Next.js 16 WebChat]
-    NCTalk[Nextcloud Talk - Roadmap]
+    NCTalk[Nextcloud Talk]
 
     subgraph Gateway ["Gateway (Next.js 16)"]
         API_Chat[API /api/chat]
-        API_Webhook[API /api/webhook - Roadmap]
+        API_Webhook[API /api/nc-talk]
         Prisma[Prisma 7 + SQLite]
     end
 
@@ -74,21 +74,18 @@ graph TD
     end
 
     User --> WebChat
-    User -.-> NCTalk
+    User --> NCTalk
     WebChat --> API_Chat
-    NCTalk -.-> API_Webhook
+    NCTalk --> API_Webhook
     API_Chat --> Prisma
     API_Chat --> FastAPI
-    API_Webhook -.-> FastAPI
+    API_Webhook --> FastAPI
     FastAPI --> Smolagents
     Smolagents --> Tools
     Smolagents --> Ollama
     Smolagents --> ZAI
     Tools --> Windows[Windows OS]
     Tools --> Chrome[Chrome DevTools]
-
-    style NCTalk stroke-dasharray: 5 5
-    style API_Webhook stroke-dasharray: 5 5
 ```
 
 ---
@@ -177,8 +174,9 @@ Statut actuel : **10/11 outils cœurs implémentés**
 ### Module 3 : WebChat ✅
 - Interface de streaming, SSE, et authentification sécurisée.
 
-### Module 4 : Intégration Nextcloud Talk ⏳
+### Module 4 : Intégration Nextcloud Talk ✅
 - Support de bot via webhooks HMAC-SHA256 pour l'interaction mobile.
+- Upload WebDAV des screenshots pour affichage des images dans le chat.
 
 ### Module 5 : Tâches Proactives ⏳
 - Exécution de jobs basés sur cron et notifications proactives.
