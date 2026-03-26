@@ -2,7 +2,7 @@
 name = "my-claw-agent"
 version = "0.2.0"
 description = "my-claw — Agent Python smolagents multi-agent"
-requires-python = ">=3.13"
+requires-python = ">=3.14"
 
 dependencies = [
     "smolagents[litellm,mcp]>=1.24.0",
@@ -30,11 +30,11 @@ dev = [
 
 [tool.ruff]
 line-length = 100
-target-version = "py313"
+target-version = "py314"
 
 [tool.ruff.lint]
 select = ["E", "F", "I"]
 
 [tool.pyright]
-pythonVersion = "3.13"
+pythonVersion = "3.14"
 typeCheckingMode = "basic"
