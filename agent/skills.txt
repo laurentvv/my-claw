@@ -232,3 +232,26 @@ Pour lire des fichiers GitHub directement (code, markdown) :
 
 NOTE : VisitWebpageTool ne lit pas les pages derrière authentification.
 Pour GitHub privé ou pages protégées → utiliser browser_agent.
+
+### SKILL 17 : Apprendre une nouvelle compétence (SkillManagerTool)
+Les agents peuvent apprendre de nouveaux patterns de code textuels et les sauvegarder de manière permanente.
+
+QUAND UTILISER :
+- UNIQUEMENT lorsque l'utilisateur demande explicitement "Crée un skill", "Apprends cette compétence", "Sauvegarde cette logique".
+- L'utilisateur décrit la tâche qu'il veut sauvegarder pour plus tard.
+
+COMMENT FORMULER LA REQUÊTE (Tool `skill_manager`) :
+Le manager doit appeler `skill_manager` avec les bons paramètres :
+```python
+skill_manager(
+    name="Extraction de texte Markdown d'un URL",
+    description="Télécharge le contenu d'un site et extrait les titres en markdown",
+    code_pattern='''
+response = visit_webpage(url="...")
+# logique python
+print("Titre extrait:", titre)
+'''.strip(),
+    trigger_phrases="extrais les titres de, récupère le sommaire de l'url"
+)
+```
+NOTE : Ne pas créer de compétence de manière autonome sans la demande de l'utilisateur. Ne pas utiliser ce tool pour sauvegarder des fichiers normaux (utiliser `file_system`).

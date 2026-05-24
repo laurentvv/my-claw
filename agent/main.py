@@ -108,7 +108,7 @@ app = FastAPI(title="my-claw agent", version="0.2.0", lifespan=lifespan)
 # ─── Tools directs du Manager ────────────────────────────────────────────────
 # Le manager utilise seulement les tools simples (fichiers, OS, clipboard)
 # Les tools vision/screenshot/mouse sont dans pc_control_agent
-MANAGER_TOOLS_NAMES = {"file_system", "os_exec", "clipboard"}
+MANAGER_TOOLS_NAMES = {"file_system", "os_exec", "clipboard", "skill_manager"}
 
 
 def get_manager_tools() -> list:
