@@ -182,3 +182,28 @@ agent/
 - **LEARNING.md** : Section "Guidage de l'agent CodeAgent"
 - **skills.txt** : Fichier source des patterns de code
 
+
+### 6. Apprentissage Autonome de Skills (SkillManagerTool)
+
+**Usage** : Sauvegarder un pattern de code en tant que nouvelle compétence réutilisable.
+
+```python
+skill_manager(
+    name="Recherche météo",
+    description="Récupère la météo pour une ville donnée via wttr.in",
+    code_pattern='''
+import requests
+response = requests.get(f"https://wttr.in/{ville}?format=3")
+print(response.text)
+'''.strip(),
+    trigger_phrases="quelle est la météo, donne moi la météo"
+)
+```
+
+**Cas d'usage** :
+- "Apprends à chercher la météo et sauvegarde-le comme une compétence"
+- "Crée un nouveau skill pour extraire le texte d'un PDF"
+
+**ATTENTION** :
+- L'agent ne doit **JAMAIS** créer de compétence de manière autonome sans que l'utilisateur ne lui ait explicitement demandé avec les mots clés "apprends", "crée un skill", "sauvegarde cette compétence".
+- L'outil ajoute le pattern à `skills.txt` et met à jour l'agent courant en mémoire.

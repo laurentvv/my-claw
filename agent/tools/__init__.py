@@ -21,6 +21,7 @@ from .mouse_keyboard import MouseKeyboardTool
 from .os_exec import OsExecTool
 from .screenshot import ScreenshotTool
 from .vision import VisionTool
+from .skill_manager import SkillManagerTool
 
 logger = logging.getLogger(__name__)
 
@@ -55,6 +56,7 @@ __all__ = [
     "OsExecTool",
     "ScreenshotTool",
     "VisionTool",
+    "SkillManagerTool",
     "WebSearchTool",
     "WebVisitTool",
 ]
@@ -71,6 +73,7 @@ TOOLS = [
     VisionTool(),
     QwenGroundingTool(),
     MouseKeyboardTool(),
+    SkillManagerTool(),
 ]
 
 logger.info(f"✓ {len(TOOLS)} outils chargés : {[t.name for t in TOOLS]}")

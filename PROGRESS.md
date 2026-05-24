@@ -386,3 +386,9 @@ my-claw/
         ├── (webchat)/page.tsx     DONE module 3
         └── api/chat/route.ts      DONE module 3
 ```
+
+### TOOL-12 — Apprentissage Autonome (SkillManagerTool)
+**Statut** : ✅ Terminé
+- Outil permettant à l'agent de créer et de sauvegarder de nouvelles compétences (patterns de code) dynamiquement dans `skills.txt` sur demande explicite de l'utilisateur.
+- Inspiré par la boucle d'auto-apprentissage de Hermes-Agent.
+- Mise à jour dynamique de la variable en mémoire pour disponibilité immédiate.
