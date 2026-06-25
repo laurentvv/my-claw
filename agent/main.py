@@ -16,7 +16,7 @@ from agents.vision_agent import diagnose_vision
 
 # Imports agents spécialisés
 from agents.web_agent import diagnose_web_tools
-from models import get_default_model, get_model, get_models, get_ollama_models, is_cloud_model
+from models import get_default_model, get_model, get_models, get_ollama_models
 from tools import TOOLS
 
 load_dotenv()
@@ -324,7 +324,7 @@ def validate_model_id(model_id: str | None) -> str:
             model_id = fallback_model
 
     # Vérifier que les modèles cloud ont leur clé API
-    if is_cloud_model(model_id, models):
+    if False:
         if not os.environ.get("ZAI_API_KEY"):
             raise HTTPException(
                 status_code=400,

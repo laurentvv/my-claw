@@ -61,7 +61,10 @@ class SkillManagerTool(Tool):
                     if line.strip().startswith("### SKILL LEARNED :"):
                         existing_name = line.split("### SKILL LEARNED :", 1)[1].strip()
                         if existing_name.lower() == name.lower():
-                            return f"ERROR: Une compétence avec le nom '{existing_name}' existe déjà."
+                            return (
+                                f"ERROR: Une compétence avec le nom "
+                                f"'{existing_name}' existe déjà."
+                            )
 
             # Ajouter à la fin du fichier
             with open(self.skills_path, "a", encoding="utf-8") as f:
