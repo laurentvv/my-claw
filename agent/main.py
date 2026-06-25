@@ -11,13 +11,13 @@ from mcp import StdioServerParameters
 from pydantic import BaseModel
 from smolagents import CodeAgent, ToolCollection
 
-from models import get_default_model, get_model, get_models, get_ollama_models, is_cloud_model
-from tools import TOOLS
+from agents.pc_control_agent import diagnose_pc_control
+from agents.vision_agent import diagnose_vision
 
 # Imports agents spécialisés
 from agents.web_agent import diagnose_web_tools
-from agents.pc_control_agent import diagnose_pc_control
-from agents.vision_agent import diagnose_vision
+from models import get_default_model, get_model, get_models, get_ollama_models, is_cloud_model
+from tools import TOOLS
 
 load_dotenv()
 
@@ -448,6 +448,9 @@ async def list_models():
             "pc_control": f"{default_model} + qwen3-vl (interne)",
             "vision": f"{default_model} + analyze_image (qwen3-vl interne)",
             "browser": f"{default_model} + {len(_chrome_mcp_tools)} tools Chrome DevTools",
-            "web_search_agent": f"{default_model} + DuckDuckGoSearchTool + VisitWebpageTool (illimité)",
+            "web_search_agent": (
+                f"{default_model} + DuckDuckGoSearchTool "
+                f"+ VisitWebpageTool (illimité)"
+            ),
         },
     }

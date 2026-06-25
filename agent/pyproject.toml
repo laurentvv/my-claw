@@ -20,6 +20,7 @@ dependencies = [
     "mcpadapt>=0.1.20",
     "ddgs>=9.0.0",
     "markdownify>=0.14.1",
+    "free-llm-api-keys",
 ]
 
 [project.optional-dependencies]
@@ -38,3 +39,6 @@ select = ["E", "F", "I"]
 [tool.pyright]
 pythonVersion = "3.14"
 typeCheckingMode = "basic"
+
+[tool.uv.sources]
+free-llm-api-keys = { git = "https://github.com/laurentvv/free-llm-api-keys-python.git" }

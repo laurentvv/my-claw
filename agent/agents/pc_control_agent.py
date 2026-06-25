@@ -151,8 +151,9 @@ def diagnose_pc_control() -> dict[str, bool | str | None]:
 
     try:
         # Vérifier qwen3-vl modèle
-        import requests
         import os
+
+        import requests
 
         ollama_url = os.environ.get("OLLAMA_BASE_URL", "http://localhost:11434")
         response = requests.get(f"{ollama_url}/api/tags", timeout=5)
@@ -198,8 +199,9 @@ def diagnose_pc_control() -> dict[str, bool | str | None]:
 
     try:
         # Vérifier qwen3-vl modèle
-        import requests
         import os
+
+        import requests
 
         ollama_url = os.environ.get("OLLAMA_BASE_URL", "http://localhost:11434")
         response = requests.get(f"{ollama_url}/api/tags", timeout=5)

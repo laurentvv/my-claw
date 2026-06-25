@@ -1,5 +1,6 @@
 import logging
 from pathlib import Path
+
 from smolagents import Tool
 
 logger = logging.getLogger(__name__)
@@ -19,7 +20,8 @@ class SkillManagerTool(Tool):
     inputs = {
         "name": {
             "type": "string",
-            "description": "Nom court et descriptif de la compétence (ex: 'Conversion CSV vers JSON')",
+            "description": "Nom court et descriptif de la compétence "
+                           "(ex: 'Conversion CSV vers JSON')",
         },
         "description": {
             "type": "string",
@@ -71,9 +73,15 @@ class SkillManagerTool(Tool):
                 main_app.SKILLS = main_app.load_skills()
                 logger.info(f"Skill '{name}' sauvegardé et chargé en mémoire.")
             except Exception as e:
-                logger.warning(f"Skill sauvegardé sur disque mais échec du rechargement en mémoire : {e}")
+                logger.warning(
+                    f"Skill sauvegardé sur disque mais échec du "
+                    f"rechargement en mémoire : {e}"
+                )
 
-            return f"SUCCESS: La compétence '{name}' a été sauvegardée avec succès. Elle sera disponible pour les prochaines requêtes."
+            return (
+                f"SUCCESS: La compétence '{name}' a été sauvegardée "
+                f"avec succès. Elle sera disponible pour les prochaines requêtes."
+            )
 
         except Exception as e:
             logger.error(f"Erreur lors de la sauvegarde du skill : {e}")

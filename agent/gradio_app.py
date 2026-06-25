@@ -144,7 +144,10 @@ def get_agent_status() -> str:
             f"(DDG: {'✅' if web_ddg else '❌'}, Visit: {'✅' if web_visit else '❌'})"
         )
     except requests.ConnectionError:
-        return f"❌ Agent non accessible sur {AGENT_URL} — démarrer: `uv run uvicorn main:app --reload`"
+        return (
+            f"❌ Agent non accessible sur {AGENT_URL} "
+            f"— démarrer: `uv run uvicorn main:app --reload`"
+        )
     except requests.Timeout:
         return f"❌ Timeout vérifiant {AGENT_URL}/health — serveur lent ?"
     except Exception as e:

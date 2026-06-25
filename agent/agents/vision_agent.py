@@ -114,8 +114,9 @@ def diagnose_vision() -> dict[str, bool | str | None]:
     """
     try:
         # Vérifier qu'un modèle de vision est disponible
-        import requests
         import os
+
+        import requests
 
         ollama_url = os.environ.get("OLLAMA_BASE_URL", "http://localhost:11434")
         response = requests.get(f"{ollama_url}/api/tags", timeout=5)

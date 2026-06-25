@@ -20,8 +20,8 @@ from .grounding import QwenGroundingTool
 from .mouse_keyboard import MouseKeyboardTool
 from .os_exec import OsExecTool
 from .screenshot import ScreenshotTool
-from .vision import VisionTool
 from .skill_manager import SkillManagerTool
+from .vision import VisionTool
 
 logger = logging.getLogger(__name__)
 
