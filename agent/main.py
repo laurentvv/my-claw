@@ -323,16 +323,6 @@ def validate_model_id(model_id: str | None) -> str:
             logger.warning(f"Modèle '{model_id}' non trouvé, fallback sur {fallback_model}")
             model_id = fallback_model
 
-    # Vérifier que les modèles cloud ont leur clé API
-    if False:
-        if not os.environ.get("ZAI_API_KEY"):
-            raise HTTPException(
-                status_code=400,
-                detail=(
-                    f"Modèle cloud '{model_id}' requiert ZAI_API_KEY. "
-                    "Configurez-le dans agent/.env"
-                ),
-            )
 
     return model_id
 
