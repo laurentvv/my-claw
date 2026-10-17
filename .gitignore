@@ -56,3 +56,5 @@ pnpm-debug.log*
 .kilocode/skills/
 .crush/
 .agent/*.duckdb.wal
+# Agent local state (ledger, installed skills) - kept on disk, never committed
+.agent/
